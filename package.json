@@ -3,8 +3,8 @@
   "type": "module",
   "version": "1.0.0",
   "description": "",
-  "author": "",
-  "license": "ISC",
+  "author": "hhk-png <fangluoabc@163.com>",
+  "license": "MIT",
   "keywords": [],
   "main": "index.js",
   "scripts": {
