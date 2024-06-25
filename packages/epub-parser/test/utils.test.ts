@@ -61,6 +61,6 @@ describe('utils', () => {
   })
 
   it('zipFile.readFile file not exit', async () => {
-    await expect(epubFile.readFile('not-exist')).rejects.toThrow('File not found')
+    await expect(epubFile.readFile('not-exist')).rejects.toThrow()
   })
 })

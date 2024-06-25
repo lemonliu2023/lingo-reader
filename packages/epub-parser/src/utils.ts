@@ -15,7 +15,7 @@ export class ZipFile {
   admZip: AdmZip
   names: Set<string>
   count: number
-  constructor(filePath: string) {
+  constructor(public filePath: string) {
     this.admZip = new AdmZip(filePath)
     this.names = new Set(this.admZip.getEntries().map(zipEntry => zipEntry.entryName))
     this.count = this.names.size
@@ -23,7 +23,7 @@ export class ZipFile {
 
   async readFile(name: string) {
     if (!this.names.has(name)) {
-      throw new Error('File not found')
+      throw new Error(`${name} was not exit in ${this.filePath}`)
     }
     return this.admZip.readFile(this.admZip.getEntry(name)!)?.toString('utf8')
   }
