@@ -21,15 +21,15 @@ const external = []
 const globals = {}
 export default [
   {
-    input: 'src/index.ts',
+    input: './packages/addtemp/index.ts',
     external,
     output: [
       {
-        file: 'dist/index.js',
+        file: './packages/addtemp/dist/index.js',
         format: 'cjs',
       },
       {
-        file: 'dist/index.mjs',
+        file: './packages/addtemp/dist/index.mjs',
         format: 'esm',
       },
     ],
@@ -41,11 +41,11 @@ export default [
     ],
   },
   {
-    input: 'src/index.ts',
+    input: 'packages/addtemp/index.ts',
     external,
     output: [
       {
-        file: 'dist/index.browser.mjs',
+        file: './packages/addtemp/dist/index.browser.mjs',
         format: 'esm',
 
       },
@@ -92,10 +92,10 @@ export default [
   //   ],
   // },
   {
-    input: 'src/index.ts',
+    input: './packages/addtemp/index.ts',
     output: [
       {
-        file: 'dist/index.d.ts',
+        file: './packages/addtemp/dist/index.d.ts',
         format: 'es',
         globals,
       },
