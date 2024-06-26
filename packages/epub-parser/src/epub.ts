@@ -1,7 +1,7 @@
 
 import { parsexml, ZipFile } from './utils.ts'
 
-export class epubFile {
+export class EpubFile {
   zip: ZipFile
   mimeFile: string = 'mimetype'
   constructor(public epubFileName: string) {

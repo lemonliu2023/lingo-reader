@@ -33,7 +33,7 @@ export class ZipFile {
     if (!this.hasFile(name)) {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
-    const fileName = this.names.get(name.toLowerCase())!
+    const fileName = this.getFileName(name)!
     const content = this.admZip.readFile(this.admZip.getEntry(fileName)!)!.toString('utf8')
     const txt = content.toLowerCase().trim()
     if (txt.length === 0) {
@@ -44,6 +44,10 @@ export class ZipFile {
 
   hasFile(name: string) {
     return this.names.has(name.toLowerCase())
+  }
+
+  getFileName(name: string) {
+    return this.names.get(name.toLowerCase())
   }
 }
 

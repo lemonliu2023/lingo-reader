@@ -3,7 +3,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { ZipFile, parsexml } from '../src/utils.ts'
 
-const epubNames = [
+const aliceEpubNames = [
   'mimetype',
   'META-INF/container.xml',
   '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
@@ -45,7 +45,7 @@ const epubNames = [
 describe('utils', () => {
   // alice.epub file path
   const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const epubPath = path.resolve(currentDir, '../example/alice.epub')
+  const epubPath = path.resolve(currentDir, './example/alice.epub')
   const epubFile = new ZipFile(epubPath)
 
   it('parsexml', async () => {
@@ -55,8 +55,8 @@ describe('utils', () => {
   })
 
   it('zipFile.readFile file exit', async () => {
-    expect([...epubFile.names.values()]).toEqual(epubNames)
-    const fileContent = await epubFile.readFile(epubNames[0])
+    expect([...epubFile.names.values()]).toEqual(aliceEpubNames)
+    const fileContent = await epubFile.readFile(aliceEpubNames[0])
     expect(fileContent).toEqual('application/epub+zip')
   })
 
