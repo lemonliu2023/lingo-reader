@@ -55,7 +55,7 @@ describe('utils', () => {
   })
 
   it('zipFile.readFile file exit', async () => {
-    expect([...epubFile.names]).toEqual(epubNames)
+    expect([...epubFile.names.values()]).toEqual(epubNames)
     const fileContent = await epubFile.readFile(epubNames[0])
     expect(fileContent).toEqual('application/epub+zip')
   })

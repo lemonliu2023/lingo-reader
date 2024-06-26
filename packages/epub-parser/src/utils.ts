@@ -7,25 +7,43 @@ export async function parsexml(str: string) {
     const result = await xml2js.parseStringPromise(str)
     return result
   } catch (err) {
-    throw err
+    console.error(err)
   }
 }
 
 export class ZipFile {
   admZip: AdmZip
-  names: Set<string>
+  names: Map<string, string>
   count: number
   constructor(public filePath: string) {
     this.admZip = new AdmZip(filePath)
-    this.names = new Set(this.admZip.getEntries().map(zipEntry => zipEntry.entryName))
+    this.names = new Map(this.admZip.getEntries().map(
+      (zipEntry) => {
+        return [zipEntry.entryName.toLowerCase(), zipEntry.entryName]
+      })
+    )
     this.count = this.names.size
+    if (this.count === 0) {
+      throw new Error('No file in zip')
+    }
   }
 
+  // read inner file in .epub file
   async readFile(name: string) {
-    if (!this.names.has(name)) {
-      throw new Error(`${name} was not exit in ${this.filePath}`)
+    if (!this.hasFile(name)) {
+      throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
-    return this.admZip.readFile(this.admZip.getEntry(name)!)?.toString('utf8')
+    const fileName = this.names.get(name.toLowerCase())!
+    const content = this.admZip.readFile(this.admZip.getEntry(fileName)!)!.toString('utf8')
+    const txt = content.toLowerCase().trim()
+    if (txt.length === 0) {
+      throw new Error(`${name} file is empty`)
+    }
+    return txt
+  }
+
+  hasFile(name: string) {
+    return this.names.has(name.toLowerCase())
   }
 }
 
