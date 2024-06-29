@@ -7,6 +7,7 @@ export class EpubFile {
   mimeFile: string = 'mimetype'
   mimeType: string = ''
   rootFile: string = ''
+  contentDir: string = ''
   metadata: Record<string, any> = {}
   manifest: Record<string, ManifestItem> = {}
   constructor(public epubFileName: string) {
@@ -55,6 +56,7 @@ export class EpubFile {
       throw new Error('Rootfile in unknow format')
     }
     this.rootFile = fullPath
+    this.contentDir = fullPath.split('/').slice(0, -1).join('/')
   }
 
   // opf file package
@@ -161,10 +163,6 @@ export class EpubFile {
   }
 
   parseManifest(manifest: Record<string, any>) {
-    const path = this.rootFile.split('/')
-    path.pop()
-    const rootPath = path.join('/')
-    
     const items = manifest.item
     if (!items) {
       throw new Error('The manifest element must contain one or more item elements')
@@ -175,7 +173,7 @@ export class EpubFile {
       if (!element || !element.id || !element.href || !element['media-type']) {
         throw new Error('The item in manifest must have attributes id, href and mediaType.')
       }
-      element.href = `${rootPath}/${element.href}`
+      element.href = `${this.contentDir}/${element.href}`
       this.manifest[element.id] = element
     }
   }

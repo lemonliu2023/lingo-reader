@@ -15,6 +15,7 @@ describe('epubFile', () => {
 
   it('container file fullpath', () => {
     expect(epub.rootFile).toBe('19033/content.opf')
+    expect(epub.contentDir).toBe('19033')
   })
 
   it('parseMetadata', () => {
@@ -43,15 +44,12 @@ describe('epubFile', () => {
 
   it('parseManifest', () => {
     const manifest = epub.manifest
-    const path = epub.rootFile.split('/')
-    path.pop()
-    const rootPath = path.join('/')
 
     // 33 items in manifest
     expect(Object.keys(manifest).length).toBe(33)
     expect(manifest.item1).toEqual({
       'id': 'item1',
-      'href': `${rootPath}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
+      'href': `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
       'media-type': 'image/jpeg',
     })
   })
