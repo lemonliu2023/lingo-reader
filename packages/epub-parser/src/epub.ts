@@ -1,6 +1,6 @@
 
 import { camelCase, parsexml, ZipFile } from './utils.ts'
-import type { ManifestItem } from './types.ts'
+import type { ManifestItem, GuideReference } from './types.ts'
 
 export class EpubFile {
   zip: ZipFile
@@ -10,6 +10,7 @@ export class EpubFile {
   contentDir: string = ''
   metadata: Record<string, any> = {}
   manifest: Record<string, ManifestItem> = {}
+  guide: GuideReference[] = []
   constructor(public epubFileName: string) {
     // TODO: image root and link root
     this.zip = new ZipFile(epubFileName)
@@ -182,8 +183,16 @@ export class EpubFile {
     // console.log(spine)
   }
 
-  parseGuide(guide: Object) {
-    // console.log(guide)
+  parseGuide(guide: Record<string, any>) {
+    const references = guide.reference
+    if (!references) {
+      throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
+    }
+    for (const reference of references) {
+      const element = reference['$']
+      element.href = `${this.contentDir}/${element.href}`
+      this.guide.push(element)
+    }
   }
 }
 
