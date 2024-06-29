@@ -69,7 +69,11 @@ describe('epubFile', () => {
   it('parseSpine', () => {
     const spine = epub.spine
 
-    expect(spine.toc).toBe('ncx')
+    expect(spine.toc).toEqual({
+      'id': 'ncx',
+      'href': `${epub.contentDir}/toc.ncx`,
+      'media-type': 'application/x-dtbncx+xml',
+    })
     expect(spine.contents.length).toBe(1)
     expect(epub.flow.length).toBe(spine.contents.length)
     expect(spine.contents[0]).toEqual({

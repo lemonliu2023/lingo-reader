@@ -11,10 +11,14 @@ export class EpubFile {
   metadata: Record<string, any> = {}
   manifest: Record<string, ManifestItem> = {}
   spine: Spine = {
-    toc: '',
+    toc: {
+      id: '',
+      href: '',
+      mediaType: ''
+    },
     contents: []
   }
-  // flow is the order of the contents
+  // reference to the spine.contents
   flow: ManifestItem[] = []
   guide: GuideReference[] = []
   constructor(public epubFileName: string) {
@@ -95,6 +99,9 @@ export class EpubFile {
     }
 
     // TODO: parse TOC
+    // if (this.spine.toc.length > 0) {
+
+    // }
   }
 
   parseMetadata(metadata: Record<string, any>) {
@@ -187,7 +194,7 @@ export class EpubFile {
 
   parseSpine(spine: Record<string, any>) {
     if (spine['$']?.toc) {
-      this.spine.toc = spine['$'].toc || ""
+      this.spine.toc = this.manifest[spine['$'].toc]
     }
 
     const itemrefs = spine.itemref

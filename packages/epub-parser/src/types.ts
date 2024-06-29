@@ -15,6 +15,6 @@ export interface GuideReference {
 }
 
 export interface Spine {
-  toc: string
+  toc: ManifestItem
   contents: ManifestItem[]
 }
