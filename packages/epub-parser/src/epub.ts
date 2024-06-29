@@ -1,11 +1,12 @@
 
-import { parsexml, ZipFile } from './utils.ts'
+import { camelCase, parsexml, ZipFile } from './utils.ts'
 
 export class EpubFile {
   zip: ZipFile
   mimeFile: string = 'mimetype'
   mimeType: string = ''
   rootFile: string = ''
+  metadata: Record<string, any> = {}
   constructor(public epubFileName: string) {
     // TODO: image root and link root
     this.zip = new ZipFile(epubFileName)
@@ -37,9 +38,9 @@ export class EpubFile {
 
     const containerXml = await this.zip.readFile(containerFile)
     const xmlContainer = (await parsexml(containerXml)).container
-    if (!xmlContainer || 
-        !xmlContainer.rootfiles || 
-        !xmlContainer.rootfiles.length) {
+    if (!xmlContainer ||
+      !xmlContainer.rootfiles ||
+      !xmlContainer.rootfiles.length) {
       throw new Error('No rootfiles found')
     }
 
@@ -47,8 +48,8 @@ export class EpubFile {
     const rootFile = xmlContainer.rootfiles[len - 1].rootfile[0]
     const mediaType = rootFile['$']['media-type']
     const fullPath = rootFile['$']['full-path']
-    if (mediaType !== 'application/oebps-package+xml' || 
-        fullPath.length === 0) {
+    if (mediaType !== 'application/oebps-package+xml' ||
+      fullPath.length === 0) {
       throw new Error('Rootfile in unknow format')
     }
     this.rootFile = fullPath
@@ -85,8 +86,78 @@ export class EpubFile {
     // TODO: parse TOC
   }
 
-  parseMetadata(metadata: Object) {
-    console.log(metadata)
+  parseMetadata(metadata: Record<string, any>) {
+    for (const key in metadata) {
+      const keyName = key.split(':').pop()!
+      switch (keyName) {
+        case 'title':
+        case 'subject':
+        case 'description':
+        case 'publisher':
+        case 'type':
+        case 'format':
+        case 'source':
+        case 'language':
+        case 'relation':
+        case 'rights':
+        case 'coverage':
+          this.metadata[keyName] = metadata[key][0]['_'] || metadata[key][0] || ''
+          break
+
+        case 'creator':
+        case 'contributor':
+          this.metadata[keyName] = {[keyName]: metadata[key][0]['_'] || ''}
+          const $: Record<string, string> = metadata[key][0]['$']
+          for (const attr in $) {
+            const attrName = camelCase(attr.split(':').pop()!)
+            this.metadata[keyName][attrName] = $[attr]
+          }
+          break
+
+        case 'date':
+          if (!metadata[key][0]['$']) {
+            this.metadata[keyName] = metadata[key][0] || ''
+          } else {
+            this.metadata[keyName] = {}
+            for (const event of metadata[key]) {
+              const key = event['$']['opf:event']
+              const value = event['_']
+              this.metadata[keyName][key] = value
+            }
+          }
+          break
+
+        case 'identifier':
+          console.log(metadata[key])
+          const $OfIdentifier = metadata[key][0]['$']
+          const content = metadata[key][0]['_']
+          if ($OfIdentifier['opf:scheme']) {
+            this.metadata[$OfIdentifier['opf:scheme'].toUpperCase()] = content
+          } else {
+            const contentSplit = content.split(':')
+            if (content.startsWith('urn') && contentSplit.length > 1) {
+              this.metadata[contentSplit[1].toUpperCase()] = contentSplit[2]
+            } else {
+              this.metadata['identifier'] = content
+            }
+          }
+          break
+      }
+    }
+
+    // <meta />
+    const metas = metadata['meta']
+    for (const meta of metas) {
+      if (meta['$'] && meta['$'].name) {
+        const name = meta['$'].name
+        this.metadata[name] = meta['$'].content
+      }
+      if (meta['_'] && meta['_'].property) {
+        const property = meta['_'].property.split(':').pop()
+        this.metadata[property] = meta['_']
+      }
+    }
+    console.log(this.metadata)
   }
 
   parseManifest(manifest: Object) {
