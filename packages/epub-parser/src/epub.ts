@@ -1,5 +1,6 @@
 
 import { camelCase, parsexml, ZipFile } from './utils.ts'
+import type { ManifestItem } from './types.ts'
 
 export class EpubFile {
   zip: ZipFile
@@ -7,6 +8,7 @@ export class EpubFile {
   mimeType: string = ''
   rootFile: string = ''
   metadata: Record<string, any> = {}
+  manifest: Record<string, ManifestItem> = {}
   constructor(public epubFileName: string) {
     // TODO: image root and link root
     this.zip = new ZipFile(epubFileName)
@@ -106,7 +108,7 @@ export class EpubFile {
 
         case 'creator':
         case 'contributor':
-          this.metadata[keyName] = {[keyName]: metadata[key][0]['_'] || ''}
+          this.metadata[keyName] = { [keyName]: metadata[key][0]['_'] || '' }
           const $: Record<string, string> = metadata[key][0]['$']
           for (const attr in $) {
             const attrName = camelCase(attr.split(':').pop()!)
@@ -128,7 +130,6 @@ export class EpubFile {
           break
 
         case 'identifier':
-          console.log(metadata[key])
           const $OfIdentifier = metadata[key][0]['$']
           const content = metadata[key][0]['_']
           if ($OfIdentifier['opf:scheme']) {
@@ -157,11 +158,27 @@ export class EpubFile {
         this.metadata[property] = meta['_']
       }
     }
-    // console.log(this.metadata)
   }
 
-  parseManifest(manifest: Object) {
-    // console.log(manifest)
+  parseManifest(manifest: Record<string, any>) {
+    const path = this.rootFile.split('/')
+    path.pop()
+    const rootPath = path.join('/')
+    
+    const items = manifest.item
+    if (!items) {
+      throw new Error('The manifest element must contain one or more item elements')
+    }
+
+    for (const item of items) {
+      const element = item['$']
+      console.log(element)
+      if (!element || !element.id || !element.href || !element['media-type']) {
+        throw new Error('The item in manifest must have attributes id, href and mediaType.')
+      }
+      element.href = `${rootPath}/${element.href}`
+      this.manifest[element.id] = element
+    }
   }
 
   parseSpine(spine: Object) {
