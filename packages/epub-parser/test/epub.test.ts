@@ -16,4 +16,28 @@ describe('epubFile', () => {
   it('container file fullpath', () => {
     expect(epub.rootFile).toBe('19033/content.opf')
   })
+
+  it('metadata', () => {
+    const metadata = epub.metadata
+    expect(metadata.rights).toBe('Public domain in the USA.')
+    expect(metadata.URI).toBe('http://www.gutenberg.org/ebooks/19033')
+    expect(metadata.contributor).toEqual({
+      contributor: 'Gordon Robinson',
+      fileAs: 'Robinson, Gordon',
+      role: 'ill',
+    })
+    expect(metadata.creator).toEqual({
+      creator: 'Lewis Carroll',
+      fileAs: 'Carroll, Lewis',
+    })
+    expect(metadata.title).toBe(`Alice's Adventures in Wonderland`)
+    expect(metadata.language).toBe('en')
+    expect(metadata.subject).toBe('Fantasy')
+    expect(metadata.date).toEqual({
+      publication: '2006-08-12',
+      conversion: '2010-02-16T12:34:12.754941+00:00',
+    })
+    expect(metadata.source).toBe('http://www.gutenberg.org/files/19033/19033-h/19033-h.htm')
+    expect(metadata.cover).toBe('item32')
+  })
 })

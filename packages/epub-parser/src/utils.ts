@@ -35,7 +35,7 @@ export class ZipFile {
     }
     const fileName = this.getFileName(name)!
     const content = this.admZip.readFile(this.admZip.getEntry(fileName)!)!.toString('utf8')
-    const txt = content.toLowerCase().trim()
+    const txt = content.trim()
     if (txt.length === 0) {
       throw new Error(`${name} file is empty`)
     }

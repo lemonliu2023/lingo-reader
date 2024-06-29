@@ -157,7 +157,7 @@ export class EpubFile {
         this.metadata[property] = meta['_']
       }
     }
-    console.log(this.metadata)
+    // console.log(this.metadata)
   }
 
   parseManifest(manifest: Object) {
