@@ -53,4 +53,16 @@ describe('epubFile', () => {
       'media-type': 'image/jpeg',
     })
   })
+
+  it('parseGuide', () => {
+    const guide = epub.guide
+
+    // 1 reference in guide
+    expect(Object.keys(guide).length).toBe(1)
+    expect(guide).toEqual([{
+      title: 'Cover Image',
+      type: 'cover',
+      href: `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
+    }])
+  })
 })
