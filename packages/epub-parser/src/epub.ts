@@ -1,6 +1,6 @@
 
 import { camelCase, parsexml, ZipFile } from './utils.ts'
-import type { ManifestItem, GuideReference, Spine, NavPoints } from './types.ts'
+import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types.ts'
 
 export class EpubFile {
   zip: ZipFile
@@ -18,6 +18,11 @@ export class EpubFile {
   // reference to the spine.contents
   flow: ManifestItem[] = []
   guide: GuideReference[] = []
+  // table of contents
+  toc: TOCOutput[] = []
+  // remove duplicate href item in TOCOutput
+  hrefSet: Set<string> = new Set()
+
   constructor(public epubFileName: string) {
     // TODO: image root and link root
     this.zip = new ZipFile(epubFileName)
@@ -226,17 +231,52 @@ export class EpubFile {
     for (const id of ids) {
       idList[this.manifest[id].href] = id
     }
-    console.log(this.spine.tocPath)
+
     const tocNcxFile = await this.zip.readFile(this.spine.tocPath)
     const ncxXml = (await parsexml(tocNcxFile)).ncx
     if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
       throw new Error('navMap is a required element in the NCX')
     }
-    this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
+
+    this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
+    console.log(this.toc)
+    console.log(this.manifest)
   }
 
   walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
-    console.log(navPoints)
+    if (level > 7) {
+      return []
+    }
+    const output: TOCOutput[] = []
+    for (const navPoint of navPoints) {
+      if (navPoint.navLabel) {
+        const title = navPoint.navLabel[0]?.text[0]
+        const order = parseInt(navPoint['$']?.playOrder)
+        const href = `${this.contentDir}/${navPoint.content[0]['$']?.src.split('#')[0]}`
+        
+        if (!this.hrefSet.has(href)) {
+          const element: TOCOutput = {
+            href,
+            order,
+            title,
+            level,
+            id: ''
+          }
+          if (idList[href]) {
+            Object.assign(element, this.manifest[idList[href]]) 
+          } else {
+            element.id = navPoint['$']?.id || ""
+          }
+          output.push(element)
+          this.hrefSet.add(href)
+        }
+      }
+
+      if (navPoint.navPoint) {
+        output.push(...this.walkNavMap(navPoint.navPoint, idList, level + 1))
+      }
+    }
+    return output
   }
 }
 
