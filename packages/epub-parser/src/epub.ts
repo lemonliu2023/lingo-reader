@@ -1,6 +1,6 @@
 
 import { camelCase, parsexml, ZipFile } from './utils.ts'
-import type { ManifestItem, GuideReference, Spine } from './types.ts'
+import type { ManifestItem, GuideReference, Spine, NavPoints } from './types.ts'
 
 export class EpubFile {
   zip: ZipFile
@@ -11,6 +11,7 @@ export class EpubFile {
   metadata: Record<string, any> = {}
   manifest: Record<string, ManifestItem> = {}
   spine: Spine = {
+    // table of contents
     toc: {
       id: '',
       href: '',
@@ -98,10 +99,9 @@ export class EpubFile {
       }
     }
 
-    // TODO: parse TOC
-    // if (this.spine.toc.length > 0) {
-
-    // }
+    if (this.spine.toc) {
+      await this.parseTOC()
+    }
   }
 
   parseMetadata(metadata: Record<string, any>) {
@@ -221,6 +221,25 @@ export class EpubFile {
       element.href = `${this.contentDir}/${element.href}`
       this.guide.push(element)
     }
+  }
+
+  async parseTOC() {
+    // href to id
+    const idList: Record<string, string> = {}
+    const ids = Object.keys(this.manifest)
+    for (const id of ids) {
+      idList[this.manifest[id].href] = id
+    }
+    const tocNcxFile = await this.zip.readFile(this.spine.toc.href)
+    const ncxXml = (await parsexml(tocNcxFile)).ncx
+    if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
+      throw new Error('navMap is a required element in the NCX')
+    }
+    this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
+  }
+
+  walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level?: number) {
+    console.log(navPoints)
   }
 }
 

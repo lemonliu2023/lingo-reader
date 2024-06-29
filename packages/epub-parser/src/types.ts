@@ -18,3 +18,12 @@ export interface Spine {
   toc: ManifestItem
   contents: ManifestItem[]
 }
+
+export interface NavPoint {
+  $: { id: string, playOrder: string },
+  navLabel: any,
+  content: any,
+  navPoint: NavPoint[]
+}
+
+export type NavPoints = NavPoint[]
