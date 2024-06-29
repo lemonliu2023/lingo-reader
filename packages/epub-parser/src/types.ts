@@ -7,7 +7,7 @@ export interface ManifestItem {
   href: string
   mediaType: string
 }
-
+// level order title href id 
 export interface GuideReference {
   title: string
   type: string
@@ -15,15 +15,17 @@ export interface GuideReference {
 }
 
 export interface Spine {
-  toc: ManifestItem
+  tocPath: string
   contents: ManifestItem[]
 }
 
+// toc.ncx navPoint
 export interface NavPoint {
   $: { id: string, playOrder: string },
   navLabel: any,
   content: any,
   navPoint: NavPoint[]
 }
-
 export type NavPoints = NavPoint[]
+
+// export interface 

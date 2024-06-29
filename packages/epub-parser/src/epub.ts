@@ -12,11 +12,7 @@ export class EpubFile {
   manifest: Record<string, ManifestItem> = {}
   spine: Spine = {
     // table of contents
-    toc: {
-      id: '',
-      href: '',
-      mediaType: ''
-    },
+    tocPath: '',
     contents: []
   }
   // reference to the spine.contents
@@ -99,7 +95,7 @@ export class EpubFile {
       }
     }
 
-    if (this.spine.toc) {
+    if (this.spine.tocPath.length > 0) {
       await this.parseTOC()
     }
   }
@@ -194,7 +190,7 @@ export class EpubFile {
 
   parseSpine(spine: Record<string, any>) {
     if (spine['$']?.toc) {
-      this.spine.toc = this.manifest[spine['$'].toc]
+      this.spine.tocPath = this.manifest[spine['$'].toc].href || ""
     }
 
     const itemrefs = spine.itemref
@@ -230,7 +226,8 @@ export class EpubFile {
     for (const id of ids) {
       idList[this.manifest[id].href] = id
     }
-    const tocNcxFile = await this.zip.readFile(this.spine.toc.href)
+    console.log(this.spine.tocPath)
+    const tocNcxFile = await this.zip.readFile(this.spine.tocPath)
     const ncxXml = (await parsexml(tocNcxFile)).ncx
     if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
       throw new Error('navMap is a required element in the NCX')
@@ -238,7 +235,7 @@ export class EpubFile {
     this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
   }
 
-  walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level?: number) {
+  walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
     console.log(navPoints)
   }
 }
