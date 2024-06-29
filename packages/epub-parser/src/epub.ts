@@ -1,6 +1,6 @@
 
 import { camelCase, parsexml, ZipFile } from './utils.ts'
-import type { ManifestItem, GuideReference } from './types.ts'
+import type { ManifestItem, GuideReference, Spine } from './types.ts'
 
 export class EpubFile {
   zip: ZipFile
@@ -10,6 +10,12 @@ export class EpubFile {
   contentDir: string = ''
   metadata: Record<string, any> = {}
   manifest: Record<string, ManifestItem> = {}
+  spine: Spine = {
+    toc: '',
+    contents: []
+  }
+  // flow is the order of the contents
+  flow: ManifestItem[] = []
   guide: GuideReference[] = []
   constructor(public epubFileName: string) {
     // TODO: image root and link root
@@ -179,8 +185,23 @@ export class EpubFile {
     }
   }
 
-  parseSpine(spine: Object) {
-    // console.log(spine)
+  parseSpine(spine: Record<string, any>) {
+    if (spine['$']?.toc) {
+      this.spine.toc = spine['$'].toc || ""
+    }
+
+    const itemrefs = spine.itemref
+    if (!itemrefs) {
+      throw new Error('The spine element must contain one or more itemref elements')
+    }
+    for (const itemref of itemrefs) {
+      const $ = itemref['$']
+      if ($.idref) {
+        const element = this.manifest[$.idref]
+        this.spine.contents.push(element)
+      }
+    }
+    this.flow = this.spine.contents
   }
 
   parseGuide(guide: Record<string, any>) {
