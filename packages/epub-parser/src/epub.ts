@@ -172,7 +172,6 @@ export class EpubFile {
 
     for (const item of items) {
       const element = item['$']
-      console.log(element)
       if (!element || !element.id || !element.href || !element['media-type']) {
         throw new Error('The item in manifest must have attributes id, href and mediaType.')
       }

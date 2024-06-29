@@ -17,7 +17,7 @@ describe('epubFile', () => {
     expect(epub.rootFile).toBe('19033/content.opf')
   })
 
-  it('metadata', () => {
+  it('parseMetadata', () => {
     const metadata = epub.metadata
     expect(metadata.rights).toBe('Public domain in the USA.')
     expect(metadata.URI).toBe('http://www.gutenberg.org/ebooks/19033')
@@ -39,5 +39,20 @@ describe('epubFile', () => {
     })
     expect(metadata.source).toBe('http://www.gutenberg.org/files/19033/19033-h/19033-h.htm')
     expect(metadata.cover).toBe('item32')
+  })
+
+  it('parseManifest', () => {
+    const manifest = epub.manifest
+    const path = epub.rootFile.split('/')
+    path.pop()
+    const rootPath = path.join('/')
+
+    // 33 items in manifest
+    expect(Object.keys(manifest).length).toBe(33)
+    expect(manifest.item1).toEqual({
+      'id': 'item1',
+      'href': `${rootPath}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
+      'media-type': 'image/jpeg',
+    })
   })
 })
