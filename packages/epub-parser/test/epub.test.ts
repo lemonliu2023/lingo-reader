@@ -78,4 +78,16 @@ describe('epubFile', () => {
       'media-type': 'application/xhtml+xml',
     })
   })
+
+  it('walkNavMap', () => {
+    expect(epub.toc.length).toBe(1)
+    expect(epub.toc[0]).toEqual({
+      'id': 'item32',
+      'href': `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm`,
+      'order': 1,
+      'title': 'THE "STORYLAND" SERIES',
+      'level': 0,
+      'media-type': 'application/xhtml+xml',
+    })
+  })
 })

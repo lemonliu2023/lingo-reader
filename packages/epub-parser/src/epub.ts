@@ -239,8 +239,6 @@ export class EpubFile {
     }
 
     this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
-    console.log(this.toc)
-    console.log(this.manifest)
   }
 
   walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
