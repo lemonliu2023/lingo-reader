@@ -65,4 +65,17 @@ describe('epubFile', () => {
       href: `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
     }])
   })
+
+  it('parseSpine', () => {
+    const spine = epub.spine
+
+    expect(spine.toc).toBe('ncx')
+    expect(spine.contents.length).toBe(1)
+    expect(epub.flow.length).toBe(spine.contents.length)
+    expect(spine.contents[0]).toEqual({
+      'id': 'item32',
+      'href': `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm`,
+      'media-type': 'application/xhtml+xml',
+    })
+  })
 })
