@@ -90,4 +90,10 @@ describe('epubFile', () => {
       'media-type': 'application/xhtml+xml',
     })
   })
+
+  it('getChapter', async () => {
+    await epub.getChapter('item32')
+    // expect(chapterContent.title).toBe('The Project Gutenberg eBook of Alice\'s Adventures in Wonderland, by Lewis Carroll')
+    // expect(chapterContent.contents.length).toBeGreaterThan(1)
+  })
 })

@@ -1,6 +1,7 @@
 
 import { camelCase, parsexml, ZipFile } from './utils.ts'
 import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types.ts'
+import { Chapter } from './chapter.ts'
 
 export class EpubFile {
   zip: ZipFile
@@ -251,7 +252,7 @@ export class EpubFile {
         const title = navPoint.navLabel[0]?.text[0]
         const order = parseInt(navPoint['$']?.playOrder)
         const href = `${this.contentDir}/${navPoint.content[0]['$']?.src.split('#')[0]}`
-        
+
         if (!this.hrefSet.has(href)) {
           const element: TOCOutput = {
             href,
@@ -261,7 +262,7 @@ export class EpubFile {
             id: ''
           }
           if (idList[href]) {
-            Object.assign(element, this.manifest[idList[href]]) 
+            Object.assign(element, this.manifest[idList[href]])
           } else {
             element.id = navPoint['$']?.id || ""
           }
@@ -276,5 +277,19 @@ export class EpubFile {
     }
     return output
   }
+
+  async getChapter(id: string) {
+    const xmlHref = this.manifest[id].href
+    const xmlContent = await this.zip.readFile(xmlHref)
+    const xmlTree = await parsexml(xmlContent, {
+      preserveChildrenOrder: true,
+      explicitChildren: true,
+      childkey: 'children'
+    })
+    const chapterContent = new Chapter(xmlTree)
+    return chapterContent.getContent()
+  }
+
+
 }
 

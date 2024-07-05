@@ -21,15 +21,35 @@ export interface Spine {
 
 // navPoint in toc.ncx
 export interface NavPoint {
-  $: { id: string, playOrder: string },
-  navLabel: any,
-  content: any,
+  $: { id: string, playOrder: string }
+  navLabel: any
+  content: any
   navPoint: NavPoint[]
 }
 export type NavPoints = NavPoint[]
 
 export interface TOCOutput extends ManifestItem {
-  level: number,
-  order: number,
+  level: number
+  order: number
   title: string
 }
+
+// Chapter content
+export enum ContentType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  AUDIO = 'audio',
+  VIDEO = 'video'
+}
+
+export interface ChapterText {
+  type: ContentType.TEXT,
+  text: string
+}
+
+export interface ChapterImage {
+  type: ContentType.IMAGE,
+  src: string
+}
+
+export type Content = ChapterText | ChapterImage
