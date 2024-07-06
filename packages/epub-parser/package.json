@@ -1,15 +1,14 @@
 {
   "name": "epub-parser",
   "type": "module",
-  "version": "1.0.0",
-  "description": "",
-  "author": "",
-  "license": "ISC",
-  "keywords": [],
+  "version": "0.1.1",
+  "description": "An epub parser which generates multiple chapter contents from an epub file",
+  "author": "hhk-png <fangluoabc@163.com>",
+  "license": "MIT",
+  "keywords": ["epub", "epub-parser"],
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "module": "index.ts",
+  "scripts": {},
   "dependencies": {
     "adm-zip": "^0.5.14",
     "xml2js": "^0.6.2"
