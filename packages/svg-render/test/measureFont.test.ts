@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { measureFont } from '../src/measureFont'
+import { measureFont } from '../src/measureFont.ts'
 // @ts-ignore
 globalThis.__BROWSER__ = false
 
