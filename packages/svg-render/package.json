@@ -5,8 +5,14 @@
   "description": "render text to svg",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
-  "keywords": ["svg", "render"],
+  "keywords": [
+    "svg",
+    "render"
+  ],
   "main": "index.ts",
   "module": "index.ts",
-  "scripts": {}
+  "scripts": {},
+  "dependencies": {
+    "playwright": "^1.45.1"
+  }
 }
