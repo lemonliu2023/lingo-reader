@@ -283,7 +283,7 @@ export class EpubFile {
     let xmlContent = await this.zip.readFile(xmlHref)
 
     // remove <span> b strong i em u s small mark
-    xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em|u[^l]|s|small|mark|header|footer|section)[^>]*>/ig, '')
+    xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em^[b]|u[^l]|s|small|mark|header|footer|section)[^>]*>/ig, '')
     // remove a and <a/>
     xmlContent = xmlContent.replace(/<a[^>]*?>(.*?)<\/a[^>]*?>/ig, '$1')
     xmlContent = xmlContent.replace(/<a[^>]*?>/ig, '')
