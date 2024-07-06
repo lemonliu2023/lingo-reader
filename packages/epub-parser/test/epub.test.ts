@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { EpubFile } from '../src/epub.ts'
+import { ContentType } from '../src/types.ts'
 
 describe('epubFile', () => {
   // alice.epub file path
@@ -92,8 +93,14 @@ describe('epubFile', () => {
   })
 
   it('getChapter', async () => {
-    await epub.getChapter('item32')
-    // expect(chapterContent.title).toBe('The Project Gutenberg eBook of Alice\'s Adventures in Wonderland, by Lewis Carroll')
-    // expect(chapterContent.contents.length).toBeGreaterThan(1)
+    const chapterContents = await epub.getChapter('item32')
+    expect(chapterContents.title).toBe('The Project Gutenberg eBook of Alice\'s Adventures in Wonderland, by Lewis Carroll')
+    // has image and paragraph tag
+    const types = new Set(chapterContents.contents.map(content => content.type))
+    expect(types.has(ContentType.IMAGE)).toBe(true)
+    expect(types.has(ContentType.PARAGRAPH)).toBe(true)
+    // image src should start with contentDir
+    const imgElement = chapterContents.contents.filter(content => content.type === ContentType.IMAGE)[0]
+    expect(imgElement.src.startsWith(`${epub.contentDir}/`)).toBe(true)
   })
 })

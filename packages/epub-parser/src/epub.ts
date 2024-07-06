@@ -280,14 +280,30 @@ export class EpubFile {
 
   async getChapter(id: string) {
     const xmlHref = this.manifest[id].href
-    const xmlContent = await this.zip.readFile(xmlHref)
+    let xmlContent = await this.zip.readFile(xmlHref)
+
+    // remove <span> b strong i em u s small mark
+    xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em|u[^l]|s|small|mark|header|footer|section)[^>]*>/ig, '')
+    // remove a and <a/>
+    xmlContent = xmlContent.replace(/<a[^>]*?>(.*?)<\/a[^>]*?>/ig, '$1')
+    xmlContent = xmlContent.replace(/<a[^>]*?>/ig, '')
+    // remove <tag></tag> with no content
+    xmlContent = xmlContent.replace(/<(\w+)[^>]*?><\/\1[^>]*?>/ig, '')
+    // remove <hr /> <br />
+    xmlContent = xmlContent.replace(/<(hr|br)[^>]*?>/ig, '')
+    // remove id and class
+    xmlContent = xmlContent.replace(/\s*(class|id)=["'][^"']*["']/g, '')
+    // mutiple (\n| ) to one (\n| )
+    xmlContent = xmlContent.replace(/(^|[^\n])\n(?!\n)/g, '$1 ')
+    xmlContent = xmlContent.replace(/[ \f\t\v]+/g, ' ')
+    
     const xmlTree = await parsexml(xmlContent, {
       preserveChildrenOrder: true,
       explicitChildren: true,
       childkey: 'children'
     })
-    const chapterContent = new Chapter(xmlTree)
-    return chapterContent.getContent()
+    const chapterContent = new Chapter(xmlTree, this.contentDir)
+    return chapterContent.getContents()
   }
 
 
