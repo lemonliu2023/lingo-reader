@@ -1,0 +1,12 @@
+{
+  "name": "@svg-ebook-reader/svg-render",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "render text to svg",
+  "author": "hhk-png <fangluoabc@163.com>",
+  "license": "MIT",
+  "keywords": ["svg", "render"],
+  "main": "index.ts",
+  "module": "index.ts",
+  "scripts": {}
+}

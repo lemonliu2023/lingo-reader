@@ -1,12 +1,12 @@
 {
-  "name": "epub-parser",
+  "name": "@svg-ebook-reader/epub-parser",
   "type": "module",
   "version": "0.1.1",
   "description": "An epub parser which generates multiple chapter contents from an epub file",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
   "keywords": ["epub", "epub-parser"],
-  "main": "index.js",
+  "main": "index.ts",
   "module": "index.ts",
   "scripts": {},
   "dependencies": {
