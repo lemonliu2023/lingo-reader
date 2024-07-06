@@ -45,7 +45,7 @@ const aliceEpubNames = [
 describe('utils', () => {
   // alice.epub file path
   const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const epubPath = path.resolve(currentDir, './example/alice.epub')
+  const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
   const epubFile = new ZipFile(epubPath)
 
   it('parsexml', async () => {

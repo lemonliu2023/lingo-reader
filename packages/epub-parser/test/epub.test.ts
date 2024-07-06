@@ -7,7 +7,7 @@ import { ContentType } from '../src/types.ts'
 describe('epubFile', () => {
   // alice.epub file path
   const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const epubPath = path.resolve(currentDir, './example/alice.epub')
+  const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
   const epub = new EpubFile(epubPath)
 
   it('mimeType', async () => {
