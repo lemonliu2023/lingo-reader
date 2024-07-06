@@ -1,7 +1,7 @@
 {
-  "name": "ts-template",
+  "name": "svg-ebook-reader",
   "type": "module",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",

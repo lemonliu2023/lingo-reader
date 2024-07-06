@@ -1,7 +1,7 @@
-**项目还刚开始**
+**The project is developing**
 
-### 为什么使用svg做阅读器
+### Reasons for Using SVG in a Reader
 
-1.svg是一种矢量图形格式，它可以在任何分辨率下保持高质量的文本渲染，不会出现放大失真的情况。
+1.SVG is a vector graphics format that can maintain high-quality text rendering at any resolution without distortion when zoomed in.
 
-2.跨平台兼容，svg被大多数浏览器和设备支持。svg版本的电子书底层使用的是拼接好的svg字符串，只要环境支持svg的渲染，就可以让电子书功能正常运行。
+2.Cross-platform compatibility: SVG is supported by most browsers and devices. The SVG version of the eBook uses concatenated SVG strings at its core, ensuring that as long as the environment supports SVG rendering, the eBook's functionality will work properly.
