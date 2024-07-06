@@ -38,8 +38,8 @@ export class SvgRender {
   }
 
   generateSvg(content: string) {
-    const { width, height } = this.options
-    return `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" `
+    const { width, height, fontSize } = this.options
+    return `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
       + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px">`
       + this.background
       + `${content}`

@@ -1,0 +1,11 @@
+{
+  "name": "@svg-ebook-reader/shared",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "shared module of svg ebook reader",
+  "author": "hhk-png <fangluoabc@163.com>",
+  "license": "MIT",
+  "keywords": [],
+  "main": "index.ts",
+  "module": "index.ts"
+}

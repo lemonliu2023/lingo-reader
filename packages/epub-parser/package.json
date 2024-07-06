@@ -5,11 +5,15 @@
   "description": "An epub parser which generates multiple chapter contents from an epub file",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
-  "keywords": ["epub", "epub-parser"],
+  "keywords": [
+    "epub",
+    "epub-parser"
+  ],
   "main": "index.ts",
   "module": "index.ts",
   "scripts": {},
   "dependencies": {
+    "@svg-ebook-reader/shared": "workspace:^",
     "adm-zip": "^0.5.14",
     "xml2js": "^0.6.2"
   },
