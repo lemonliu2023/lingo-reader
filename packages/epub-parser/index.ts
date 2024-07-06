@@ -1,2 +1,2 @@
-export { EpubFile } from './src/epub.ts'
-export type * from './src/types.ts'
+export { EpubFile } from './src/epub'
+export type * from './src/types'

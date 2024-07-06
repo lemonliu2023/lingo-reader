@@ -1,4 +1,4 @@
-import { Content, ContentType, HEADING } from "./types.ts";
+import { Content, ContentType, HEADING } from "./types";
 
 export class Chapter {
   private contents: Content[] = []

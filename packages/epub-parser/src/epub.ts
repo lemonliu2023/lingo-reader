@@ -1,7 +1,7 @@
 
-import { camelCase, parsexml, ZipFile } from './utils.ts'
-import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types.ts'
-import { Chapter } from './chapter.ts'
+import { camelCase, parsexml, ZipFile } from './utils'
+import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types'
+import { Chapter } from './chapter'
 
 export class EpubFile {
   zip: ZipFile
