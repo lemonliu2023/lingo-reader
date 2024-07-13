@@ -1,16 +1,16 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
-// import fs from 'fs'
-// import path from 'path'
-// import { fileURLToPath } from 'url'
 
 // @ts-ignore
 globalThis.__BROWSER__ = false
 
 describe('svgRender', () => {
   const renderer = new SvgRender({
-    padding: '10',
+    padding: '40',
   })
   it('options.padding', () => {
     const {
@@ -19,10 +19,18 @@ describe('svgRender', () => {
       paddingBottom,
       paddingLeft,
     } = renderer.options
-    expect(paddingTop).toBe(10)
-    expect(paddingRight).toBe(10)
-    expect(paddingBottom).toBe(10)
-    expect(paddingLeft).toBe(10)
+    expect(paddingTop).toBe(40)
+    expect(paddingRight).toBe(40)
+    expect(paddingBottom).toBe(40)
+    expect(paddingLeft).toBe(40)
+  })
+
+  it('lineHeight', () => {
+    const {
+      fontSize,
+      lineHeightRatio,
+    } = renderer.options
+    expect(renderer.lineHeight).toBe(fontSize * lineHeightRatio)
   })
 
   it('generateRect', () => {
@@ -44,7 +52,7 @@ describe('svgRender', () => {
       )
   })
 
-  const text = `哈哈哈哈哈"Well, be off, then!" said the Pigeon in a sulky 
+  const text = `哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"Well, be off, then!" said the Pigeon in a sulky 
 tone, as it settled down again into its nest. Alice 
 crouched down among the trees as well as she could, for 
 her neck kept getting entangled among the branches, and 
@@ -60,8 +68,7 @@ succeeded in bringing herself down to her usual height.`.replace(/\n/g, '')
       type: ContentType.PARAGRAPH,
       text,
     })
-    // const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    // fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
-    // fs.writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
   })
 })

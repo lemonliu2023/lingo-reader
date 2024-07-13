@@ -14,9 +14,8 @@ export class Chapter {
     for (const element of body) {
       const tagName = element['#name']
       if (tagName === 'p') {
-        // <p>
         if (element.img) {
-          // <img>
+          // <p><img></p>
           const img$ = element.img[0].$
           if (!img$.src) {
             console.warn('img tag without src attribute')
@@ -30,7 +29,7 @@ export class Chapter {
             alt: img$.alt || ""
           })
         } else if (element['_']) {
-          // <p> with text
+          // <p>text</p>
           this.contents.push({
             type: ContentType.PARAGRAPH,
             text: element['_'].replace(/\r?\n+/g, ' ').trim()
@@ -38,7 +37,7 @@ export class Chapter {
         }
 
       } else if (tagName === 'div' && !element.children) {
-        // <div> without children
+        // <div>text</div>
         const paras = element['_'].split(/\r?\n+/).filter(Boolean)
         for (const para of paras) {
           this.contents.push({
@@ -47,7 +46,7 @@ export class Chapter {
           })
         }
       } else if (/h\d/.test(tagName)) {
-        // <h1>...
+        // <h1>text</h1>
         const level = parseInt(tagName[1])
         this.contents.push({
           type: ContentType[`HEADING${level}` as keyof typeof ContentType] as HEADING,

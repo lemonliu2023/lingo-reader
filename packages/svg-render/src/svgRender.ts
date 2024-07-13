@@ -4,14 +4,14 @@ import { Content, ContentType } from "@svg-ebook-reader/shared"
 
 // TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
-  width: 300,
-  height: 300,
+  width: 1000,
+  height: 1000,
   fontFamily: 'Lucida Console, Courier, monospace',
   fontSize: 20,
 
   // svg style
   opacity: 1,
-  lineHeightRatio: -1,
+  lineHeightRatio: 1.5,
   backgroundColor: '#f0f0f0',
   borderRadius: 0,
   selectionbgColor: '#b4d5ea',
@@ -43,7 +43,7 @@ export class SvgRender {
   // svg>text position, left bottom corner
   x: number = 0
   y: number = 0
-  deltaY: number = 0
+  lineHeight: number = 0
   pageIndex: number = 0
   pages: string[] = []
   // text content in the svg
@@ -55,9 +55,16 @@ export class SvgRender {
     } as Required<SvgRenderOptions>
 
     this.parsePadding()
-    this.x = this.options.paddingLeft
-    this.y = this.options.paddingTop + this.options.fontSize
-    this.deltaY = this.options.fontSize
+
+    const {
+      paddingTop,
+      paddingLeft,
+      fontSize,
+      lineHeightRatio
+    } = this.options
+    this.x = paddingLeft
+    this.y = paddingTop + fontSize
+    this.lineHeight = fontSize * lineHeightRatio
     this.background = this.generateRect()
   }
 
@@ -75,17 +82,24 @@ export class SvgRender {
     this.commitToPage()
   }
 
+  // TODO: handle edge case in rendering text
   async addParagraph(text: string) {
     for (const char of text) {
       const {
         width: charWidth
       } = await this.measureFont(char)
+      const {
+        width,
+        height,
+        paddingLeft,
+        paddingTop,
+      } = this.options
       // newLine
-      if (this.x + charWidth > this.options.width - this.options.paddingLeft) {
+      if (this.x + charWidth > width - paddingLeft) {
         this.newLine()
       }
       // newPage
-      if (this.y + this.options.fontSize > this.options.height - this.options.paddingTop) {
+      if (this.y + this.lineHeight > height - paddingTop) {
         this.commitToPage()
         this.newPage()
       }
@@ -101,7 +115,7 @@ export class SvgRender {
 
   newLine() {
     this.x = this.options.paddingLeft
-    this.y += this.deltaY
+    this.y += this.lineHeight
   }
 
   commitToPage() {
