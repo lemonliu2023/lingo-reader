@@ -18,9 +18,9 @@ export type HEADING = ContentType.HEADING1 | ContentType.HEADING2 |
   ContentType.HEADING3 | ContentType.HEADING4 | 
   ContentType.HEADING5 | ContentType.HEADING6
 
-type ChapterHeading = {
-  type: HEADING,
-  text: string
+interface ChapterHeading {
+  type: HEADING
+  heading: string
 }
 
 interface ChapterImage {

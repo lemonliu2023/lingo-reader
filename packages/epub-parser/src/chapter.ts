@@ -51,7 +51,7 @@ export class Chapter {
         const level = parseInt(tagName[1])
         this.contents.push({
           type: ContentType[`HEADING${level}` as keyof typeof ContentType] as HEADING,
-          text: element['_'].trim()
+          heading: element['_'].trim()
         })
       }
     }

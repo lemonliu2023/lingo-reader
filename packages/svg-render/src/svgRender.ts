@@ -4,8 +4,8 @@ import { Content, ContentType } from "@svg-ebook-reader/shared"
 
 // TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
-  width: 500,
-  height: 500,
+  width: 300,
+  height: 300,
   fontFamily: 'Lucida Console, Courier, monospace',
   fontSize: 20,
 
@@ -65,6 +65,7 @@ export class SvgRender {
     for (const content of contents) {
       await this.addContent(content)
     }
+    this.commitToPage()
   }
 
   async addContent(content: Content) {
@@ -76,24 +77,25 @@ export class SvgRender {
 
   async addParagraph(text: string) {
     for (const char of text) {
+      const {
+        width: charWidth
+      } = await this.measureFont(char)
+      // newLine
+      if (this.x + charWidth > this.options.width - this.options.paddingLeft) {
+        this.newLine()
+      }
+      // newPage
+      if (this.y + this.options.fontSize > this.options.height - this.options.paddingTop) {
+        this.commitToPage()
+        this.newPage()
+      }
       if (charMap.has(char)) {
         this.pageText.push(`<text x="${this.x}" y="${this.y}">${charMap.get(char)}</text>`)
       } else {
         this.pageText.push(`<text x="${this.x}" y="${this.y}">${char}</text>`)
       }
-      const {
-        width: charWidth
-      } = await this.measureFont(char)
       this.x += charWidth
-      // newLine
-      if (this.x > this.options.width - this.options.paddingRight) {
-        this.newLine()
-      }
-      // newPage
-      if (this.y > this.options.height - this.options.paddingBottom) {
-        this.commitToPage()
-        this.newPage()
-      }
+      
     }
   }
 
@@ -103,7 +105,9 @@ export class SvgRender {
   }
 
   commitToPage() {
-    this.pages[this.pageIndex] = this.generateSvg(this.pageText.join(''))
+    if (this.pageText.length) {
+      this.pages[this.pageIndex] = this.generateSvg(this.pageText.join(''))
+    }
   }
 
   newPage() {
