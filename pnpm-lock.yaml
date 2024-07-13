@@ -74,6 +74,9 @@ importers:
 
   packages/svg-render:
     dependencies:
+      '@svg-ebook-reader/shared':
+        specifier: workspace:^
+        version: link:../shared
       playwright:
         specifier: ^1.45.1
         version: 1.45.1

@@ -8,7 +8,7 @@ describe('measureFont', () => {
     const { width, height } = await measureFont('a', {
       fontSize: 20,
     })
-    expect(width).toBe(12.1)
+    expect(width).toBe(12.0625)
     expect(height).toBe(20)
   })
 })

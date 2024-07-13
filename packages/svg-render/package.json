@@ -13,6 +13,7 @@
   "module": "index.ts",
   "scripts": {},
   "dependencies": {
+    "@svg-ebook-reader/shared": "workspace:^",
     "playwright": "^1.45.1"
   }
 }

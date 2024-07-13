@@ -25,7 +25,7 @@ interface MeasureOptions {
 
 const defaultOptions: MeasureOptions = {
   fontSize: 20,
-  fontFamily: '"Lucida Console", Courier, monospace',
+  fontFamily: 'Lucida Console, Courier, monospace',
   remoteFontCSSURL: '',
 }
 
@@ -72,19 +72,19 @@ export async function measureFont(
     await browser.close()
   }
 
-  roundMeasurement(measurement)
+  // roundMeasurement(measurement)
   fontCache.set(char, measurement)
   return measurement
 }
 
-function roundToOneDecimalPlace(num: number) {
-  return Math.round(num * 10) / 10;
-}
+// function roundToOneDecimalPlace(num: number) {
+//   return Math.round(num * 10) / 10;
+// }
 
-function roundMeasurement(measurement: Measurement) {
-  measurement.width = roundToOneDecimalPlace(measurement.width)
-  measurement.height = roundToOneDecimalPlace(measurement.height)
-}
+// function roundMeasurement(measurement: Measurement) {
+//   measurement.width = roundToOneDecimalPlace(measurement.width)
+//   measurement.height = roundToOneDecimalPlace(measurement.height)
+// }
 
 function measureStr([char, fontSize, fontFamily]: [string, number, string]): Measurement {
   const span = document.createElement('span')
@@ -92,6 +92,7 @@ function measureStr([char, fontSize, fontFamily]: [string, number, string]): Mea
   span.style.fontSize = `${fontSize}px`
   span.style.fontFamily = fontFamily
   span.style.display = 'inline-block'
+  span.style.whiteSpace = 'pre'
   span.textContent = char
   document.body.appendChild(span)
   const { width, height } = window.getComputedStyle(span)
