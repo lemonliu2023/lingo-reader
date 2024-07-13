@@ -14,3 +14,11 @@ export function getDocument(fontName: string, url: string) {
 </html>
 `
 }
+
+export const isEnglish = (char: string) => {
+  return char <= 'z' && char >= 'a' || char <= 'Z' && char >= 'A'
+}
+
+export const isSpace = (char: string) => {
+  return char === ' '
+}

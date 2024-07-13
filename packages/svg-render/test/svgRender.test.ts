@@ -11,6 +11,8 @@ globalThis.__BROWSER__ = false
 describe('svgRender', () => {
   const renderer = new SvgRender({
     padding: '40',
+    width: 1000,
+    height: 500,
   })
   it('options.padding', () => {
     const {
@@ -46,13 +48,16 @@ describe('svgRender', () => {
     expect(renderer.generateSvg('<text x="100" y="100">hello</text>'))
       .toBe(
         '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="20px" '
-        + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="Lucida Console, Courier, monospace">`
+        + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" `
+        + `font-family="Lucida Console, Courier, monospace">`
         + `<rect width="${width}" height="${height}" fill="${backgroundColor}" pointer-events="none"/>`
         + '<text x="100" y="100">hello</text></svg>',
       )
   })
 
-  const text = `哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"Well, be off, then!" said the Pigeon in a sulky 
+  const text = `哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈
+哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"
+Well, be off, then!" said the Pigeon in a sulky 
 tone, as it settled down again into its nest. Alice 
 crouched down among the trees as well as she could, for 
 her neck kept getting entangled among the branches, and 

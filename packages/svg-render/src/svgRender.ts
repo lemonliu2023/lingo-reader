@@ -1,6 +1,7 @@
 import { measureFont } from "./measureFont"
 import { SvgRenderOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
+import { isEnglish, isSpace } from "./utils"
 
 // TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
@@ -84,7 +85,9 @@ export class SvgRender {
 
   // TODO: handle edge case in rendering text
   async addParagraph(text: string) {
-    for (const char of text) {
+    const textLen = text.length
+    for (let i = 0; i < textLen; i++) {
+      const char = text[i]
       const {
         width: charWidth
       } = await this.measureFont(char)
@@ -96,7 +99,16 @@ export class SvgRender {
       } = this.options
       // newLine
       if (this.x + charWidth > width - paddingLeft) {
-        this.newLine()
+        const prevChar = text[i - 1]
+        if (isEnglish(prevChar) && isSpace(char)) {
+          this.newLine()
+          continue
+        } else if (isEnglish(prevChar) && isEnglish(char)) {
+          this.pageText.push(`<text x="${this.x}" y="${this.y}">-</text>`)
+          this.newLine()
+        } else {
+          this.newLine()
+        }
       }
       // newPage
       if (this.y + this.lineHeight > height - paddingTop) {
