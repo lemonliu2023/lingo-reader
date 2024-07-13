@@ -68,7 +68,6 @@ export class SvgRender {
   }
 
   async addContent(content: Content) {
-    console.log(await this.measureFont(' '))
     if (content.type === ContentType.PARAGRAPH) {
       await this.addParagraph(content.text)
     }

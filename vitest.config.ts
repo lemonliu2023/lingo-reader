@@ -8,7 +8,6 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['./packages/**/test/*.test.ts'],
-    testTimeout: 10000,
   },
 })
 

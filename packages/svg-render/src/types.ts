@@ -22,3 +22,26 @@ export interface SvgRenderOptions {
   remoteFontCSSURL?: string
 }
 
+export interface Measurement {
+  /**
+   * The width and height of the measured text
+   */
+  width: number
+  height: number
+}
+
+export interface MeasureOptions {
+  /**
+   * The font size of the text
+   */
+  fontSize?: number
+  /**
+   * The font family of the text
+   */
+  fontFamily?: string
+  /**
+   * The remote font css url
+   */
+  remoteFontCSSURL?: string
+}
+
