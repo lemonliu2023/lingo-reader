@@ -1,7 +1,7 @@
 import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
-import { isEnglish, isSpace } from "./utils"
+import { isEnglish, isSpace, charMap, headingRatioMap } from "./utils"
 
 // TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
@@ -27,16 +27,6 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   // used for playwright font loading
   remoteFontCSSURL: ''
 }
-
-const charMap = new Map<string, string>([
-  // space will not be rendered in the beginning of the text
-  [' ', '&#xA0;'],
-  ['<', '&lt;'],
-  ['>', '&gt;'],
-  ['&', '&amp;'],
-  ['"', '&quot;'],
-  ['\'', '&#39;'],
-])
 
 export class SvgRender {
   options: Required<SvgRenderOptions>
@@ -82,10 +72,18 @@ export class SvgRender {
       await this.addParagraph(content.text, {
         lineHeight: this.lineHeight
       })
-    } else if (contentType === ContentType.HEADING1) {
-      // bold font
-      const headingFontSize = this.options.fontSize * 2
+    } else if (
+      contentType === ContentType.HEADING1 ||
+      contentType === ContentType.HEADING2 ||
+      contentType === ContentType.HEADING3 ||
+      contentType === ContentType.HEADING4 ||
+      contentType === ContentType.HEADING5 ||
+      contentType === ContentType.HEADING6
+    ) {
+      const levelRatio = headingRatioMap.get(contentType)!
+      const headingFontSize = this.options.fontSize * levelRatio
       const headingLineHeight = headingFontSize * this.options.lineHeightRatio
+      
       this.newLine(headingLineHeight)
       await this.addParagraph(content.heading, {
         fontWeight: 'bold',
