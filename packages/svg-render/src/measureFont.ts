@@ -1,7 +1,7 @@
 /// <reference path="./global.d.ts" />
 import playwright from 'playwright'
 import { getDocument } from './utils'
-import { Measurement, MeasureOptions } from './types'
+import { Measurement, MeasureOptions, MeasureStrParas } from './types'
 
 const defaultOptions: MeasureOptions = {
   fontSize: 20,
@@ -9,14 +9,14 @@ const defaultOptions: MeasureOptions = {
   remoteFontCSSURL: '',
 }
 
-function measureStr([char, fontSize, fontFamily]: [string, number, string]): Measurement {
+function measureStr(paras: MeasureStrParas): Measurement {
   const span = document.createElement('span')
   span.style.visibility = 'hidden'
-  span.style.fontSize = `${fontSize}px`
-  span.style.fontFamily = fontFamily
   span.style.display = 'inline-block'
   span.style.whiteSpace = 'pre'
-  span.textContent = char
+  span.textContent = paras.char
+  span.style.fontSize = `${paras.fontSize}px`
+  span.style.fontFamily = paras.fontFamily
   document.body.appendChild(span)
   const { width, height } = window.getComputedStyle(span)
   document.body.removeChild(span)
@@ -28,12 +28,7 @@ function measureStr([char, fontSize, fontFamily]: [string, number, string]): Mea
 
 let browser: playwright.Browser
 let page: playwright.Page
-async function measurePlaywright(
-  char: string,
-  fontSize: number,
-  fontFamily: string,
-  remoteFontCSSURL: string = '',
-) {
+async function measurePlaywright(paras: MeasureStrParas) {
   if (!browser) {
     browser = await playwright.chromium.launch({ headless: true })
     page = await browser.newPage()
@@ -57,42 +52,41 @@ async function measurePlaywright(
       await handleExit('unhandledRejection');
     });
   }
-  if (remoteFontCSSURL.length) {
+  if (paras.remoteFontCSSURL?.length) {
     await page.goto(
-      `data:text/html,${getDocument(fontFamily, remoteFontCSSURL)}`,
+      `data:text/html,${getDocument(paras.fontFamily, paras.remoteFontCSSURL)}`,
       {
         waitUntil: 'networkidle',
       },
     )
   }
-  return await page.evaluate(measureStr, [
-    char,
-    fontSize,
-    fontFamily,
-  ] as [string, number, string])
+
+  return await page.evaluate(measureStr, paras)
 }
 
 const fontCache = new Map<string, Measurement>()
 export async function measureFont(
   char: string,
-  options?: MeasureOptions,
+  options: MeasureOptions,
 ): Promise<Measurement> {
   if (char.length === 0) {
     throw new Error('char should not be empty')
   }
 
-  const { fontSize, fontFamily } = {
+  const paras = {
+    char,
     ...defaultOptions,
     ...options
-  } as Required<MeasureOptions>
-  const cacheKey = char + fontSize
+  } as MeasureStrParas
+
+  const cacheKey = char + paras.fontSize
   if (fontCache.has(cacheKey)) {
     return fontCache.get(cacheKey)!
   }
 
   const measurement = __BROWSER__
-    ? measureStr([char, fontSize, fontFamily])
-    : await measurePlaywright(char, fontSize, fontFamily)
+    ? measureStr(paras)
+    : await measurePlaywright(paras)
 
   fontCache.set(cacheKey, measurement)
   return measurement

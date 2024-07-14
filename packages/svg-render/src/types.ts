@@ -45,7 +45,9 @@ export interface MeasureOptions {
   remoteFontCSSURL?: string
 }
 
-export interface ParaOptions {
+export type MeasureStrParas = Required<MeasureOptions> & {char: string}
+
+export interface ParagraphOptions {
   fontSize?: number
   bold?: boolean
   lineHeight?: number

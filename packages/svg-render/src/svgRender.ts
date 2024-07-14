@@ -1,5 +1,5 @@
 import { measureFont } from "./measureFont"
-import { SvgRenderOptions, ParaOptions } from "./types"
+import { SvgRenderOptions, ParagraphOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace } from "./utils"
 
@@ -97,7 +97,7 @@ export class SvgRender {
     this.commitToPage()
   }
 
-  async addParagraph(text: string, paraOptions: ParaOptions) {
+  async addParagraph(text: string, paraOptions: ParagraphOptions) {
     const textLen = text.length
     const fontSize = paraOptions?.fontSize || this.options.fontSize
     const lineHeight = paraOptions.lineHeight || this.lineHeight
@@ -156,7 +156,7 @@ export class SvgRender {
     }
   }
 
-  generateText(x: number, y: number, char: string, options: ParaOptions) {
+  generateText(x: number, y: number, char: string, options: ParagraphOptions) {
     let styleArr = []
     if (options.bold) {
       styleArr.push('font-weight:bold;')
@@ -188,7 +188,7 @@ export class SvgRender {
       paddingTop,
       fontSize
     } = this.options
-    
+
     this.pageText = []
     this.x = paddingLeft
     this.y = paddingTop + fontSize
