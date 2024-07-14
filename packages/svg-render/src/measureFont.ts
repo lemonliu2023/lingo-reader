@@ -80,19 +80,20 @@ export async function measureFont(
   if (char.length === 0) {
     throw new Error('char should not be empty')
   }
-  if (fontCache.has(char)) {
-    return fontCache.get(char)!
-  }
 
   const { fontSize, fontFamily } = {
     ...defaultOptions,
     ...options
   } as Required<MeasureOptions>
+  const cacheKey = char + fontSize
+  if (fontCache.has(cacheKey)) {
+    return fontCache.get(cacheKey)!
+  }
 
   const measurement = __BROWSER__
     ? measureStr([char, fontSize, fontFamily])
     : await measurePlaywright(char, fontSize, fontFamily)
 
-  fontCache.set(char, measurement)
+  fontCache.set(cacheKey, measurement)
   return measurement
 }

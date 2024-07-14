@@ -57,7 +57,7 @@ describe('svgRender', () => {
 
   const text = `哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈
 哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"
-Well, be off, then!" said the Pigeon in a sulky 
+Well, be off, then!" \nsaid the Pigeon in a sulky 
 tone, as it settled down again into its nest. Alice 
 crouched down among the trees as well as she could, for 
 her neck kept getting entangled among the branches, and 
@@ -72,6 +72,14 @@ succeeded in bringing herself down to her usual height.`.replace(/\n/g, '')
     await renderer.addContent({
       type: ContentType.PARAGRAPH,
       text,
+    })
+    await renderer.addContent({
+      type: ContentType.HEADING1,
+      heading: 'Chapter 1',
+    })
+    await renderer.addContent({
+      type: ContentType.PARAGRAPH,
+      text: 'hello world',
     })
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])

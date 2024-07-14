@@ -1,5 +1,5 @@
 import { measureFont } from "./measureFont"
-import { SvgRenderOptions } from "./types"
+import { SvgRenderOptions, ParaOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace } from "./utils"
 
@@ -77,57 +77,103 @@ export class SvgRender {
   }
 
   async addContent(content: Content) {
-    if (content.type === ContentType.PARAGRAPH) {
-      await this.addParagraph(content.text)
+    const contentType = content.type
+    if (contentType === ContentType.PARAGRAPH) {
+      await this.addParagraph(content.text, {
+        lineHeight: this.lineHeight
+      })
+    } else if (contentType === ContentType.HEADING1) {
+      // bold font
+      const headingFontSize = this.options.fontSize * 2
+      const headingLineHeight = headingFontSize * this.options.lineHeightRatio
+      this.newLine(headingLineHeight)
+      await this.addParagraph(content.heading, { 
+        bold: true,
+        fontSize: headingFontSize,
+        lineHeight: headingLineHeight
+      })
+      this.newLine(this.lineHeight)
     }
     this.commitToPage()
   }
 
-  // TODO: handle edge case in rendering text
-  async addParagraph(text: string) {
+  async addParagraph(text: string, paraOptions: ParaOptions) {
     const textLen = text.length
+    const fontSize = paraOptions?.fontSize || this.options.fontSize
+    const lineHeight = paraOptions.lineHeight || this.lineHeight
+    const {
+      width,
+      height,
+      paddingLeft,
+      paddingTop,
+    } = this.options
+    
     for (let i = 0; i < textLen; i++) {
       const char = text[i]
+      if (char === '\n') {
+        this.newLine(lineHeight)
+        continue
+      }
+
       const {
         width: charWidth
-      } = await this.measureFont(char)
-      const {
-        width,
-        height,
-        paddingLeft,
-        paddingTop,
-      } = this.options
+      } = await this.measureFont(char, fontSize)
+
       // newLine
       if (this.x + charWidth > width - paddingLeft) {
         const prevChar = text[i - 1]
         if (isEnglish(prevChar) && isSpace(char)) {
-          this.newLine()
+          this.newLine(lineHeight)
           continue
         } else if (isEnglish(prevChar) && isEnglish(char)) {
-          this.pageText.push(`<text x="${this.x}" y="${this.y}">-</text>`)
-          this.newLine()
+          // <text x="x" y="y">-</text>
+          this.pageText.push(
+            this.generateText(this.x, this.y, '-', paraOptions)
+          )
+          this.newLine(lineHeight)
         } else {
-          this.newLine()
+          this.newLine(lineHeight)
         }
       }
+      
       // newPage
       if (this.y + this.lineHeight > height - paddingTop) {
         this.commitToPage()
         this.newPage()
       }
       if (charMap.has(char)) {
-        this.pageText.push(`<text x="${this.x}" y="${this.y}">${charMap.get(char)}</text>`)
+        // <text x="x" y="y">charMap.get(char)</text>
+        this.pageText.push(
+          this.generateText(this.x, this.y, charMap.get(char)!, paraOptions)
+        )
       } else {
-        this.pageText.push(`<text x="${this.x}" y="${this.y}">${char}</text>`)
+        // <text x="x" y="y">char</text>
+        this.pageText.push(
+          this.generateText(this.x, this.y, char, paraOptions)
+        )
       }
       this.x += charWidth
-      
     }
   }
 
-  newLine() {
+  generateText(x: number, y: number, char: string, options: ParaOptions) {
+    let styleArr = []
+    if (options.bold) {
+      styleArr.push('font-weight:bold;')
+    }
+    if (options.fontSize) {
+      styleArr.push(`font-size:${options.fontSize}px;`)
+    }
+    let style = ''
+    if (styleArr.length) {
+      style = ` style="${styleArr.join('')}"`
+    }
+    return `<text x="${x}" y="${y}"${style}>${char}</text>`
+  }
+
+  newLine(lineHeight: number) {
     this.x = this.options.paddingLeft
-    this.y += this.lineHeight
+    this.y += lineHeight
   }
 
   commitToPage() {
@@ -137,9 +183,15 @@ export class SvgRender {
   }
 
   newPage() {
+    const {
+      paddingLeft,
+      paddingTop,
+      fontSize
+    } = this.options
+    
     this.pageText = []
-    this.x = this.options.paddingLeft
-    this.y = this.options.paddingTop + this.options.fontSize
+    this.x = paddingLeft
+    this.y = paddingTop + fontSize
     this.pageIndex++
   }
 
@@ -179,8 +231,8 @@ export class SvgRender {
     this.options.paddingLeft = paddingArr[3]
   }
 
-  async measureFont(char: string) {
-    const { fontFamily, fontSize } = this.options
+  async measureFont(char: string, fontSize: number = this.options.fontSize) {
+    const { fontFamily } = this.options
     return await measureFont(char, {
       fontFamily,
       fontSize

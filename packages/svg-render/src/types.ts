@@ -45,3 +45,9 @@ export interface MeasureOptions {
   remoteFontCSSURL?: string
 }
 
+export interface ParaOptions {
+  fontSize?: number
+  bold?: boolean
+  lineHeight?: number
+}
+
