@@ -17,6 +17,9 @@ function measureStr(paras: MeasureStrParas): Measurement {
   span.textContent = paras.char
   span.style.fontSize = `${paras.fontSize}px`
   span.style.fontFamily = paras.fontFamily
+  if (paras.fontWeight?.length) {
+    span.style.fontWeight = paras.fontWeight
+  }
   document.body.appendChild(span)
   const { width, height } = window.getComputedStyle(span)
   document.body.removeChild(span)

@@ -35,6 +35,7 @@ export interface MeasureOptions {
    * The font size of the text
    */
   fontSize?: number
+  fontWeight?: string
   /**
    * The font family of the text
    */
@@ -49,7 +50,7 @@ export type MeasureStrParas = Required<MeasureOptions> & {char: string}
 
 export interface ParagraphOptions {
   fontSize?: number
-  bold?: boolean
+  fontWeight?: string
   lineHeight?: number
 }
 

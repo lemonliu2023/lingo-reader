@@ -87,8 +87,8 @@ export class SvgRender {
       const headingFontSize = this.options.fontSize * 2
       const headingLineHeight = headingFontSize * this.options.lineHeightRatio
       this.newLine(headingLineHeight)
-      await this.addParagraph(content.heading, { 
-        bold: true,
+      await this.addParagraph(content.heading, {
+        fontWeight: 'bold',
         fontSize: headingFontSize,
         lineHeight: headingLineHeight
       })
@@ -107,7 +107,7 @@ export class SvgRender {
       paddingLeft,
       paddingTop,
     } = this.options
-    
+
     for (let i = 0; i < textLen; i++) {
       const char = text[i]
       if (char === '\n') {
@@ -117,7 +117,7 @@ export class SvgRender {
 
       const {
         width: charWidth
-      } = await this.measureFont(char, fontSize)
+      } = await this.measureFont(char, fontSize, paraOptions.fontWeight)
 
       // newLine
       if (this.x + charWidth > width - paddingLeft) {
@@ -135,7 +135,7 @@ export class SvgRender {
           this.newLine(lineHeight)
         }
       }
-      
+
       // newPage
       if (this.y + this.lineHeight > height - paddingTop) {
         this.commitToPage()
@@ -158,8 +158,8 @@ export class SvgRender {
 
   generateText(x: number, y: number, char: string, options: ParagraphOptions) {
     let styleArr = []
-    if (options.bold) {
-      styleArr.push('font-weight:bold;')
+    if (options.fontWeight) {
+      styleArr.push(`font-weight:${options.fontWeight};`)
     }
     if (options.fontSize) {
       styleArr.push(`font-size:${options.fontSize}px;`)
@@ -231,11 +231,19 @@ export class SvgRender {
     this.options.paddingLeft = paddingArr[3]
   }
 
-  async measureFont(char: string, fontSize: number = this.options.fontSize) {
+  async measureFont(
+    char: string,
+    fontSize: number = this.options.fontSize,
+    fontWeight?: string
+  ) {
     const { fontFamily } = this.options
+    if (!fontSize) {
+      fontSize = this.options.fontSize
+    }
     return await measureFont(char, {
       fontFamily,
-      fontSize
+      fontSize,
+      fontWeight
     })
   }
 }
