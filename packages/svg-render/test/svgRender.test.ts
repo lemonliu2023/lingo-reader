@@ -12,7 +12,7 @@ describe('svgRender', () => {
   const renderer = new SvgRender({
     padding: '40',
     width: 1000,
-    height: 500,
+    height: 700,
   })
   it('options.padding', () => {
     const {
@@ -84,6 +84,15 @@ succeeded in bringing herself down to her usual height.`.replace(/\n/g, '')
     await renderer.addContent({
       type: ContentType.HEADING4,
       heading: 'Chapter 2',
+    })
+    await renderer.addContent({
+      type: ContentType.PARAGRAPH,
+      text: 'hello world',
+    })
+    renderer.addContent({
+      type: ContentType.IMAGE,
+      src: '1656147374309.jpg',
+      alt: 'image',
     })
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])

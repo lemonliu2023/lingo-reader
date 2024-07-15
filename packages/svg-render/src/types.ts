@@ -3,6 +3,7 @@ export interface SvgRenderOptions {
   height?: number
   fontFamily?: string
   fontSize?: number
+  imageRoot?: string
 
   // svg style
   opacity?: number

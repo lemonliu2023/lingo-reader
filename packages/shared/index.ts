@@ -23,10 +23,10 @@ interface ChapterHeading {
   heading: string
 }
 
-interface ChapterImage {
+export interface ChapterImage {
   type: ContentType.IMAGE,
   src: string
-  alt: string
+  alt?: string
   width?: number
   height?: number
 }

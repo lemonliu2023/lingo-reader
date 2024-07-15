@@ -2,6 +2,11 @@ import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace, charMap, headingRatioMap } from "./utils"
+import { fileURLToPath } from "url"
+import path from "path"
+
+const currDir = fileURLToPath(import.meta.url)
+const imageDir = path.resolve(currDir, '../../images/')
 
 // TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
@@ -9,6 +14,7 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   height: 1000,
   fontFamily: 'Lucida Console, Courier, monospace',
   fontSize: 20,
+  imageRoot: imageDir,
 
   // svg style
   opacity: 1,
@@ -83,7 +89,7 @@ export class SvgRender {
       const levelRatio = headingRatioMap.get(contentType)!
       const headingFontSize = this.options.fontSize * levelRatio
       const headingLineHeight = headingFontSize * this.options.lineHeightRatio
-      
+
       this.newLine(headingLineHeight)
       await this.addParagraph(content.heading, {
         fontWeight: 'bold',
@@ -91,6 +97,13 @@ export class SvgRender {
         lineHeight: headingLineHeight
       })
       this.newLine(this.lineHeight)
+    } else if (contentType === ContentType.IMAGE) {
+      this.addImage(
+        content.src,
+        content.alt,
+        content.width,
+        content.height
+      )
     }
     this.commitToPage()
   }
@@ -103,7 +116,7 @@ export class SvgRender {
       width,
       height,
       paddingLeft,
-      paddingTop,
+      paddingBottom,
     } = this.options
 
     for (let i = 0; i < textLen; i++) {
@@ -135,7 +148,7 @@ export class SvgRender {
       }
 
       // newPage
-      if (this.y + this.lineHeight > height - paddingTop) {
+      if (this.y + this.lineHeight > height - paddingBottom) {
         this.commitToPage()
         this.newPage()
       }
@@ -152,6 +165,35 @@ export class SvgRender {
       }
       this.x += charWidth
     }
+  }
+
+  addImage(
+    src: string,
+    alt: string = '',
+    imageWidth?: number,
+    imageHeight?: number,
+  ) {
+    this.newLine(this.lineHeight)
+    if (!path.isAbsolute(src)) {
+      src = path.resolve(this.options.imageRoot, src)
+    }
+    const remainHeight = this.options.height - this.y + this.lineHeight
+    const renderHeight = 3 * this.lineHeight
+    if (remainHeight < renderHeight) {
+      this.commitToPage()
+      this.newPage()
+    }
+    const renderY = this.y - this.lineHeight
+    let renderX = this.x
+    if (imageWidth && imageHeight) {
+      const scale = renderHeight / imageHeight
+      const renderWidth = imageWidth * scale
+      renderX = (this.options.width - renderWidth) / 2
+    }
+    this.pageText.push(
+      `<image x="${renderX}" y="${renderY}" height="${renderHeight}" href="${src}" alt="${alt}"/>`
+    )
+    this.newLine(renderHeight)
   }
 
   generateText(x: number, y: number, char: string, options: ParagraphOptions) {
@@ -183,13 +225,12 @@ export class SvgRender {
   newPage() {
     const {
       paddingLeft,
-      paddingTop,
-      fontSize
+      paddingTop
     } = this.options
 
     this.pageText = []
     this.x = paddingLeft
-    this.y = paddingTop + fontSize
+    this.y = paddingTop + this.lineHeight
     this.pageIndex++
   }
 
