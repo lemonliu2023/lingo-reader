@@ -28,11 +28,6 @@ export class Chapter {
             src: src,
             alt: img$.alt || ""
           })
-          console.log({
-            type: ContentType.IMAGE,
-            src: src,
-            alt: img$.alt || ""
-          })
         } else if (element['_']) {
           // <p>text</p>
           this.contents.push({

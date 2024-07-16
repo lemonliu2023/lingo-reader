@@ -60,7 +60,7 @@ export class SvgRender {
       lineHeightRatio
     } = this.options
     this.x = paddingLeft
-    this.y = paddingTop + fontSize
+    this.y = paddingTop
     this.lineHeight = fontSize * lineHeightRatio
     this.background = this.generateRect()
   }
@@ -73,8 +73,11 @@ export class SvgRender {
   }
 
   async addContent(content: Content) {
+    // 1.new line
+    // 2.render content
     const contentType = content.type
     if (contentType === ContentType.PARAGRAPH) {
+      this.newLine(this.lineHeight)
       await this.addParagraph(content.text, {
         lineHeight: this.lineHeight
       })
@@ -96,8 +99,9 @@ export class SvgRender {
         fontSize: headingFontSize,
         lineHeight: headingLineHeight
       })
-      this.newLine(this.lineHeight)
     } else if (contentType === ContentType.IMAGE) {
+      const occupyHeight = 3.5 * this.lineHeight
+      this.newLine(occupyHeight)
       this.addImage(
         content.src,
         content.alt,
@@ -173,7 +177,6 @@ export class SvgRender {
     imageWidth?: number,
     imageHeight?: number,
   ) {
-    this.newLine(this.lineHeight)
     if (!path.isAbsolute(src)) {
       src = path.resolve(this.options.imageRoot, src)
     }
@@ -183,7 +186,7 @@ export class SvgRender {
       this.commitToPage()
       this.newPage()
     }
-    const renderY = this.y - this.lineHeight
+    const renderY = this.y - renderHeight
     let renderX = this.x
     if (imageWidth && imageHeight) {
       const scale = renderHeight / imageHeight
@@ -193,7 +196,6 @@ export class SvgRender {
     this.pageText.push(
       `<image x="${renderX}" y="${renderY}" height="${renderHeight}" href="${src}" alt="${alt}"/>`
     )
-    this.newLine(renderHeight)
   }
 
   generateText(x: number, y: number, char: string, options: ParagraphOptions) {
@@ -230,7 +232,7 @@ export class SvgRender {
 
     this.pageText = []
     this.x = paddingLeft
-    this.y = paddingTop + this.lineHeight
+    this.y = paddingTop
     this.pageIndex++
   }
 

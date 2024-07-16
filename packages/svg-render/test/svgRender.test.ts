@@ -94,6 +94,10 @@ succeeded in bringing herself down to her usual height.`.replace(/\n/g, '')
       src: '1656147374309.jpg',
       alt: 'image',
     })
+    await renderer.addContent({
+      type: ContentType.PARAGRAPH,
+      text: 'hello world',
+    })
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
   })
