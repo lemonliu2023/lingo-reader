@@ -1,7 +1,7 @@
 import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
-import { isEnglish, isSpace, charMap, headingRatioMap } from "./utils"
+import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
 import { fileURLToPath } from "url"
 import path from "path"
 
@@ -137,15 +137,21 @@ export class SvgRender {
       // newLine
       if (this.x + charWidth > width - paddingLeft) {
         const prevChar = text[i - 1]
-        if (isEnglish(prevChar) && isSpace(char)) {
+        if (!isSpace(prevChar) && isSpace(char)) {
           this.newLine(lineHeight)
           continue
         } else if (isEnglish(prevChar) && isEnglish(char)) {
-          // <text x="x" y="y">-</text>
           this.pageText.push(
+            // <text x="x" y="y">-</text>
             this.generateText(this.x, this.y, '-', paraOptions)
           )
           this.newLine(lineHeight)
+        } else if (isEnglish(prevChar) && isPunctuation(char)) {
+          this.pageText.push(
+            // <text x="x" y="y">char</text>
+            this.generateText(this.x, this.y, char, paraOptions)
+          )
+          continue
         } else {
           this.newLine(lineHeight)
         }

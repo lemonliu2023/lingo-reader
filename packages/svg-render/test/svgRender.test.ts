@@ -96,9 +96,20 @@ succeeded in bringing herself down to her usual height.`.replace(/\n/g, '')
     })
     await renderer.addContent({
       type: ContentType.PARAGRAPH,
-      text: 'hello world',
+      text: `Alice gave a weary sigh. "I think you 
+might do something better with the time," she said, 
+"than wasting it in asking riddles that have no answers."
+Once more she found herself in the long hall and close 
+to the little glass table. Taking the little golden key, 
+she unlocked the door that led into the garden. Then she 
+set to work nibbling at the mushroom (she had kept a 
+piece of it in her pocket) till she was about a foot 
+high; then she walked down the little passage; 
+and then—she found herself at last in the beautiful garden, 
+among the bright flower-beds and the cool fountains.`.replace(/\n/g, ''),
     })
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
+    fs.writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
   })
 })

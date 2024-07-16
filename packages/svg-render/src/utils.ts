@@ -24,6 +24,11 @@ export const isEnglish = (char: string) => {
 export const isSpace = (char: string) => {
   return char === ' '
 }
+// 正则表达式匹配标点符号
+const punctuationRegex = /[!%,-\.:;?]/;
+export const isPunctuation = (char: string) => {
+  return punctuationRegex.test(char);
+}
 
 export const charMap = new Map<string, string>([
   // space will not be rendered in the beginning of the text
