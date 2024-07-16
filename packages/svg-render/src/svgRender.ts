@@ -15,28 +15,28 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   fontFamily: 'Lucida Console, Courier, monospace',
   fontSize: 20,
   imageRoot: imageDir,
-
-  // svg style
-  opacity: 1,
   lineHeightRatio: 1.5,
-  backgroundColor: '#f0f0f0',
-  borderRadius: 0,
-  selectionbgColor: '#b4d5ea',
-  selectionColor: '',
-  cursor: 'default',
   padding: '20',
   paddingLeft: 0,
   paddingRight: 0,
   paddingTop: 0,
   paddingBottom: 0,
 
-  // used for playwright font loading
+  // svg style
+  opacity: 1,
+  backgroundColor: '#f0f0f0',
+  borderRadius: 0,
+  selectionbgColor: '#b4d5ea',
+  selectionColor: '',
+  cursor: 'default',
+
+  // used for playwright to font loading
   remoteFontCSSURL: ''
 }
 
 export class SvgRender {
   options: Required<SvgRenderOptions>
-  background: string = ''
+  svg: string = ''
   // svg>text position, left bottom corner
   x: number = 0
   y: number = 0
@@ -62,7 +62,8 @@ export class SvgRender {
     this.x = paddingLeft
     this.y = paddingTop
     this.lineHeight = fontSize * lineHeightRatio
-    this.background = this.generateRect()
+
+    this.svg = this.generateSvg()
   }
 
   async addContents(contents: Content[]) {
@@ -242,7 +243,10 @@ export class SvgRender {
 
   commitToPage() {
     if (this.pageText.length) {
-      this.pages[this.pageIndex] = this.generateSvg(this.pageText.join(''))
+      this.pages[this.pageIndex] = this.svg.replace(
+        '##{content}##', 
+        this.pageText.join('')
+      )
     }
   }
 
@@ -258,19 +262,66 @@ export class SvgRender {
     this.pageIndex++
   }
 
-  generateSvg(content: string) {
+  async measureFont(
+    char: string,
+    fontSize: number = this.options.fontSize,
+    fontWeight?: string
+  ) {
+    const { fontFamily } = this.options
+    if (!fontSize) {
+      fontSize = this.options.fontSize
+    }
+    return await measureFont(char, {
+      fontFamily,
+      fontSize,
+      fontWeight
+    })
+  }
+
+  generateSvg() {
     const { width, height, fontSize, fontFamily } = this.options
-    return `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
+    const svgId = 'svg' + Math.random().toString(36).substring(2, 9)
+    return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
       + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">`
-      + this.background
-      + `${content}`
+      + this.generateStyle(svgId)
+      + this.generateRect()
+      + `##{content}##`
       + '</svg>'
+  }
+  
+  generateStyle(svgId: string) {
+    const {
+      borderRadius,
+      cursor,
+      opacity,
+      selectionbgColor,
+      selectionColor
+    } = this.options
+
+    // svg css
+    let svgStyle = `#${svgId}{`
+    svgStyle += `cursor:${cursor};`
+    if (opacity < 1 && opacity >= 0) {
+      svgStyle += `opacity:${opacity};`
+    }
+    if (borderRadius > 0) {
+      svgStyle += `border-radius:${borderRadius}px;`
+    }
+    svgStyle += '}'
+    // selection css
+    let svgSelectionStyle = `#${svgId} text::selection{`
+    svgSelectionStyle += `background-color:${selectionbgColor};`
+    if (selectionColor.length > 0) {
+      svgSelectionStyle += `fill:${selectionColor};`
+    }
+    svgSelectionStyle += '}'
+    return `<style>${svgStyle}${svgSelectionStyle}</style>`
   }
 
   generateRect() {
     const { width, height, backgroundColor } = this.options
-    return `<rect width="${width}" height="${height}"`
-      + ` fill="${backgroundColor}" pointer-events="none"/>`
+    return `<rect width="${width}" height="${height}" `
+      + `fill="${backgroundColor}" pointer-events="none"/>`
   }
 
   parsePadding() {
@@ -292,21 +343,5 @@ export class SvgRender {
     this.options.paddingRight = paddingArr[1]
     this.options.paddingBottom = paddingArr[2]
     this.options.paddingLeft = paddingArr[3]
-  }
-
-  async measureFont(
-    char: string,
-    fontSize: number = this.options.fontSize,
-    fontWeight?: string
-  ) {
-    const { fontFamily } = this.options
-    if (!fontSize) {
-      fontSize = this.options.fontSize
-    }
-    return await measureFont(char, {
-      fontFamily,
-      fontSize,
-      fontWeight
-    })
   }
 }

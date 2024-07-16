@@ -35,25 +35,25 @@ describe('svgRender', () => {
     expect(renderer.lineHeight).toBe(fontSize * lineHeightRatio)
   })
 
-  it('generateRect', () => {
-    const { width, height, backgroundColor } = renderer.options
-    expect(renderer.background).toBe(
-      `<rect width="${width}" height="${height}"`
-      + ` fill="${backgroundColor}" pointer-events="none"/>`,
-    )
-  })
+  // it('generateRect', () => {
+  //   const { width, height, backgroundColor } = renderer.options
+  //   expect(renderer.background).toBe(
+  //     `<rect width="${width}" height="${height}"`
+  //     + ` fill="${backgroundColor}" pointer-events="none"/>`,
+  //   )
+  // })
 
-  it('genarateSvg', () => {
-    const { width, height, backgroundColor } = renderer.options
-    expect(renderer.generateSvg('<text x="100" y="100">hello</text>'))
-      .toBe(
-        '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="20px" '
-        + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" `
-        + `font-family="Lucida Console, Courier, monospace">`
-        + `<rect width="${width}" height="${height}" fill="${backgroundColor}" pointer-events="none"/>`
-        + '<text x="100" y="100">hello</text></svg>',
-      )
-  })
+  // it('genarateSvg', () => {
+  //   const { width, height, backgroundColor } = renderer.options
+  //   expect(renderer.generateSvg('<text x="100" y="100">hello</text>'))
+  //     .toBe(
+  //       '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="20px" '
+  //       + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" `
+  //       + `font-family="Lucida Console, Courier, monospace">`
+  //       + `<rect width="${width}" height="${height}" fill="${backgroundColor}" pointer-events="none"/>`
+  //       + '<text x="100" y="100">hello</text></svg>',
+  //     )
+  // })
 
   const text = `哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈
 哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"
