@@ -194,11 +194,16 @@ export class SvgRender {
       renderX = (this.options.width - renderWidth) / 2
     }
     this.pageText.push(
-      `<image x="${renderX}" y="${renderY}" height="${renderHeight}" href="${src}" alt="${alt}"/>`
+      this.generateImage(renderX, renderY, src, alt, renderHeight)
     )
   }
 
-  generateText(x: number, y: number, char: string, options: ParagraphOptions) {
+  generateText(
+    x: number,
+    y: number,
+    char: string,
+    options: ParagraphOptions
+  ) {
     let styleArr = []
     if (options.fontWeight) {
       styleArr.push(`font-weight:${options.fontWeight};`)
@@ -211,6 +216,17 @@ export class SvgRender {
       style = ` style="${styleArr.join('')}"`
     }
     return `<text x="${x}" y="${y}"${style}>${char}</text>`
+  }
+
+  generateImage(
+    x: number,
+    y: number,
+    src: string,
+    alt: string,
+    height: number
+  ) {
+    const altStr = alt.length ? ' alt="${alt}"' : ''
+    return `<image x="${x}" y="${y}" height="${height}" href="${src}"${altStr}/>`
   }
 
   newLine(lineHeight: number) {
