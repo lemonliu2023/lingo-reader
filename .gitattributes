@@ -1,0 +1,2 @@
+*.svg linguist-vendored
+**/__snapshots__/* linguist-generated

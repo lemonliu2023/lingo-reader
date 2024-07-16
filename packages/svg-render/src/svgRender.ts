@@ -34,6 +34,8 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   remoteFontCSSURL: ''
 }
 
+const SVGPlaceholder = '##{content}##'
+
 export class SvgRender {
   options: Required<SvgRenderOptions>
   svg: string = ''
@@ -162,6 +164,7 @@ export class SvgRender {
       if (this.y + this.lineHeight > height - paddingBottom) {
         this.commitToPage()
         this.newPage()
+        this.newLine(this.lineHeight)
       }
       if (charMap.has(char)) {
         // <text x="x" y="y">charMap.get(char)</text>
@@ -244,7 +247,7 @@ export class SvgRender {
   commitToPage() {
     if (this.pageText.length) {
       this.pages[this.pageIndex] = this.svg.replace(
-        '##{content}##', 
+        SVGPlaceholder, 
         this.pageText.join('')
       )
     }
@@ -285,7 +288,7 @@ export class SvgRender {
       + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">`
       + this.generateStyle(svgId)
       + this.generateRect()
-      + `##{content}##`
+      + SVGPlaceholder
       + '</svg>'
   }
   
