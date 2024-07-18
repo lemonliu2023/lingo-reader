@@ -14,6 +14,14 @@ describe('epubFile', () => {
     expect(epub.mimeType).toBe('application/epub+zip')
   })
 
+  it('imageSaveDir', () => {
+    const matchResult = epubPath.match(/[\\/](\w+)\.epub/)
+    const epubImageDirName = matchResult ? matchResult[1] : null
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const imageDir = path.resolve(currentDir, `../../../example/${epubImageDirName}`)
+    expect(epub.imageSaveDir).toBe(imageDir)
+  })
+
   it('container file fullpath', () => {
     expect(epub.rootFile).toBe('19033/content.opf')
     expect(epub.contentDir).toBe('19033')
@@ -50,7 +58,7 @@ describe('epubFile', () => {
     expect(Object.keys(manifest).length).toBe(33)
     expect(manifest.item1).toEqual({
       'id': 'item1',
-      'href': `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
+      'href': 'www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
       'media-type': 'image/jpeg',
     })
   })
@@ -63,19 +71,19 @@ describe('epubFile', () => {
     expect(guide).toEqual([{
       title: 'Cover Image',
       type: 'cover',
-      href: `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg`,
+      href: 'www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
     }])
   })
 
   it('parseSpine', () => {
     const spine = epub.spine
 
-    expect(spine.tocPath).toBe(`${epub.contentDir}/toc.ncx`)
+    expect(spine.tocPath).toBe('toc.ncx')
     expect(spine.contents.length).toBe(1)
     expect(epub.flow.length).toBe(spine.contents.length)
     expect(spine.contents[0]).toEqual({
       'id': 'item32',
-      'href': `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm`,
+      'href': 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       'media-type': 'application/xhtml+xml',
     })
   })
@@ -84,7 +92,7 @@ describe('epubFile', () => {
     expect(epub.toc.length).toBe(1)
     expect(epub.toc[0]).toEqual({
       'id': 'item32',
-      'href': `${epub.contentDir}/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm`,
+      'href': 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       'order': 1,
       'title': 'THE "STORYLAND" SERIES',
       'level': 0,

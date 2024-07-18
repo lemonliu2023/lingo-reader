@@ -1,7 +1,8 @@
-/// <reference path="./global.d.ts" />
 import playwright from 'playwright'
 import { getDocument } from './utils'
 import { Measurement, MeasureOptions, MeasureStrParas } from './types'
+
+declare let __BROWSER__: boolean
 
 const defaultOptions: MeasureOptions = {
   fontSize: 20,

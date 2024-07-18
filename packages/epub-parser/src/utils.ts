@@ -29,17 +29,26 @@ export class ZipFile {
   }
 
   // read inner file in .epub file
-  async readFile(name: string) {
+  readFile(name: string) {
     if (!this.hasFile(name)) {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
     const fileName = this.getFileName(name)!
-    const content = this.admZip.readFile(this.admZip.getEntry(fileName)!)!.toString('utf8')
+    let content = this.admZip.readAsText(this.admZip.getEntry(fileName)!)
     const txt = content.trim()
     if (txt.length === 0) {
       throw new Error(`${name} file is empty`)
     }
     return txt
+  }
+
+  readImage(name: string) {
+    if (!this.hasFile(name)) {
+      throw new Error(`${name} file was not exit in ${this.filePath}`)
+    }
+    const fileName = this.getFileName(name)!
+    const content = this.admZip.readFile(this.admZip.getEntry(fileName)!)!
+    return content
   }
 
   hasFile(name: string) {

@@ -54,13 +54,20 @@ describe('utils', () => {
     expect(result).toEqual({ root: { a: ['1'], b: ['2'] } })
   })
 
-  it('zipFile.readFile file exit', async () => {
+  it('zipFile.readFile file exit', () => {
     expect([...epubFile.names.values()]).toEqual(aliceEpubNames)
-    const fileContent = await epubFile.readFile(aliceEpubNames[0])
+    const fileContent = epubFile.readFile(aliceEpubNames[0])
     expect(fileContent).toEqual('application/epub+zip')
   })
 
-  it('zipFile.readFile file not exit', async () => {
-    await expect(epubFile.readFile('not-exist')).rejects.toThrow()
+  it('zipFile.readFile file not exit', () => {
+    // await expect(epubFile.readFile('not-exist')).rejects.toThrow()
+    expect(() => epubFile.readFile('not-exist')).toThrow()
+  })
+
+  it('zipFile.readImage', () => {
+    expect(epubFile.readImage(
+      '19033/www.gutenberg.org@files@19033@19033-h@images@i022_th.jpg',
+    ).length).toBeGreaterThan(0)
   })
 })

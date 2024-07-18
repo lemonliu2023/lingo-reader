@@ -1,7 +1,9 @@
-
 import { camelCase, parsexml, ZipFile } from './utils'
 import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types'
 import { Chapter } from './chapter'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
 
 export class EpubFile {
   zip: ZipFile
@@ -24,21 +26,34 @@ export class EpubFile {
   // remove duplicate href item in TOCOutput
   hrefSet: Set<string> = new Set()
 
-  constructor(public epubFileName: string) {
-    // TODO: image root and link root
+  imageSaveDir: string
+  constructor(public epubFileName: string, imageRoot?: string) {
+    // imageRoot
+    if (!imageRoot) {
+      const epubImageDirName = epubFileName.match(/[\\/](\w+)\.epub/)![1];
+      const currentDir = path.dirname(fileURLToPath(import.meta.url))
+      // the default root is /example/alice/
+      this.imageSaveDir = path.resolve(currentDir, '../../../example/', epubImageDirName)
+    } else {
+      this.imageSaveDir = path.join(process.cwd(), imageRoot)
+    }
+    if (!fs.existsSync(this.imageSaveDir)) {
+      fs.mkdirSync(this.imageSaveDir, { recursive: true })
+    }
+    // TODO: link root
     this.zip = new ZipFile(epubFileName)
     this.parse()
   }
 
   async parse() {
-    await this.checkMimeType()
+    this.checkMimeType()
     await this.parseContainer()
     await this.parseRootFile()
   }
 
   // parse mimetype
-  async checkMimeType() {
-    const fileContent = await this.zip.readFile(this.mimeFile)
+  checkMimeType() {
+    const fileContent = this.zip.readFile(this.mimeFile)
     if (fileContent.toLowerCase() !== 'application/epub+zip') {
       throw new Error('Unsupported mime type')
     }
@@ -53,7 +68,7 @@ export class EpubFile {
       throw new Error('No container.xml in epub file')
     }
 
-    const containerXml = await this.zip.readFile(containerFile)
+    const containerXml = this.zip.readFile(containerFile)
     const xmlContainer = (await parsexml(containerXml)).container
     if (!xmlContainer ||
       !xmlContainer.rootfiles ||
@@ -75,7 +90,7 @@ export class EpubFile {
 
   // opf file package
   async parseRootFile() {
-    const rootFileOPF = await this.zip.readFile(this.rootFile)
+    const rootFileOPF = this.zip.readFile(this.rootFile)
     const xml = await parsexml(rootFileOPF)
     const rootKeys = Object.keys(xml)
     let rootFile;
@@ -90,7 +105,7 @@ export class EpubFile {
           this.parseMetadata(rootFile[key][0])
           break
         case 'manifest':
-          this.parseManifest(rootFile[key][0])
+          await this.parseManifest(rootFile[key][0])
           break
         case 'spine':
           this.parseSpine(rootFile[key][0])
@@ -178,7 +193,7 @@ export class EpubFile {
     }
   }
 
-  parseManifest(manifest: Record<string, any>) {
+  async parseManifest(manifest: Record<string, any>) {
     const items = manifest.item
     if (!items) {
       throw new Error('The manifest element must contain one or more item elements')
@@ -189,7 +204,17 @@ export class EpubFile {
       if (!element || !element.id || !element.href || !element['media-type']) {
         throw new Error('The item in manifest must have attributes id, href and mediaType.')
       }
-      element.href = `${this.contentDir}/${element.href}`
+      // save element if it is an image, 
+      // which was determined by whether media-type starts with 'image'
+      if (element['media-type'].startsWith('image')) {
+        const imagePath = path.join(this.imageSaveDir, element.href)
+        if (!fs.existsSync(imagePath)) {
+          fs.writeFileSync(
+            imagePath,
+            this.zip.readImage(this.padWithContentDir(element.href))
+          )
+        }
+      }
       this.manifest[element.id] = element
     }
   }
@@ -220,7 +245,6 @@ export class EpubFile {
     }
     for (const reference of references) {
       const element = reference['$']
-      element.href = `${this.contentDir}/${element.href}`
       this.guide.push(element)
     }
   }
@@ -232,8 +256,7 @@ export class EpubFile {
     for (const id of ids) {
       idList[this.manifest[id].href] = id
     }
-
-    const tocNcxFile = await this.zip.readFile(this.spine.tocPath)
+    const tocNcxFile = this.zip.readFile(this.padWithContentDir(this.spine.tocPath))
     const ncxXml = (await parsexml(tocNcxFile)).ncx
     if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
       throw new Error('navMap is a required element in the NCX')
@@ -251,7 +274,7 @@ export class EpubFile {
       if (navPoint.navLabel) {
         const title = navPoint.navLabel[0]?.text[0]
         const order = parseInt(navPoint['$']?.playOrder)
-        const href = `${this.contentDir}/${navPoint.content[0]['$']?.src.split('#')[0]}`
+        const href = navPoint.content[0]['$']?.src.split('#')[0]
 
         if (!this.hrefSet.has(href)) {
           const element: TOCOutput = {
@@ -280,7 +303,7 @@ export class EpubFile {
 
   async getChapter(id: string) {
     const xmlHref = this.manifest[id].href
-    let xmlContent = await this.zip.readFile(xmlHref)
+    let xmlContent = this.zip.readFile(this.padWithContentDir(xmlHref))
 
     // remove <span> b strong i em u s small mark
     xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em^[b]|u[^l]|s|small|mark|header|footer|section)[^>]*>/ig, '')
@@ -296,7 +319,7 @@ export class EpubFile {
     // mutiple (\n| ) to one (\n| )
     xmlContent = xmlContent.replace(/(^|[^\n])\n(?!\n)/g, '$1 ')
     xmlContent = xmlContent.replace(/[ \f\t\v]+/g, ' ')
-    
+
     const xmlTree = await parsexml(xmlContent, {
       preserveChildrenOrder: true,
       explicitChildren: true,
@@ -306,6 +329,8 @@ export class EpubFile {
     return chapterContent.getContents()
   }
 
-
+  padWithContentDir(href: string) {
+    return path.join(this.contentDir, href).replace(/\\/g, '/')
+  }
 }
 
