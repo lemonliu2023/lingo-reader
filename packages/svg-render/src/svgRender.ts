@@ -1,6 +1,6 @@
 import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
-import { Content, ContentType } from "@svg-ebook-reader/shared"
+import { Content, ContentType } from "@svg-ebook-reader/shared/src"
 import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
 import { fileURLToPath } from "url"
 import path from "path"

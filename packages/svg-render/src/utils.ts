@@ -1,4 +1,4 @@
-import { ContentType } from '@svg-ebook-reader/shared'
+import { ContentType } from '@svg-ebook-reader/shared/src'
 
 export function getDocument(fontName: string, url: string) {
   return `
@@ -25,9 +25,9 @@ export const isSpace = (char: string) => {
   return char === ' '
 }
 // 正则表达式匹配标点符号
-const punctuationRegex = /[!%,-\.:;?]/;
+const punctuationRegex = /[!%,-\.:;?]/
 export const isPunctuation = (char: string) => {
-  return punctuationRegex.test(char);
+  return punctuationRegex.test(char)
 }
 
 export const charMap = new Map<string, string>([

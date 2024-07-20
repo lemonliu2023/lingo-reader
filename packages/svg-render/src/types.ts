@@ -18,7 +18,7 @@ export interface SvgRenderOptions {
   paddingRight?: number
   paddingTop?: number
   paddingBottom?: number
-  
+
   // used for playwright font loading
   remoteFontCSSURL?: string
 }
@@ -47,11 +47,10 @@ export interface MeasureOptions {
   remoteFontCSSURL?: string
 }
 
-export type MeasureStrParas = Required<MeasureOptions> & {char: string}
+export type MeasureStrParas = Required<MeasureOptions> & { char: string }
 
 export interface ParagraphOptions {
   fontSize?: number
   fontWeight?: string
   lineHeight?: number
 }
-

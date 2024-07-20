@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ContentType } from '@svg-ebook-reader/shared'
+import { ContentType } from '@svg-ebook-reader/shared/src/index.ts'
 import { EpubFile } from '../src/epub.ts'
 
 describe('epubFile', () => {

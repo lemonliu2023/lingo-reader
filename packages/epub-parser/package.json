@@ -9,8 +9,11 @@
     "epub",
     "epub-parser"
   ],
-  "main": "index.ts",
-  "module": "index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "scripts": {},
   "dependencies": {
     "@svg-ebook-reader/shared": "workspace:^",
