@@ -10,7 +10,7 @@ export class Chapter {
     this.parseContent(html.body[0].children)
   }
 
-  parseContent(body: any) {
+  private parseContent(body: any) {
     for (const element of body) {
       const tagName = element['#name']
       if (tagName === 'p') {
@@ -56,12 +56,12 @@ export class Chapter {
     }
   }
 
-  parseTitle(html: any) {
+  private parseTitle(html: any) {
     this.title = html.head[0].title[0] || ''
   }
 
   // export
-  getContents() {
+  public getContents() {
     return {
       title: this.title,
       contents: this.contents

@@ -37,16 +37,16 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
 const SVGPlaceholder = '##{content}##'
 
 export class SvgRender {
-  options: Required<SvgRenderOptions>
-  svg: string = ''
+  public options: Required<SvgRenderOptions>
+  public svg: string = ''
   // svg>text position, left bottom corner
-  x: number = 0
-  y: number = 0
-  lineHeight: number = 0
-  pageIndex: number = 0
-  pages: string[] = []
+  private x: number = 0
+  private y: number = 0
+  public lineHeight: number = 0
+  private pageIndex: number = 0
+  public pages: string[] = []
   // text content in the svg
-  pageText: string[] = []
+  private pageText: string[] = []
   constructor(options: SvgRenderOptions) {
     this.options = {
       ...defaultSvgRenderOptions,
@@ -68,14 +68,14 @@ export class SvgRender {
     this.svg = this.generateSvg()
   }
 
-  async addContents(contents: Content[]) {
+  public async addContents(contents: Content[]) {
     for (const content of contents) {
       await this.addContent(content)
     }
     this.commitToPage()
   }
 
-  async addContent(content: Content) {
+  public async addContent(content: Content) {
     // 1.new line
     // 2.render content
     const contentType = content.type
@@ -115,7 +115,7 @@ export class SvgRender {
     this.commitToPage()
   }
 
-  async addParagraph(text: string, paraOptions: ParagraphOptions) {
+  private async addParagraph(text: string, paraOptions: ParagraphOptions) {
     const textLen = text.length
     const fontSize = paraOptions?.fontSize || this.options.fontSize
     const lineHeight = paraOptions.lineHeight || this.lineHeight
@@ -181,7 +181,7 @@ export class SvgRender {
     }
   }
 
-  addImage(
+  private addImage(
     src: string,
     alt: string = '',
     imageWidth?: number,
@@ -208,7 +208,7 @@ export class SvgRender {
     )
   }
 
-  generateText(
+  private generateText(
     x: number,
     y: number,
     char: string,
@@ -228,7 +228,7 @@ export class SvgRender {
     return `<text x="${x}" y="${y}"${style}>${char}</text>`
   }
 
-  generateImage(
+  private generateImage(
     x: number,
     y: number,
     src: string,
@@ -239,12 +239,12 @@ export class SvgRender {
     return `<image x="${x}" y="${y}" height="${height}" href="${src}"${altStr}/>`
   }
 
-  newLine(lineHeight: number) {
+  private newLine(lineHeight: number) {
     this.x = this.options.paddingLeft
     this.y += lineHeight
   }
 
-  commitToPage() {
+  private commitToPage() {
     if (this.pageText.length) {
       this.pages[this.pageIndex] = this.svg.replace(
         SVGPlaceholder, 
@@ -253,7 +253,7 @@ export class SvgRender {
     }
   }
 
-  newPage() {
+  private newPage() {
     const {
       paddingLeft,
       paddingTop
@@ -265,7 +265,7 @@ export class SvgRender {
     this.pageIndex++
   }
 
-  async measureFont(
+  private async measureFont(
     char: string,
     fontSize: number = this.options.fontSize,
     fontWeight?: string
@@ -281,7 +281,7 @@ export class SvgRender {
     })
   }
 
-  generateSvg() {
+  private generateSvg() {
     const { width, height, fontSize, fontFamily } = this.options
     const svgId = 'svg' + Math.random().toString(36).substring(2, 9)
     return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
@@ -292,7 +292,7 @@ export class SvgRender {
       + '</svg>'
   }
   
-  generateStyle(svgId: string) {
+  private generateStyle(svgId: string) {
     const {
       borderRadius,
       cursor,
@@ -321,13 +321,13 @@ export class SvgRender {
     return `<style>${svgStyle}${svgSelectionStyle}</style>`
   }
 
-  generateRect() {
+  private generateRect() {
     const { width, height, backgroundColor } = this.options
     return `<rect width="${width}" height="${height}" `
       + `fill="${backgroundColor}" pointer-events="none"/>`
   }
 
-  parsePadding() {
+  private parsePadding() {
     const paddingSplit = this.options.padding!.split(' ').map(val => parseInt(val))
     if (paddingSplit.length > 4) {
       throw new Error('padding should be 1-4 values with " " separated')

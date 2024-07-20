@@ -6,25 +6,25 @@ import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 
 export class EpubFile {
-  zip: ZipFile
-  mimeFile: string = 'mimetype'
-  mimeType: string = ''
-  rootFile: string = ''
-  contentDir: string = ''
-  metadata: Record<string, any> = {}
-  manifest: Record<string, ManifestItem> = {}
-  spine: Spine = {
+  private zip: ZipFile
+  private mimeFile: string = 'mimetype'
+  public mimeType: string = ''
+  public rootFile: string = ''
+  public contentDir: string = ''
+  public metadata: Record<string, any> = {}
+  public manifest: Record<string, ManifestItem> = {}
+  public spine: Spine = {
     // table of contents
     tocPath: '',
     contents: []
   }
   // reference to the spine.contents
-  flow: ManifestItem[] = []
-  guide: GuideReference[] = []
+  public flow: ManifestItem[] = []
+  public guide: GuideReference[] = []
   // table of contents
-  toc: TOCOutput[] = []
+  public toc: TOCOutput[] = []
   // remove duplicate href item in TOCOutput
-  hrefSet: Set<string> = new Set()
+  private hrefSet: Set<string> = new Set()
 
   imageSaveDir: string
   constructor(public epubFileName: string, imageRoot?: string) {
@@ -52,7 +52,7 @@ export class EpubFile {
   }
 
   // parse mimetype
-  checkMimeType() {
+  private checkMimeType() {
     const fileContent = this.zip.readFile(this.mimeFile)
     if (fileContent.toLowerCase() !== 'application/epub+zip') {
       throw new Error('Unsupported mime type')
@@ -62,7 +62,7 @@ export class EpubFile {
   }
 
   // parse meta-inf/container.xml
-  async parseContainer() {
+  private async parseContainer() {
     const containerFile = this.zip.getFileName('meta-inf/container.xml')
     if (!containerFile) {
       throw new Error('No container.xml in epub file')
@@ -89,7 +89,7 @@ export class EpubFile {
   }
 
   // opf file package
-  async parseRootFile() {
+  private async parseRootFile() {
     const rootFileOPF = this.zip.readFile(this.rootFile)
     const xml = await parsexml(rootFileOPF)
     const rootKeys = Object.keys(xml)
@@ -121,7 +121,7 @@ export class EpubFile {
     }
   }
 
-  parseMetadata(metadata: Record<string, any>) {
+  private parseMetadata(metadata: Record<string, any>) {
     for (const key in metadata) {
       const keyName = key.split(':').pop()!
       switch (keyName) {
@@ -193,7 +193,7 @@ export class EpubFile {
     }
   }
 
-  async parseManifest(manifest: Record<string, any>) {
+  private async parseManifest(manifest: Record<string, any>) {
     const items = manifest.item
     if (!items) {
       throw new Error('The manifest element must contain one or more item elements')
@@ -219,7 +219,7 @@ export class EpubFile {
     }
   }
 
-  parseSpine(spine: Record<string, any>) {
+  private parseSpine(spine: Record<string, any>) {
     if (spine['$']?.toc) {
       this.spine.tocPath = this.manifest[spine['$'].toc].href || ""
     }
@@ -238,7 +238,7 @@ export class EpubFile {
     this.flow = this.spine.contents
   }
 
-  parseGuide(guide: Record<string, any>) {
+  private parseGuide(guide: Record<string, any>) {
     const references = guide.reference
     if (!references) {
       throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
@@ -249,7 +249,7 @@ export class EpubFile {
     }
   }
 
-  async parseTOC() {
+  private async parseTOC() {
     // href to id
     const idList: Record<string, string> = {}
     const ids = Object.keys(this.manifest)
@@ -265,7 +265,7 @@ export class EpubFile {
     this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
   }
 
-  walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
+  private walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
     if (level > 7) {
       return []
     }
@@ -329,7 +329,7 @@ export class EpubFile {
     return chapterContent.getContents()
   }
 
-  padWithContentDir(href: string) {
+  private padWithContentDir(href: string) {
     return path.join(this.contentDir, href).replace(/\\/g, '/')
   }
 }
