@@ -6,6 +6,6 @@
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
   "keywords": [],
-  "main": "index.ts",
-  "module": "index.ts"
+  "main": "./src/index.ts",
+  "module": "./src/index.ts"
 }

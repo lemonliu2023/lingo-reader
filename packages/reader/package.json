@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@svg-ebook-reader/epub-parser": "workspace:^",
+    "@svg-ebook-reader/shared": "workspace:^",
     "@svg-ebook-reader/svg-render": "workspace:^"
   },
   "devDependencies": {
+    "@types/node": "^20.14.8",
     "typescript": "^5.2.2",
     "vite": "^5.3.4"
   }

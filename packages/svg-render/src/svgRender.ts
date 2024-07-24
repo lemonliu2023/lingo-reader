@@ -1,6 +1,6 @@
 import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
-import { Content, ContentType } from "@svg-ebook-reader/shared/src"
+import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
 import { fileURLToPath } from "url"
 import path from "path"
@@ -247,7 +247,7 @@ export class SvgRender {
   private commitToPage() {
     if (this.pageText.length) {
       this.pages[this.pageIndex] = this.svg.replace(
-        SVGPlaceholder, 
+        SVGPlaceholder,
         this.pageText.join('')
       )
     }
@@ -291,7 +291,7 @@ export class SvgRender {
       + SVGPlaceholder
       + '</svg>'
   }
-  
+
   private generateStyle(svgId: string) {
     const {
       borderRadius,

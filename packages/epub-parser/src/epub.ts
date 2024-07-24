@@ -41,7 +41,8 @@ export class EpubFile {
       fs.mkdirSync(this.imageSaveDir, { recursive: true })
     }
     // TODO: link root
-    this.zip = new ZipFile(epubFileName)
+    this.epubFileName = path.resolve(process.cwd(), this.epubFileName)
+    this.zip = new ZipFile(this.epubFileName)
     this.parse()
   }
 
@@ -263,6 +264,7 @@ export class EpubFile {
     }
 
     this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
+    // console.log(this.toc)
   }
 
   private walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
@@ -331,6 +333,10 @@ export class EpubFile {
 
   private padWithContentDir(href: string) {
     return path.join(this.contentDir, href).replace(/\\/g, '/')
+  }
+
+  getToc() {
+    return this.toc.length ? this.toc : this.flow
   }
 }
 

@@ -1,4 +1,4 @@
-import { ContentType } from '@svg-ebook-reader/shared/src'
+import { ContentType } from '@svg-ebook-reader/shared'
 
 export function getDocument(fontName: string, url: string) {
   return `

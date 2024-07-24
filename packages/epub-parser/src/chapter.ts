@@ -1,4 +1,4 @@
-import { Content, ContentType, HEADING } from "@svg-ebook-reader/shared/src";
+import { Content, ContentType, HEADING } from "@svg-ebook-reader/shared";
 
 export class Chapter {
   private contents: Content[] = []

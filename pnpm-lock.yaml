@@ -75,10 +75,16 @@ importers:
       '@svg-ebook-reader/epub-parser':
         specifier: workspace:^
         version: link:../epub-parser
+      '@svg-ebook-reader/shared':
+        specifier: workspace:^
+        version: link:../shared
       '@svg-ebook-reader/svg-render':
         specifier: workspace:^
         version: link:../svg-render
     devDependencies:
+      '@types/node':
+        specifier: ^20.14.8
+        version: 20.14.8
       typescript:
         specifier: ^5.2.2
         version: 5.4.5

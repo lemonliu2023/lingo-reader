@@ -44,19 +44,19 @@ async function measurePlaywright(paras: MeasureStrParas) {
     }
     const handleExit = async (signal: string) => {
       await cleanup();
-      process.exit(signal === 'exit' ? 0 : 1);
+      process.exit(signal === 'exit' ? 0 : 1)
     }
     ['exit', 'SIGINT', 'SIGTERM'].forEach(event => {
-      process.on(event, async () => handleExit(event));
-    });
+      process.on(event, async () => handleExit(event))
+    })
     process.on('uncaughtException', async () => {
-      await handleExit('uncaughtException');
-    });
+      await handleExit('uncaughtException')
+    })
     process.on('unhandledRejection', async () => {
-      await handleExit('unhandledRejection');
-    });
+      await handleExit('unhandledRejection')
+    })
   }
-  if (paras.remoteFontCSSURL?.length) {
+  if (paras.remoteFontCSSURL?.length > 1) {
     await page.goto(
       `data:text/html,${getDocument(paras.fontFamily, paras.remoteFontCSSURL)}`,
       {
@@ -64,8 +64,7 @@ async function measurePlaywright(paras: MeasureStrParas) {
       },
     )
   }
-
-  return await page.evaluate(measureStr, paras)
+  return page.evaluate(measureStr, paras)
 }
 
 const fontCache = new Map<string, Measurement>()

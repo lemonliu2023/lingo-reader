@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ContentType } from '@svg-ebook-reader/shared/src'
+import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
 
 // @ts-ignore
