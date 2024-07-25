@@ -329,3 +329,12 @@ export class EpubFile {
   }
 }
 
+export function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
+  return new Promise((resolve) => {
+    const epub = new EpubFile(epubPath, imageRoot)
+    setTimeout(() => {
+      resolve(epub)
+    }, 0)
+  })
+}
+

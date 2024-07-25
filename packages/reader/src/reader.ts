@@ -1,16 +1,7 @@
-import { EpubFile } from '@svg-ebook-reader/epub-parser'
+import { EpubFile, initEpubFile } from '@svg-ebook-reader/epub-parser'
 import { SvgRender, SvgRenderOptions } from '@svg-ebook-reader/svg-render'
 import type { TOCOutput, ManifestItem } from '@svg-ebook-reader/epub-parser'
 // import fs from 'fs'
-
-function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
-  return new Promise((resolve) => {
-    const epub = new EpubFile(epubPath, imageRoot)
-    setTimeout(() => {
-      resolve(epub)
-    }, 0)
-  })
-}
 
 export function Reader(
   epubPath: string,
@@ -47,9 +38,9 @@ export function Reader(
 
       // for (let i = 0; i < currChapterPages.length; i++) {
       //   if (!fs.existsSync(`./example/${chapterIndex}-${i}.svg`)) {
-            // fs.writeFileSync(`./example/${chapterIndex}-${0}.svg`, currChapterPages[0])
-            // fs.writeFileSync(`./example/${chapterIndex}-${1}.svg`, currChapterPages[1])
-            // fs.writeFileSync(`./example/${chapterIndex}-${2}.svg`, currChapterPages[2])
+      // fs.writeFileSync(`./example/${chapterIndex}-${0}.svg`, currChapterPages[0])
+      // fs.writeFileSync(`./example/${chapterIndex}-${1}.svg`, currChapterPages[1])
+      // fs.writeFileSync(`./example/${chapterIndex}-${2}.svg`, currChapterPages[2])
       //   }
       // }
       return currChapterPages[pageIndex]
@@ -118,7 +109,3 @@ export function Reader(
     },
   }
 }
-
-
-
-
