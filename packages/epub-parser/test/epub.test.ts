@@ -109,6 +109,6 @@ describe('epubFile', () => {
     expect(types.has(ContentType.PARAGRAPH)).toBe(true)
     // image src should start with contentDir
     const imgElement = chapterContents.contents.filter(content => content.type === ContentType.IMAGE)[0]
-    expect(imgElement.src.startsWith(`${epub.contentDir}/`)).toBe(true)
+    expect(imgElement.src.startsWith(`${epub.contentDir}/`)).toBe(false)
   })
 })

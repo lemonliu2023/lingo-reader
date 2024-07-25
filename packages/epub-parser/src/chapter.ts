@@ -22,10 +22,10 @@ export class Chapter {
             continue
           }
 
-          const src = `${this.contentDir}/${img$.src}`
+          // const src = `${this.contentDir}/${img$.src}`
           this.contents.push({
             type: ContentType.IMAGE,
-            src: src,
+            src: img$.src,
             alt: img$.alt || ""
           })
         } else if (element['_']) {

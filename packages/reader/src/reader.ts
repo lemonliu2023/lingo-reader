@@ -1,7 +1,6 @@
 import { EpubFile } from '@svg-ebook-reader/epub-parser'
-import { SvgRender } from '@svg-ebook-reader/svg-render'
+import { SvgRender, SvgRenderOptions } from '@svg-ebook-reader/svg-render'
 import type { TOCOutput, ManifestItem } from '@svg-ebook-reader/epub-parser'
-import { ContentType } from '@svg-ebook-reader/shared'
 import fs from 'fs'
 
 function initEpubFile(): Promise<EpubFile> {
@@ -15,46 +14,38 @@ function initEpubFile(): Promise<EpubFile> {
 
 let epub: EpubFile;
 let tableOfContents: (TOCOutput | ManifestItem)[] = []
-const tocLen = tableOfContents.length
 let pageIndex: number = 0
-// pageCount = currChapter.length
 let chapterIndex: number = 0
 let currChapterPages: string[] | undefined = []
 let nextChapterPages: string[] | undefined = undefined
 let prevChapterPages: string[] | undefined = undefined
 
+export function __test__pageIndex() {
+  return pageIndex
+}
+
+export function __test__chapterIndex() {
+  return chapterIndex
+}
+
 export async function init() {
   epub = await initEpubFile()
   tableOfContents = epub.getToc()
-  const chapter = await epub.getChapter(tableOfContents[0].id)
-  const renderer = new SvgRender({
-    padding: '40',
-    width: 1000,
-    height: 700,
-  })
-  renderer.addContents(chapter.contents)
-  currChapterPages = renderer.pages
-  if (chapterIndex + 1 < tocLen) {
-    const nextChapter = await epub.getChapter(tableOfContents[chapterIndex + 1].id)
-    const nextRenderer = new SvgRender({
-      padding: '40',
-      width: 1000,
-      height: 700,
-    })
-    nextRenderer.addContents(nextChapter.contents)
-    nextChapterPages = nextRenderer.pages
-  }
-  if (chapterIndex - 1 >= 0) {
-    const prevChapter = await epub.getChapter(tableOfContents[chapterIndex - 1].id)
-    const prevRenderer = new SvgRender({
-      padding: '40',
-      width: 1000,
-      height: 700,
-    })
-    prevRenderer.addContents(prevChapter.contents)
-    prevChapterPages = prevRenderer.pages
-  }
+  currChapterPages = await loadChapter(chapterIndex)
 
+  nextChapterPages = chapterIndex + 1 < tableOfContents.length
+    ? await loadChapter(chapterIndex + 1)
+    : undefined
+  
+  prevChapterPages = chapterIndex - 1 >= 0
+    ? await loadChapter(chapterIndex - 1)
+    : undefined
+
+  // for (let i = 0; i < currChapterPages.length; i++) {
+  //   if (!fs.existsSync(`./example/${chapterIndex}-${i}.svg`)) {
+      fs.writeFileSync(`./example/${chapterIndex}-${2}.svg`, currChapterPages[2])
+  //   }
+  // }
   return currChapterPages[pageIndex]
 }
 
@@ -62,10 +53,11 @@ async function loadChapter(chapterIndex: number) {
   const chapter = await epub.getChapter(tableOfContents[chapterIndex].id)
   const renderer = new SvgRender({
     padding: '40',
-    width: 1000,
-    height: 700,
+    width: 1474,
+    height: 743,
+    imageRoot: './example/alice'
   })
-  renderer.addContents(chapter.contents)
+  await renderer.addContents(chapter.contents)
   return renderer.pages
 }
 
@@ -82,7 +74,7 @@ export async function toNextPage() {
       prevChapterPages = currChapterPages
       currChapterPages = nextChapterPages
       chapterIndex++
-      if (chapterIndex + 1 >= tocLen) {
+      if (chapterIndex + 1 >= tableOfContents.length) {
         nextChapterPages = undefined
         return undefined
       } else {

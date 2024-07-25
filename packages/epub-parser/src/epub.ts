@@ -18,19 +18,19 @@ export class EpubFile {
     tocPath: '',
     contents: []
   }
+  public guide: GuideReference[] = []
   // reference to the spine.contents
   public flow: ManifestItem[] = []
-  public guide: GuideReference[] = []
   // table of contents
   public toc: TOCOutput[] = []
   // remove duplicate href item in TOCOutput
   private hrefSet: Set<string> = new Set()
 
   imageSaveDir: string
-  constructor(public epubFileName: string, imageRoot?: string) {
+  constructor(public epubPath: string, imageRoot?: string) {
     // imageRoot
     if (!imageRoot) {
-      const epubImageDirName = epubFileName.match(/[\\/](\w+)\.epub/)![1];
+      const epubImageDirName = epubPath.match(/[\\/](\w+)\.epub/)![1];
       const currentDir = path.dirname(fileURLToPath(import.meta.url))
       // the default root is /example/alice/
       this.imageSaveDir = path.resolve(currentDir, '../../../example/', epubImageDirName)
@@ -41,8 +41,8 @@ export class EpubFile {
       fs.mkdirSync(this.imageSaveDir, { recursive: true })
     }
     // TODO: link root
-    this.epubFileName = path.resolve(process.cwd(), this.epubFileName)
-    this.zip = new ZipFile(this.epubFileName)
+    this.epubPath = path.resolve(process.cwd(), this.epubPath)
+    this.zip = new ZipFile(this.epubPath)
     this.parse()
   }
 
@@ -264,7 +264,6 @@ export class EpubFile {
     }
 
     this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
-    // console.log(this.toc)
   }
 
   private walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
@@ -335,7 +334,7 @@ export class EpubFile {
     return path.join(this.contentDir, href).replace(/\\/g, '/')
   }
 
-  getToc() {
+  public getToc() {
     return this.toc.length ? this.toc : this.flow
   }
 }
