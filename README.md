@@ -8,4 +8,4 @@
 
 ### The current render result
 
-![0-2](\example\0-2.svg)
+![0-2](example/0-2.svg)
