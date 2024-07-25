@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
+// import path from 'path'
+// import { fileURLToPath } from 'url'
+// import {writeFileSync} from 'fs'
 
 // @ts-ignore
 globalThis.__BROWSER__ = false
@@ -101,7 +104,7 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
     expect(pages[0].replace(/svg\S{7}/g, '')).toMatchSnapshot()
     expect(pages[1].replace(/svg\S{7}/g, '')).toMatchSnapshot()
     // const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    // fs.writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
-    // fs.writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
+    // writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
+    // writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
   })
 })

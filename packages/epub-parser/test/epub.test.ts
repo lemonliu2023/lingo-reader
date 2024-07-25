@@ -15,11 +15,8 @@ describe('epubFile', () => {
   })
 
   it('imageSaveDir', () => {
-    const matchResult = epubPath.match(/[\\/](\w+)\.epub/)
-    const epubImageDirName = matchResult ? matchResult[1] : null
-    const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    const imageDir = path.resolve(currentDir, `../../../example/${epubImageDirName}`)
-    expect(epub.imageSaveDir).toBe(imageDir)
+    const dir = path.resolve(process.cwd(), './images')
+    expect(epub.imageSaveDir).toBe(dir)
   })
 
   it('container file fullpath', () => {

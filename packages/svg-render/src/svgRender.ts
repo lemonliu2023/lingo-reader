@@ -2,21 +2,17 @@ import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
-import { fileURLToPath } from "url"
-import path from "path"
-
-const currDir = fileURLToPath(import.meta.url)
-const imageDir = path.resolve(currDir, '../../images/')
+import { resolve } from "path"
 
 // TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
-  width: 1000,
-  height: 1000,
+  width: 1474,
+  height: 743,
   fontFamily: 'Lucida Console, Courier, monospace',
   fontSize: 20,
-  imageRoot: imageDir,
+  imageRoot: './images',
   lineHeightRatio: 1.5,
-  padding: '20',
+  padding: '40',
   paddingLeft: 0,
   paddingRight: 0,
   paddingTop: 0,
@@ -53,6 +49,7 @@ export class SvgRender {
       ...options
     } as Required<SvgRenderOptions>
 
+    this.options.imageRoot = resolve(process.cwd(), this.options.imageRoot)
     this.parsePadding()
 
     const {
@@ -103,8 +100,7 @@ export class SvgRender {
         lineHeight: headingLineHeight
       })
     } else if (contentType === ContentType.IMAGE) {
-      const occupyHeight = 3.5 * this.lineHeight
-      this.newLine(occupyHeight)
+      this.newLine(3.5 * this.lineHeight)
       this.addImage(
         content.src,
         content.alt,
@@ -187,21 +183,26 @@ export class SvgRender {
     imageWidth?: number,
     imageHeight?: number,
   ) {
-    if (!path.isAbsolute(src)) {
-      src = path.resolve(this.options.imageRoot, src)
-    }
-    const remainHeight = this.options.height - this.y + this.lineHeight
+    const {
+      imageRoot,
+      height,
+      width
+    } = this.options
+    src = resolve(imageRoot, src)
+    const remainHeight = height - this.y + this.lineHeight
     const renderHeight = 3 * this.lineHeight
     if (remainHeight < renderHeight) {
       this.commitToPage()
       this.newPage()
+      this.newLine(3.5 * this.lineHeight)
     }
+
     const renderY = this.y - renderHeight
     let renderX = this.x
     if (imageWidth && imageHeight) {
       const scale = renderHeight / imageHeight
       const renderWidth = imageWidth * scale
-      renderX = (this.options.width - renderWidth) / 2
+      renderX = (width - renderWidth) / 2
     }
     this.pageText.push(
       this.generateImage(renderX, renderY, src, alt, renderHeight)

@@ -1,9 +1,8 @@
 import { camelCase, parsexml, ZipFile } from './utils'
 import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types'
 import { Chapter } from './chapter'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import fs from 'node:fs'
+import { resolve, join } from 'node:path'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 
 export class EpubFile {
   private zip: ZipFile
@@ -27,21 +26,12 @@ export class EpubFile {
   private hrefSet: Set<string> = new Set()
 
   imageSaveDir: string
-  constructor(public epubPath: string, imageRoot?: string) {
-    // imageRoot
-    if (!imageRoot) {
-      const epubImageDirName = epubPath.match(/[\\/](\w+)\.epub/)![1];
-      const currentDir = path.dirname(fileURLToPath(import.meta.url))
-      // the default root is /example/alice/
-      this.imageSaveDir = path.resolve(currentDir, '../../../example/', epubImageDirName)
-    } else {
-      this.imageSaveDir = path.join(process.cwd(), imageRoot)
-    }
-    if (!fs.existsSync(this.imageSaveDir)) {
-      fs.mkdirSync(this.imageSaveDir, { recursive: true })
+  constructor(public epubPath: string, imageRoot: string = './images') {
+    this.imageSaveDir = resolve(process.cwd(), imageRoot)
+    if (!existsSync(this.imageSaveDir)) {
+      mkdirSync(this.imageSaveDir, { recursive: true })
     }
     // TODO: link root
-    this.epubPath = path.resolve(process.cwd(), this.epubPath)
     this.zip = new ZipFile(this.epubPath)
     this.parse()
   }
@@ -208,9 +198,9 @@ export class EpubFile {
       // save element if it is an image, 
       // which was determined by whether media-type starts with 'image'
       if (element['media-type'].startsWith('image')) {
-        const imagePath = path.join(this.imageSaveDir, element.href)
-        if (!fs.existsSync(imagePath)) {
-          fs.writeFileSync(
+        const imagePath = join(this.imageSaveDir, element.href)
+        if (!existsSync(imagePath)) {
+          writeFileSync(
             imagePath,
             this.zip.readImage(this.padWithContentDir(element.href))
           )
@@ -331,7 +321,7 @@ export class EpubFile {
   }
 
   private padWithContentDir(href: string) {
-    return path.join(this.contentDir, href).replace(/\\/g, '/')
+    return join(this.contentDir, href).replace(/\\/g, '/')
   }
 
   public getToc() {
