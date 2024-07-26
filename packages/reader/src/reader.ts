@@ -3,6 +3,14 @@ import { SvgRender, SvgRenderOptions } from '@svg-ebook-reader/svg-render'
 import type { TOCOutput, ManifestItem } from '@svg-ebook-reader/epub-parser'
 // import fs from 'fs'
 
+/**
+ * Combine epub-parser and svg-render to reader, 
+ *  expose nextPage, prevPage and init methods to get page string
+ * 
+ * @param {string} epubPath epub file path, relative to process.cwd()
+ * @param {SvgRenderOptions} svgRenderOptions package/svg-render renderOptions
+ * @returns {Record<string, Function>}
+ */
 export function Reader(
   epubPath: string,
   svgRenderOptions: SvgRenderOptions = {}
@@ -107,5 +115,9 @@ export function Reader(
     getChapterIndex() {
       return chapterIndex
     },
+
+    getCurrChapterPageCount() {
+      return currChapterPages!.length
+    }
   }
 }

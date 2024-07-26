@@ -1,5 +1,6 @@
 /**
- * content reference like:
+ * ManifestItem is parsed from the manifest tag in the opf file.
+ *  content reference like:
  *  <item href="pgepub.css" id="item29" media-type="text/css"/>
  */
 export interface ManifestItem {
@@ -28,6 +29,8 @@ export interface NavPoint {
 }
 export type NavPoints = NavPoint[]
 
+// table of contents that is parsed from navMap in toc.ncx
+//  which is equal to ManifestItem
 export interface TOCOutput extends ManifestItem {
   level: number
   order: number

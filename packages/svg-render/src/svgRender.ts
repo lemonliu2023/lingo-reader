@@ -4,7 +4,6 @@ import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
 import { resolve } from "path"
 
-// TODO: handle svg style options
 const defaultSvgRenderOptions: SvgRenderOptions = {
   width: 1474,
   height: 743,
@@ -194,10 +193,13 @@ export class SvgRender {
     if (remainHeight < renderHeight) {
       this.commitToPage()
       this.newPage()
+      // need to newLine after new page, 
+      //  the lineHeight depends on the content are rendering
       this.newLine(3.5 * this.lineHeight)
     }
 
     const renderY = this.y - renderHeight
+    // center image
     let renderX = this.x
     if (imageWidth && imageHeight) {
       const scale = renderHeight / imageHeight
@@ -209,6 +211,7 @@ export class SvgRender {
     )
   }
 
+  // text tag in svg
   private generateText(
     x: number,
     y: number,
@@ -229,6 +232,7 @@ export class SvgRender {
     return `<text x="${x}" y="${y}"${style}>${char}</text>`
   }
 
+  // image tag in svg
   private generateImage(
     x: number,
     y: number,
@@ -328,6 +332,7 @@ export class SvgRender {
       + `fill="${backgroundColor}" pointer-events="none"/>`
   }
 
+  // similar to css style padding
   private parsePadding() {
     const paddingSplit = this.options.padding!.split(' ').map(val => parseInt(val))
     if (paddingSplit.length > 4) {

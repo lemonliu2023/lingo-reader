@@ -1,9 +1,14 @@
 import { Content, ContentType, HEADING } from "@svg-ebook-reader/shared";
 
+/**
+ * Extract chapterContent from xml tree, 
+ *  the xml file that generates the tree has been cleaned
+ *  in epub.getChapter
+ */
 export class Chapter {
   private contents: Content[] = []
   private title: string = "temp"
-  constructor(public xmlTree: any, public contentDir: string) {
+  constructor(public xmlTree: any) {
     const html = xmlTree.html
     this.parseTitle(html)
     // TOOD: sub title

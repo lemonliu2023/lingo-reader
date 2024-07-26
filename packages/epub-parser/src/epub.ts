@@ -316,7 +316,7 @@ export class EpubFile {
       explicitChildren: true,
       childkey: 'children'
     })
-    const chapterContent = new Chapter(xmlTree, this.contentDir)
+    const chapterContent = new Chapter(xmlTree)
     return chapterContent.getContents()
   }
 
@@ -329,6 +329,7 @@ export class EpubFile {
   }
 }
 
+// wrapper for async constructor, because EpubFile constructor has async code
 export function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
   return new Promise((resolve) => {
     const epub = new EpubFile(epubPath, imageRoot)

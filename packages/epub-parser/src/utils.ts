@@ -11,6 +11,8 @@ export async function parsexml(str: string, optionsParserOptions: ParserOptions 
   }
 }
 
+// wrap epub file into a class, epub file is a zip file
+//  expose file operation(readFile, readImage..) to process the file in .zip
 export class ZipFile {
   admZip: AdmZip
   names: Map<string, string>
