@@ -32,3 +32,8 @@ export interface ChapterImage {
 }
 
 export type Content = ChapterParagraph | ChapterImage | ChapterHeading
+
+export interface ChapterOutput {
+  title: string
+  contents: Content[]
+}

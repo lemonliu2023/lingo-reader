@@ -3,6 +3,7 @@ import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from '
 import { Chapter } from './chapter'
 import { resolve, join } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import type { ChapterOutput } from '@svg-ebook-reader/shared'
 
 export class EpubFile {
   private zip: ZipFile
@@ -292,7 +293,7 @@ export class EpubFile {
     return output
   }
 
-  async getChapter(id: string) {
+  async getChapter(id: string): Promise<ChapterOutput> {
     const xmlHref = this.manifest[id].href
     let xmlContent = this.zip.readFile(this.padWithContentDir(xmlHref))
 

@@ -9,7 +9,7 @@ import type { TOCOutput, ManifestItem } from '@svg-ebook-reader/epub-parser'
  * 
  * @param {string} epubPath epub file path, relative to process.cwd()
  * @param {SvgRenderOptions} svgRenderOptions package/svg-render renderOptions
- * @returns {Record<string, Function>}
+ * @returns
  */
 export function Reader(
   epubPath: string,

@@ -1,5 +1,5 @@
-import { Content, ContentType, HEADING } from "@svg-ebook-reader/shared";
-
+import { ContentType } from "@svg-ebook-reader/shared"
+import type { Content, HEADING, ChapterOutput } from "@svg-ebook-reader/shared"
 /**
  * Extract chapterContent from xml tree, 
  *  the xml file that generates the tree has been cleaned
@@ -65,7 +65,7 @@ export class Chapter {
   }
 
   // export
-  public getContents() {
+  public getContents(): ChapterOutput {
     return {
       title: this.title,
       contents: this.contents

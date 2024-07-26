@@ -2,7 +2,7 @@ import { measureFont } from "./measureFont"
 import { SvgRenderOptions, ParagraphOptions } from "./types"
 import { Content, ContentType } from "@svg-ebook-reader/shared"
 import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
-import { resolve } from "path"
+import { resolve } from "node:path"
 
 const defaultSvgRenderOptions: SvgRenderOptions = {
   width: 1474,
