@@ -75,14 +75,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: cd to svg-render
-        run: cd packages/svg-render
-
       - name: Install playwright
         run: pnpm exec playwright install
-
-      - name: cd root dir
-        run: cd ../..
+        working-directory: packages/svg-render
 
       - name: Test
         run: pnpm run test
