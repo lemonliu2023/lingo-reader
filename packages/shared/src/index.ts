@@ -10,12 +10,12 @@ export enum ContentType {
 }
 
 interface ChapterParagraph {
-  type: ContentType.PARAGRAPH,
+  type: ContentType.PARAGRAPH
   text: string
 }
 
-export type HEADING = ContentType.HEADING1 | ContentType.HEADING2 | 
-  ContentType.HEADING3 | ContentType.HEADING4 | 
+export type HEADING = ContentType.HEADING1 | ContentType.HEADING2 |
+  ContentType.HEADING3 | ContentType.HEADING4 |
   ContentType.HEADING5 | ContentType.HEADING6
 
 interface ChapterHeading {
@@ -24,7 +24,7 @@ interface ChapterHeading {
 }
 
 export interface ChapterImage {
-  type: ContentType.IMAGE,
+  type: ContentType.IMAGE
   src: string
   alt?: string
   width?: number

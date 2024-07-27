@@ -1,4 +1,4 @@
-export {SvgRender} from './svgRender'
+export { SvgRender } from './svgRender'
 export type {
-  SvgRenderOptions
+  SvgRenderOptions,
 } from './types'

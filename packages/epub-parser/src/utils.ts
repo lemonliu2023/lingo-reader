@@ -6,7 +6,8 @@ export async function parsexml(str: string, optionsParserOptions: ParserOptions 
   try {
     const result = await xml2js.parseStringPromise(str, optionsParserOptions)
     return result
-  } catch (err) {
+  }
+  catch (err) {
     console.error(err)
   }
 }
@@ -22,7 +23,8 @@ export class ZipFile {
     this.names = new Map(this.admZip.getEntries().map(
       (zipEntry) => {
         return [zipEntry.entryName.toLowerCase(), zipEntry.entryName]
-      })
+      },
+    ),
     )
     this.count = this.names.size
     if (this.count === 0) {
@@ -36,7 +38,7 @@ export class ZipFile {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
     const fileName = this.getFileName(name)!
-    let content = this.admZip.readAsText(this.admZip.getEntry(fileName)!)
+    const content = this.admZip.readAsText(this.admZip.getEntry(fileName)!)
     const txt = content.trim()
     if (txt.length === 0) {
       throw new Error(`${name} file is empty`)
@@ -62,7 +64,6 @@ export class ZipFile {
   }
 }
 
-export const camelCase = (str: string) => {
-  return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+export function camelCase(str: string) {
+  return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
 }
-

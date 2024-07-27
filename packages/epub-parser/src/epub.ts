@@ -1,9 +1,10 @@
-import { camelCase, parsexml, ZipFile } from './utils'
-import type { ManifestItem, GuideReference, Spine, NavPoints, TOCOutput } from './types'
-import { Chapter } from './chapter'
-import { resolve, join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import process from 'node:process'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
+import { ZipFile, camelCase, parsexml } from './utils'
+import type { GuideReference, ManifestItem, NavPoints, Spine, TOCOutput } from './types'
+import { Chapter } from './chapter'
 
 export class EpubFile {
   private zip: ZipFile
@@ -16,8 +17,9 @@ export class EpubFile {
   public spine: Spine = {
     // table of contents
     tocPath: '',
-    contents: []
+    contents: [],
   }
+
   public guide: GuideReference[] = []
   // reference to the spine.contents
   public flow: ManifestItem[] = []
@@ -62,18 +64,18 @@ export class EpubFile {
 
     const containerXml = this.zip.readFile(containerFile)
     const xmlContainer = (await parsexml(containerXml)).container
-    if (!xmlContainer ||
-      !xmlContainer.rootfiles ||
-      !xmlContainer.rootfiles.length) {
+    if (!xmlContainer
+      || !xmlContainer.rootfiles
+      || !xmlContainer.rootfiles.length) {
       throw new Error('No rootfiles found')
     }
 
     const len = xmlContainer.rootfiles.length
     const rootFile = xmlContainer.rootfiles[len - 1].rootfile[0]
-    const mediaType = rootFile['$']['media-type']
-    const fullPath = rootFile['$']['full-path']
-    if (mediaType !== 'application/oebps-package+xml' ||
-      fullPath.length === 0) {
+    const mediaType = rootFile.$['media-type']
+    const fullPath = rootFile.$['full-path']
+    if (mediaType !== 'application/oebps-package+xml'
+      || fullPath.length === 0) {
       throw new Error('Rootfile in unknow format')
     }
     this.rootFile = fullPath
@@ -85,10 +87,11 @@ export class EpubFile {
     const rootFileOPF = this.zip.readFile(this.rootFile)
     const xml = await parsexml(rootFileOPF)
     const rootKeys = Object.keys(xml)
-    let rootFile;
+    let rootFile
     if (rootKeys.length === 1) {
       rootFile = xml[rootKeys[0]]
-    } else {
+    }
+    else {
       rootFile = xml[rootKeys.length - 1]
     }
     for (const key in rootFile) {
@@ -127,60 +130,67 @@ export class EpubFile {
         case 'language':
         case 'relation':
         case 'rights':
-        case 'coverage':
-          this.metadata[keyName] = metadata[key][0]['_'] || metadata[key][0] || ''
+        case 'coverage': {
+          this.metadata[keyName] = metadata[key][0]._ || metadata[key][0] || ''
           break
+        }
 
         case 'creator':
-        case 'contributor':
-          this.metadata[keyName] = { [keyName]: metadata[key][0]['_'] || '' }
-          const $: Record<string, string> = metadata[key][0]['$']
+        case 'contributor': {
+          this.metadata[keyName] = { [keyName]: metadata[key][0]._ || '' }
+          const $: Record<string, string> = metadata[key][0].$
           for (const attr in $) {
             const attrName = camelCase(attr.split(':').pop()!)
             this.metadata[keyName][attrName] = $[attr]
           }
           break
+        }
 
-        case 'date':
-          if (!metadata[key][0]['$']) {
+        case 'date': {
+          if (!metadata[key][0].$) {
             this.metadata[keyName] = metadata[key][0] || ''
-          } else {
+          }
+          else {
             this.metadata[keyName] = {}
             for (const event of metadata[key]) {
-              const key = event['$']['opf:event']
-              const value = event['_']
+              const key = event.$['opf:event']
+              const value = event._
               this.metadata[keyName][key] = value
             }
           }
           break
+        }
 
-        case 'identifier':
-          const $OfIdentifier = metadata[key][0]['$']
-          const content = metadata[key][0]['_']
+        case 'identifier': {
+          const $OfIdentifier = metadata[key][0].$
+          const content = metadata[key][0]._
           if ($OfIdentifier['opf:scheme']) {
             this.metadata[$OfIdentifier['opf:scheme'].toUpperCase()] = content
-          } else {
+          }
+          else {
             const contentSplit = content.split(':')
             if (content.startsWith('urn') && contentSplit.length > 1) {
               this.metadata[contentSplit[1].toUpperCase()] = contentSplit[2]
-            } else {
-              this.metadata['identifier'] = content
+            }
+            else {
+              this.metadata.identifier = content
             }
           }
           break
+        }
       }
     }
 
     // <meta />
-    const metas = metadata['meta']
+    const metas = metadata.meta
     for (const meta of metas) {
-      if (meta['$'] && meta['$'].name) {
-        const name = meta['$'].name
-        this.metadata[name] = meta['$'].content
+      if (meta.$ && meta.$.name) {
+        const name = meta.$.name
+        this.metadata[name] = meta.$.content
       }
-      if (meta['_'] && meta['_'].property) {
-        const property = meta['_'].property.split(':').pop()
-        this.metadata[property] = meta['_']
+      if (meta._ && meta._.property) {
+        const property = meta._.property.split(':').pop()
+        this.metadata[property] = meta._
       }
     }
   }
@@ -192,18 +202,18 @@ export class EpubFile {
     }
 
     for (const item of items) {
-      const element = item['$']
+      const element = item.$
       if (!element || !element.id || !element.href || !element['media-type']) {
         throw new Error('The item in manifest must have attributes id, href and mediaType.')
       }
-      // save element if it is an image, 
+      // save element if it is an image,
       // which was determined by whether media-type starts with 'image'
       if (element['media-type'].startsWith('image')) {
         const imagePath = join(this.imageSaveDir, element.href)
         if (!existsSync(imagePath)) {
           writeFileSync(
             imagePath,
-            this.zip.readImage(this.padWithContentDir(element.href))
+            this.zip.readImage(this.padWithContentDir(element.href)),
           )
         }
       }
@@ -212,8 +222,8 @@ export class EpubFile {
   }
 
   private parseSpine(spine: Record<string, any>) {
-    if (spine['$']?.toc) {
-      this.spine.tocPath = this.manifest[spine['$'].toc].href || ""
+    if (spine.$?.toc) {
+      this.spine.tocPath = this.manifest[spine.$.toc].href || ''
     }
 
     const itemrefs = spine.itemref
@@ -221,7 +231,7 @@ export class EpubFile {
       throw new Error('The spine element must contain one or more itemref elements')
     }
     for (const itemref of itemrefs) {
-      const $ = itemref['$']
+      const $ = itemref.$
       if ($.idref) {
         const element = this.manifest[$.idref]
         this.spine.contents.push(element)
@@ -236,7 +246,7 @@ export class EpubFile {
       throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
     }
     for (const reference of references) {
-      const element = reference['$']
+      const element = reference.$
       this.guide.push(element)
     }
   }
@@ -265,8 +275,8 @@ export class EpubFile {
     for (const navPoint of navPoints) {
       if (navPoint.navLabel) {
         const title = navPoint.navLabel[0]?.text[0]
-        const order = parseInt(navPoint['$']?.playOrder)
-        const href = navPoint.content[0]['$']?.src.split('#')[0]
+        const order = Number.parseInt(navPoint.$?.playOrder)
+        const href = navPoint.content[0].$?.src.split('#')[0]
 
         if (!this.hrefSet.has(href)) {
           const element: TOCOutput = {
@@ -274,12 +284,13 @@ export class EpubFile {
             order,
             title,
             level,
-            id: ''
+            id: '',
           }
           if (idList[href]) {
             Object.assign(element, this.manifest[idList[href]])
-          } else {
-            element.id = navPoint['$']?.id || ""
+          }
+          else {
+            element.id = navPoint.$?.id || ''
           }
           output.push(element)
           this.hrefSet.add(href)
@@ -298,14 +309,14 @@ export class EpubFile {
     let xmlContent = this.zip.readFile(this.padWithContentDir(xmlHref))
 
     // remove <span> b strong i em u s small mark
-    xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em^[b]|u[^l]|s|small|mark|header|footer|section)[^>]*>/ig, '')
+    xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em[^b]|u[^l]|s|small|mark|header|footer|section)[^>]*>/gi, '')
     // remove a and <a/>
-    xmlContent = xmlContent.replace(/<a[^>]*?>(.*?)<\/a[^>]*?>/ig, '$1')
-    xmlContent = xmlContent.replace(/<a[^>]*?>/ig, '')
+    xmlContent = xmlContent.replace(/<a[^>]*>(.*?)<\/a[^>]*>/gi, '$1')
+    xmlContent = xmlContent.replace(/<a[^>]*>/gi, '')
     // remove <tag></tag> with no content
-    xmlContent = xmlContent.replace(/<(\w+)[^>]*?><\/\1[^>]*?>/ig, '')
+    xmlContent = xmlContent.replace(/<([a-z][a-z0-9]*)\b[^>]*><\/\1>/gi, '')
     // remove <hr /> <br />
-    xmlContent = xmlContent.replace(/<(hr|br)[^>]*?>/ig, '')
+    xmlContent = xmlContent.replace(/<(hr|br)[^>]*>/gi, '')
     // remove id and class
     xmlContent = xmlContent.replace(/\s*(class|id)=["'][^"']*["']/g, '')
     // mutiple (\n| ) to one (\n| )
@@ -315,7 +326,7 @@ export class EpubFile {
     const xmlTree = await parsexml(xmlContent, {
       preserveChildrenOrder: true,
       explicitChildren: true,
-      childkey: 'children'
+      childkey: 'children',
     })
     const chapterContent = new Chapter(xmlTree)
     return chapterContent.getContents()
@@ -339,4 +350,3 @@ export function initEpubFile(epubPath: string, imageRoot?: string): Promise<Epub
     }, 0)
   })
 }
-

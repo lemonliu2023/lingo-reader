@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { measureFont } from '../src/measureFont.ts'
-// @ts-ignore
+// @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
 
 describe('measureFont', () => {

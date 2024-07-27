@@ -1,6 +1,7 @@
+import process from 'node:process'
 import playwright from 'playwright'
 import { getDocument } from './utils'
-import { Measurement, MeasureOptions, MeasureStrParas } from './types'
+import type { MeasureOptions, MeasureStrParas, Measurement } from './types'
 
 declare let __BROWSER__: boolean
 
@@ -26,7 +27,7 @@ function measureStr(paras: MeasureStrParas): Measurement {
   document.body.removeChild(span)
   return {
     width: Number.parseFloat(width),
-    height: Number.parseFloat(height)
+    height: Number.parseFloat(height),
   }
 }
 
@@ -43,10 +44,10 @@ async function measurePlaywright(paras: MeasureStrParas) {
       }
     }
     const handleExit = async (signal: string) => {
-      await cleanup();
+      await cleanup()
       process.exit(signal === 'exit' ? 0 : 1)
     }
-    ['exit', 'SIGINT', 'SIGTERM'].forEach(event => {
+    ['exit', 'SIGINT', 'SIGTERM'].forEach((event) => {
       process.on(event, async () => handleExit(event))
     })
     process.on('uncaughtException', async () => {
@@ -79,7 +80,7 @@ export async function measureFont(
   const paras = {
     char,
     ...defaultOptions,
-    ...options
+    ...options,
   } as MeasureStrParas
 
   const cacheKey = char + paras.fontSize

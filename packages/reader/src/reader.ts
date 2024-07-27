@@ -1,19 +1,16 @@
-import { EpubFile, initEpubFile } from '@svg-ebook-reader/epub-parser'
-import { SvgRender, SvgRenderOptions } from '@svg-ebook-reader/svg-render'
-import type { TOCOutput, ManifestItem } from '@svg-ebook-reader/epub-parser'
+import { initEpubFile } from '@svg-ebook-reader/epub-parser'
+import type { SvgRenderOptions } from '@svg-ebook-reader/svg-render'
+import { SvgRender } from '@svg-ebook-reader/svg-render'
+import type { EpubFile, ManifestItem, TOCOutput } from '@svg-ebook-reader/epub-parser'
 // import fs from 'fs'
 
 /**
- * Combine epub-parser and svg-render to reader, 
+ * Combine epub-parser and svg-render to reader,
  *  expose nextPage, prevPage and init methods to get page string
- * 
- * @param {string} epubPath epub file path, relative to process.cwd()
- * @param {SvgRenderOptions} svgRenderOptions package/svg-render renderOptions
- * @returns
  */
 export function Reader(
   epubPath: string,
-  svgRenderOptions: SvgRenderOptions = {}
+  svgRenderOptions: SvgRenderOptions = {},
 ) {
   // chapter > pages > page(string)
   let epub: EpubFile
@@ -21,8 +18,8 @@ export function Reader(
   let pageIndex: number = 0
   let chapterIndex: number = 0
   let currChapterPages: string[] | undefined = []
-  let nextChapterPages: string[] | undefined = undefined
-  let prevChapterPages: string[] | undefined = undefined
+  let nextChapterPages: string[] | undefined
+  let prevChapterPages: string[] | undefined
 
   const loadChapter = async (chapterIndex: number) => {
     const chapter = await epub.getChapter(tableOfContents[chapterIndex].id)
@@ -59,10 +56,12 @@ export function Reader(
       if (nextPageIndex < currChapterPages!.length) {
         pageIndex = nextPageIndex
         return currChapterPages![pageIndex]
-      } else {
+      }
+      else {
         if (!nextChapterPages) {
           return undefined
-        } else {
+        }
+        else {
           pageIndex = 0
           prevChapterPages = currChapterPages
           currChapterPages = nextChapterPages
@@ -70,9 +69,10 @@ export function Reader(
           if (chapterIndex + 1 >= tableOfContents.length) {
             nextChapterPages = undefined
             return undefined
-          } else {
+          }
+          else {
             loadChapter(chapterIndex + 1)
-              .then(pages => {
+              .then((pages) => {
                 nextChapterPages = pages
               })
           }
@@ -86,10 +86,12 @@ export function Reader(
       if (prevPageIndex >= 0) {
         pageIndex = prevPageIndex
         return currChapterPages![pageIndex]
-      } else {
+      }
+      else {
         if (!prevChapterPages) {
           return undefined
-        } else {
+        }
+        else {
           pageIndex = 0
           nextChapterPages = currChapterPages
           currChapterPages = prevChapterPages
@@ -97,9 +99,10 @@ export function Reader(
           if (chapterIndex - 1 < 0) {
             prevChapterPages = undefined
             return undefined
-          } else {
+          }
+          else {
             loadChapter(chapterIndex - 1)
-              .then(pages => {
+              .then((pages) => {
                 prevChapterPages = pages
               })
           }
@@ -118,6 +121,6 @@ export function Reader(
 
     getCurrChapterPageCount() {
       return currChapterPages!.length
-    }
+    },
   }
 }

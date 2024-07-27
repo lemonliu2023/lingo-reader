@@ -1,8 +1,10 @@
-import { measureFont } from "./measureFont"
-import { SvgRenderOptions, ParagraphOptions } from "./types"
-import { Content, ContentType } from "@svg-ebook-reader/shared"
-import { isEnglish, isSpace, charMap, headingRatioMap, isPunctuation } from "./utils"
-import { resolve } from "node:path"
+import { resolve } from 'node:path'
+import process from 'node:process'
+import type { Content } from '@svg-ebook-reader/shared'
+import { ContentType } from '@svg-ebook-reader/shared'
+import { measureFont } from './measureFont'
+import type { ParagraphOptions, SvgRenderOptions } from './types'
+import { charMap, headingRatioMap, isEnglish, isPunctuation, isSpace } from './utils'
 
 const defaultSvgRenderOptions: SvgRenderOptions = {
   width: 1474,
@@ -26,7 +28,7 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   cursor: 'default',
 
   // used for playwright to font loading
-  remoteFontCSSURL: ''
+  remoteFontCSSURL: '',
 }
 
 const SVGPlaceholder = '##{content}##'
@@ -45,7 +47,7 @@ export class SvgRender {
   constructor(options: SvgRenderOptions) {
     this.options = {
       ...defaultSvgRenderOptions,
-      ...options
+      ...options,
     } as Required<SvgRenderOptions>
 
     this.options.imageRoot = resolve(process.cwd(), this.options.imageRoot)
@@ -55,7 +57,7 @@ export class SvgRender {
       paddingTop,
       paddingLeft,
       fontSize,
-      lineHeightRatio
+      lineHeightRatio,
     } = this.options
     this.x = paddingLeft
     this.y = paddingTop
@@ -78,15 +80,16 @@ export class SvgRender {
     if (contentType === ContentType.PARAGRAPH) {
       this.newLine(this.lineHeight)
       await this.addParagraph(content.text, {
-        lineHeight: this.lineHeight
+        lineHeight: this.lineHeight,
       })
-    } else if (
-      contentType === ContentType.HEADING1 ||
-      contentType === ContentType.HEADING2 ||
-      contentType === ContentType.HEADING3 ||
-      contentType === ContentType.HEADING4 ||
-      contentType === ContentType.HEADING5 ||
-      contentType === ContentType.HEADING6
+    }
+    else if (
+      contentType === ContentType.HEADING1
+      || contentType === ContentType.HEADING2
+      || contentType === ContentType.HEADING3
+      || contentType === ContentType.HEADING4
+      || contentType === ContentType.HEADING5
+      || contentType === ContentType.HEADING6
     ) {
       const levelRatio = headingRatioMap.get(contentType)!
       const headingFontSize = this.options.fontSize * levelRatio
@@ -96,15 +99,16 @@ export class SvgRender {
       await this.addParagraph(content.heading, {
         fontWeight: 'bold',
         fontSize: headingFontSize,
-        lineHeight: headingLineHeight
+        lineHeight: headingLineHeight,
       })
-    } else if (contentType === ContentType.IMAGE) {
+    }
+    else if (contentType === ContentType.IMAGE) {
       this.newLine(3.5 * this.lineHeight)
       this.addImage(
         content.src,
         content.alt,
         content.width,
-        content.height
+        content.height,
       )
     }
     this.commitToPage()
@@ -129,7 +133,7 @@ export class SvgRender {
       }
 
       const {
-        width: charWidth
+        width: charWidth,
       } = await this.measureFont(char, fontSize, paraOptions.fontWeight)
 
       // newLine
@@ -138,19 +142,22 @@ export class SvgRender {
         if (!isSpace(prevChar) && isSpace(char)) {
           this.newLine(lineHeight)
           continue
-        } else if (isEnglish(prevChar) && isEnglish(char)) {
+        }
+        else if (isEnglish(prevChar) && isEnglish(char)) {
           this.pageText.push(
             // <text x="x" y="y">-</text>
-            this.generateText(this.x, this.y, '-', paraOptions)
+            this.generateText(this.x, this.y, '-', paraOptions),
           )
           this.newLine(lineHeight)
-        } else if (isEnglish(prevChar) && isPunctuation(char)) {
+        }
+        else if (isEnglish(prevChar) && isPunctuation(char)) {
           this.pageText.push(
             // <text x="x" y="y">char</text>
-            this.generateText(this.x, this.y, char, paraOptions)
+            this.generateText(this.x, this.y, char, paraOptions),
           )
           continue
-        } else {
+        }
+        else {
           this.newLine(lineHeight)
         }
       }
@@ -164,12 +171,13 @@ export class SvgRender {
       if (charMap.has(char)) {
         // <text x="x" y="y">charMap.get(char)</text>
         this.pageText.push(
-          this.generateText(this.x, this.y, charMap.get(char)!, paraOptions)
+          this.generateText(this.x, this.y, charMap.get(char)!, paraOptions),
         )
-      } else {
+      }
+      else {
         // <text x="x" y="y">char</text>
         this.pageText.push(
-          this.generateText(this.x, this.y, char, paraOptions)
+          this.generateText(this.x, this.y, char, paraOptions),
         )
       }
       this.x += charWidth
@@ -185,7 +193,7 @@ export class SvgRender {
     const {
       imageRoot,
       height,
-      width
+      width,
     } = this.options
     src = resolve(imageRoot, src)
     const remainHeight = height - this.y + this.lineHeight
@@ -193,7 +201,7 @@ export class SvgRender {
     if (remainHeight < renderHeight) {
       this.commitToPage()
       this.newPage()
-      // need to newLine after new page, 
+      // need to newLine after new page,
       //  the lineHeight depends on the content are rendering
       this.newLine(3.5 * this.lineHeight)
     }
@@ -207,7 +215,7 @@ export class SvgRender {
       renderX = (width - renderWidth) / 2
     }
     this.pageText.push(
-      this.generateImage(renderX, renderY, src, alt, renderHeight)
+      this.generateImage(renderX, renderY, src, alt, renderHeight),
     )
   }
 
@@ -216,9 +224,9 @@ export class SvgRender {
     x: number,
     y: number,
     char: string,
-    options: ParagraphOptions
+    options: ParagraphOptions,
   ) {
-    let styleArr = []
+    const styleArr = []
     if (options.fontWeight) {
       styleArr.push(`font-weight:${options.fontWeight};`)
     }
@@ -238,9 +246,9 @@ export class SvgRender {
     y: number,
     src: string,
     alt: string,
-    height: number
+    height: number,
   ) {
-    const altStr = alt.length ? ' alt="${alt}"' : ''
+    const altStr = alt.length ? ` alt="${alt}"` : ''
     return `<image x="${x}" y="${y}" height="${height}" href="${src}"${altStr}/>`
   }
 
@@ -253,7 +261,7 @@ export class SvgRender {
     if (this.pageText.length) {
       this.pages[this.pageIndex] = this.svg.replace(
         SVGPlaceholder,
-        this.pageText.join('')
+        this.pageText.join(''),
       )
     }
   }
@@ -261,7 +269,7 @@ export class SvgRender {
   private newPage() {
     const {
       paddingLeft,
-      paddingTop
+      paddingTop,
     } = this.options
 
     this.pageText = []
@@ -273,7 +281,7 @@ export class SvgRender {
   private async measureFont(
     char: string,
     fontSize: number = this.options.fontSize,
-    fontWeight?: string
+    fontWeight?: string,
   ) {
     const { fontFamily } = this.options
     if (!fontSize) {
@@ -282,19 +290,19 @@ export class SvgRender {
     return await measureFont(char, {
       fontFamily,
       fontSize,
-      fontWeight
+      fontWeight,
     })
   }
 
   private generateSvg() {
     const { width, height, fontSize, fontFamily } = this.options
-    const svgId = 'svg' + Math.random().toString(36).substring(2, 9)
+    const svgId = `svg${Math.random().toString(36).substring(2, 9)}`
     return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
-      + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">`
-      + this.generateStyle(svgId)
-      + this.generateRect()
-      + SVGPlaceholder
-      + '</svg>'
+      + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${
+       this.generateStyle(svgId)
+       }${this.generateRect()
+       }${SVGPlaceholder
+       }</svg>`
   }
 
   private generateStyle(svgId: string) {
@@ -303,7 +311,7 @@ export class SvgRender {
       cursor,
       opacity,
       selectionbgColor,
-      selectionColor
+      selectionColor,
     } = this.options
 
     // svg css
@@ -334,18 +342,21 @@ export class SvgRender {
 
   // similar to css style padding
   private parsePadding() {
-    const paddingSplit = this.options.padding!.split(' ').map(val => parseInt(val))
+    const paddingSplit = this.options.padding!.split(' ').map(val => Number.parseInt(val))
     if (paddingSplit.length > 4) {
       throw new Error('padding should be 1-4 values with " " separated')
     }
     let paddingArr = [0, 0, 0, 0]
     if (paddingSplit.length === 1) {
       paddingArr = [paddingSplit[0], paddingSplit[0], paddingSplit[0], paddingSplit[0]]
-    } else if (paddingSplit.length === 2) {
+    }
+    else if (paddingSplit.length === 2) {
       paddingArr = [paddingSplit[0], paddingSplit[1], paddingSplit[0], paddingSplit[1]]
-    } else if (paddingSplit.length === 3) {
+    }
+    else if (paddingSplit.length === 3) {
       paddingArr = [paddingSplit[0], paddingSplit[1], paddingSplit[2], paddingSplit[1]]
-    } else if (paddingSplit.length === 4) {
+    }
+    else if (paddingSplit.length === 4) {
       paddingArr = paddingSplit
     }
     this.options.paddingTop = paddingArr[0]

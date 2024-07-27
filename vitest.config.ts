@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
-    extensions: ['.ts', '.js', '.json']
+    extensions: ['.ts', '.js', '.json'],
   },
   test: {
     globals: true,
@@ -10,6 +10,3 @@ export default defineConfig({
     include: ['./packages/**/test/*.test.ts'],
   },
 })
-
-
-

@@ -8,6 +8,8 @@
   "keywords": [],
   "main": "index.js",
   "scripts": {
+    "fix": "eslint . --fix",
+    "lint": "eslint . --cache",
     "test": "vitest",
     "build": "rollup -c",
     "prepare": "simple-git-hooks"

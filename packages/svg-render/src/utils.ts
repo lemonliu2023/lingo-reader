@@ -17,16 +17,16 @@ export function getDocument(fontName: string, url: string) {
 `
 }
 
-export const isEnglish = (char: string) => {
-  return char <= 'z' && char >= 'a' || char <= 'Z' && char >= 'A'
+export function isEnglish(char: string) {
+  return (char <= 'z' && char >= 'a') || (char <= 'Z' && char >= 'A')
 }
 
-export const isSpace = (char: string) => {
+export function isSpace(char: string) {
   return char === ' '
 }
 // 正则表达式匹配标点符号
-const punctuationRegex = /[!%,-\.:;?]/
-export const isPunctuation = (char: string) => {
+const punctuationRegex = /[!%,\-.:;?]/
+export function isPunctuation(char: string) {
   return punctuationRegex.test(char)
 }
 
@@ -37,7 +37,7 @@ export const charMap = new Map<string, string>([
   ['>', '&gt;'],
   ['&', '&amp;'],
   ['"', '&quot;'],
-  ['\'', '&#39;']
+  ['\'', '&#39;'],
 ])
 
 export const headingRatioMap = new Map<ContentType, number>([
@@ -46,6 +46,5 @@ export const headingRatioMap = new Map<ContentType, number>([
   [ContentType.HEADING3, 1.17],
   [ContentType.HEADING4, 1],
   [ContentType.HEADING5, 0.83],
-  [ContentType.HEADING6, 0.67]
+  [ContentType.HEADING6, 0.67],
 ])
-

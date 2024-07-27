@@ -36,4 +36,3 @@ export interface TOCOutput extends ManifestItem {
   order: number
   title: string
 }
-

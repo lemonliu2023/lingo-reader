@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Reader } from '../src/reader'
 
-// @ts-ignore
+// @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
 
 describe('reader', () => {
