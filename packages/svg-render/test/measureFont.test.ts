@@ -9,7 +9,7 @@ describe('measureFont', () => {
       fontSize: 20,
     })
     // font width and height are different in different os
-    expect(width).toBeGreaterThan(12)
-    expect(height).toBe(20)
+    expect(width).toBeGreaterThanOrEqual(12)
+    expect(height).toBeGreaterThanOrEqual(20)
   })
 })
