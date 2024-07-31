@@ -17,7 +17,7 @@ function replace(opts) {
 }
 
 const external = ['playwright', 'xml2js', 'adm-zip']
-const globals = {}
+// const globals = {}
 export default [
   {
     input: './src/reader.ts',
@@ -65,7 +65,7 @@ export default [
       {
         file: './dist/index.d.ts',
         format: 'es',
-        globals,
+        // globals,
       },
     ],
     plugins: [dts()],

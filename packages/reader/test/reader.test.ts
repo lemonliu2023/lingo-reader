@@ -6,7 +6,7 @@ globalThis.__BROWSER__ = false
 
 describe('reader', () => {
   it('create', async () => {
-    const reder = Reader(
+    const reader = Reader(
       './example/alice.epub',
     )
     const {
@@ -15,9 +15,9 @@ describe('reader', () => {
       getPageIndex,
       getChapterIndex,
       getCurrChapterPageCount,
-    } = reder
+    } = reader
 
-    const currentPage = await reder.init()
+    const currentPage = await reader.init()
     expect(currentPage.length).toBeGreaterThan(10)
     expect(getPageIndex()).toBe(0)
     expect(getChapterIndex()).toBe(0)
