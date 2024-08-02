@@ -5,11 +5,13 @@ import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { ZipFile, camelCase, parsexml } from './utils'
 import type { GuideReference, ManifestItem, NavPoints, Spine, TOCOutput } from './types'
 import { Chapter } from './chapter'
+import { pureXmlContent } from './pureXmlContent'
 
 export class EpubFile {
   private zip: ZipFile
   private mimeFile: string = 'mimetype'
   public mimeType: string = ''
+  // meta-inf/container.xml full-path
   public rootFile: string = ''
   public contentDir: string = ''
   public metadata: Record<string, any> = {}
@@ -96,18 +98,22 @@ export class EpubFile {
     }
     for (const key in rootFile) {
       switch (key) {
-        case 'metadata':
+        case 'metadata': {
           this.parseMetadata(rootFile[key][0])
           break
-        case 'manifest':
+        }
+        case 'manifest': {
           await this.parseManifest(rootFile[key][0])
           break
-        case 'spine':
+        }
+        case 'spine': {
           this.parseSpine(rootFile[key][0])
           break
-        case 'guide':
+        }
+        case 'guide': {
           this.parseGuide(rootFile[key][0])
           break
+        }
       }
     }
 
@@ -209,7 +215,8 @@ export class EpubFile {
       // save element if it is an image,
       // which was determined by whether media-type starts with 'image'
       if (element['media-type'].startsWith('image')) {
-        const imagePath = join(this.imageSaveDir, element.href)
+        const imageName: string = element.href.split('/').pop()
+        const imagePath = resolve(this.imageSaveDir, imageName)
         if (!existsSync(imagePath)) {
           writeFileSync(
             imagePath,
@@ -306,22 +313,7 @@ export class EpubFile {
 
   async getChapter(id: string): Promise<ChapterOutput> {
     const xmlHref = this.manifest[id].href
-    let xmlContent = this.zip.readFile(this.padWithContentDir(xmlHref))
-
-    // remove <span> b strong i em u s small mark
-    xmlContent = xmlContent.replace(/<\/?(span|b[^o]|strong|i[^m]|em[^b]|u[^l]|s|small|mark|header|footer|section)[^>]*>/gi, '')
-    // remove a and <a/>
-    xmlContent = xmlContent.replace(/<a[^>]*>(.*?)<\/a[^>]*>/gi, '$1')
-    xmlContent = xmlContent.replace(/<a[^>]*>/gi, '')
-    // remove <tag></tag> with no content
-    xmlContent = xmlContent.replace(/<([a-z][a-z0-9]*)\b[^>]*><\/\1>/gi, '')
-    // remove <hr /> <br />
-    xmlContent = xmlContent.replace(/<(hr|br)[^>]*>/gi, '')
-    // remove id and class
-    xmlContent = xmlContent.replace(/\s*(class|id)=["'][^"']*["']/g, '')
-    // mutiple (\n| ) to one (\n| )
-    xmlContent = xmlContent.replace(/(^|[^\n])\n(?!\n)/g, '$1 ')
-    xmlContent = xmlContent.replace(/[ \f\t\v]+/g, ' ')
+    const xmlContent = pureXmlContent(this.zip.readFile(this.padWithContentDir(xmlHref)))
 
     const xmlTree = await parsexml(xmlContent, {
       preserveChildrenOrder: true,
