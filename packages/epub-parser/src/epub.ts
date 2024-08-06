@@ -4,8 +4,7 @@ import process from 'node:process'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { ZipFile, camelCase, parsexml } from './utils'
 import type { GuideReference, ManifestItem, NavPoints, Spine, TOCOutput } from './types'
-import { Chapter } from './chapter'
-import { pureXmlContent } from './pureXmlContent'
+import { parseChapter } from './parseChapter'
 
 export class EpubFile {
   private zip: ZipFile
@@ -311,17 +310,9 @@ export class EpubFile {
     return output
   }
 
-  async getChapter(id: string): Promise<ChapterOutput> {
+  getChapter(id: string): Promise<ChapterOutput> {
     const xmlHref = this.manifest[id].href
-    const xmlContent = pureXmlContent(this.zip.readFile(this.padWithContentDir(xmlHref)))
-
-    const xmlTree = await parsexml(xmlContent, {
-      preserveChildrenOrder: true,
-      explicitChildren: true,
-      childkey: 'children',
-    })
-    const chapterContent = new Chapter(xmlTree)
-    return chapterContent.getContents()
+    return parseChapter(this.zip.readFile(this.padWithContentDir(xmlHref)))
   }
 
   private padWithContentDir(href: string) {

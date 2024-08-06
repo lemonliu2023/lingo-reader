@@ -1,5 +1,19 @@
 import { ContentType } from '@svg-ebook-reader/shared'
 import type { ChapterOutput, Content, HEADING } from '@svg-ebook-reader/shared'
+import { parsexml, pureXmlContent } from './utils'
+
+export async function parseChapter(xmlStr: string) {
+  const xmlContent = pureXmlContent(xmlStr)
+
+  const xmlTree = await parsexml(xmlContent, {
+    preserveChildrenOrder: true,
+    explicitChildren: true,
+    childkey: 'children',
+  })
+  const chapterContent = new Chapter(xmlTree)
+  return chapterContent.getContents()
+}
+
 /**
  * Extract chapterContent from xml tree,
  *  the xml file that generates the tree has been cleaned
@@ -8,11 +22,19 @@ import type { ChapterOutput, Content, HEADING } from '@svg-ebook-reader/shared'
 export class Chapter {
   private contents: Content[] = []
   private title: string = 'temp'
-  constructor(public xmlTree: any) {
-    const html = xmlTree.html
+  constructor(public xmlTree: any) {}
+
+  // export
+  public getContents(): ChapterOutput {
+    const html = this.xmlTree.html
     this.parseTitle(html)
     // TOOD: sub title
     this.parseContent(html.body[0].children)
+
+    return {
+      title: this.title,
+      contents: this.contents,
+    }
   }
 
   private parseContent(body: any) {
@@ -64,13 +86,5 @@ export class Chapter {
 
   private parseTitle(html: any) {
     this.title = html.head[0].title[0] || ''
-  }
-
-  // export
-  public getContents(): ChapterOutput {
-    return {
-      title: this.title,
-      contents: this.contents,
-    }
   }
 }
