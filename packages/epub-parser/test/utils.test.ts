@@ -6,10 +6,10 @@ import { ZipFile, parsexml, pureXmlContent } from '../src/utils.ts'
 describe('pureXmlContent', () => {
   it('useless tag', () => {
     const str = `<body><header><p>
-  <span style="font-size:16px;font-family:'PingFang SC';">
-  问题<b>上</b><i><b>水</b></span></i><i></i><i>r</i><u>sd</u><s>45</s>
+<span style="font-size:16px;font-family:'PingFang SC';">
+问题<b>上</b><i><b>水</b></span></i><i></i><i>r</i><u>sd</u><s>45</s>
 </p></header><body>`
-    expect(pureXmlContent(str)).toBe('<body><p> 问题上水rsd45\n</p><body>')
+    expect(pureXmlContent(str)).toBe('<body><p>\n问题上水rsd45\n</p><body>')
   })
 
   it('self close tag', () => {
@@ -35,7 +35,7 @@ describe('pureXmlContent', () => {
     const str = `
     
     `
-    expect(pureXmlContent(str)).toBe(' ')
+    expect(pureXmlContent(str)).toBe(str)
   })
 })
 

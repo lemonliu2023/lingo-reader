@@ -6,10 +6,15 @@ export enum ContentType {
   HEADING5 = 'heading5',
   HEADING6 = 'heading6',
   PARAGRAPH = 'paragraph',
+  CENTERPARAGRAPH = 'centerparagraph',
   IMAGE = 'image',
+  CODEBLOCK = 'codeblock',
+  TABLE = 'table',
+  UL = 'ul',
+  OL = 'ol',
 }
 
-interface ChapterParagraph {
+export interface ChapterParagraph {
   type: ContentType.PARAGRAPH
   text: string
 }
@@ -26,12 +31,47 @@ interface ChapterHeading {
 export interface ChapterImage {
   type: ContentType.IMAGE
   src: string
-  alt?: string
+  alt: string
   width?: number
   height?: number
+  caption?: string
 }
 
-export type Content = ChapterParagraph | ChapterImage | ChapterHeading
+export interface ChapterCenterParagraph {
+  type: ContentType.CENTERPARAGRAPH
+  text: string
+}
+
+export interface ChapterCodeBlock {
+  type: ContentType.CODEBLOCK
+  text: string
+}
+
+export interface ChapterTable {
+  type: ContentType.TABLE
+  table: string[][]
+}
+
+export type UlOrOlList = (ChapterImage | ChapterParagraph | ChapterOL | ChapterUL)[]
+
+export interface ChapterOL {
+  type: ContentType.OL
+  list: UlOrOlList
+}
+
+export interface ChapterUL {
+  type: ContentType.UL
+  list: UlOrOlList
+}
+
+export type Content = ChapterParagraph |
+  ChapterCenterParagraph |
+  ChapterImage |
+  ChapterHeading |
+  ChapterCodeBlock |
+  ChapterTable |
+  ChapterOL |
+  ChapterUL
 
 export interface ChapterOutput {
   title: string
