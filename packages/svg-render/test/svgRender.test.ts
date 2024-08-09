@@ -1,9 +1,9 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
-// import path from 'path'
-// import { fileURLToPath } from 'url'
-// import {writeFileSync} from 'fs'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
@@ -53,12 +53,7 @@ Well, be off, then!" \nsaid the Pigeon in a sulky
 tone, as it settled down again into its nest. Alice 
 crouched down among the trees as well as she could, for 
 her neck kept getting entangled among the branches, and 
-every now and then she had to stop and untwist it. After a 
-while she remembered that she still held the pieces of mushroom 
-in her hands, and she set to work very carefully, 
-nibbling first at one and then at the other, and growing 
-sometimes taller and sometimes shorter, until she had 
-succeeded in bringing herself down to her usual height.`.replace(/\n/g, '')
+every now and then she had to stop and untwist it.`.replace(/\n/g, '')
 
   const text2 = `Alice gave a weary sigh. "I think you 
 might do something better with the time," she said, 
@@ -94,16 +89,60 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
         type: ContentType.IMAGE,
         src: '1656147374309.jpg',
         alt: 'image',
+        caption: 'image',
       },
       {
         type: ContentType.PARAGRAPH,
         text: text2,
       },
     ])
+    renderer.newLine(10)
+    await renderer.addContents([
+      {
+        type: ContentType.CENTERPARAGRAPH,
+        text: text2.slice(0, 100),
+      },
+      {
+        type: ContentType.UL,
+        list: [
+          {
+            type: ContentType.PARAGRAPH,
+            text: 'hello world',
+          },
+          {
+            type: ContentType.PARAGRAPH,
+            text: 'hello world2',
+          },
+          {
+            type: ContentType.UL,
+            list: [
+              {
+                type: ContentType.PARAGRAPH,
+                text: 'hello world3',
+              },
+              {
+                type: ContentType.UL,
+                list: [
+                  {
+                    type: ContentType.PARAGRAPH,
+                    text: 'hello world4',
+                  },
+
+                ],
+              },
+            ],
+          },
+          {
+            type: ContentType.PARAGRAPH,
+            text: 'hello world2',
+          },
+        ],
+      },
+    ])
     const pages = renderer.pages
-    // const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    // writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
-    // writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
+    writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
     expect(pages[0].length).toBeGreaterThan(1)
     expect(pages[1].length).toBeGreaterThan(1)
   })

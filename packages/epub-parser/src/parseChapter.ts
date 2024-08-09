@@ -149,13 +149,18 @@ export class Chapter {
         })
       }
       else if (tagName === 'table') {
+        // <table>
+        //  <tr><td></td></tr>
+        //  <tr><td></td></tr>
+        // </table>
         const table: string[][] = []
         const trs = element.children
         for (const tr of trs) {
           const row: string[] = []
           const tds = tr.children
           for (const td of tds) {
-            row.push(td.p[0])
+            // row.push(td.p[0])
+            row.push(td.children[0]._ || '')
           }
           table.push(row)
         }

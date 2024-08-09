@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import process from 'node:process'
-import type { Content } from '@svg-ebook-reader/shared'
+import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
 import type { ParagraphOptions, SvgRenderOptions } from './types'
@@ -104,14 +104,95 @@ export class SvgRender {
     }
     else if (contentType === ContentType.IMAGE) {
       this.newLine(3.5 * this.lineHeight)
-      this.addImage(
+      await this.addImage(
         content.src,
         content.alt,
         content.width,
         content.height,
+        content.caption,
       )
     }
+    else if (contentType === ContentType.CENTERPARAGRAPH) {
+      // this.newLine() in addCenterParagraph's inner
+      await this.addCenterParagraph(content.text)
+    }
+    // else if (contentType === ContentType.CODEBLOCK) {
+
+    // }
+    // else if (contentType === ContentType.TABLE) {
+
+    // }
+    // else if (contentType === ContentType.OL) {
+
+    // }
+    else if (contentType === ContentType.UL) {
+      await this.addUlList(content.list)
+    }
     this.commitToPage()
+  }
+
+  private async addUlList(list: UlOrOlList, index: number = 0) {
+    for (const li of list) {
+      if (li.type === ContentType.PARAGRAPH) {
+        this.newLine(this.lineHeight, index * this.options.fontSize)
+        await this.addParagraph(li.text, {
+          lineHeight: this.lineHeight,
+        })
+      }
+      // else if (li.type === ContentType.IMAGE) {
+
+      // }
+      else if (li.type === ContentType.UL) {
+        await this.addUlList(li.list, index + 1)
+      }
+      // else if (li.type === ContentType.OL) {
+
+      // }
+    }
+  }
+
+  private async addCenterParagraph(text: string) {
+    const {
+      width,
+      paddingLeft,
+      paddingRight,
+    } = this.options
+    const contentWidth = width - paddingLeft - paddingRight
+    const [para, centerStr] = await this.splitCenterText(text, contentWidth)
+    // normal paragraph
+    if (para.length) {
+      this.newLine(this.lineHeight)
+      await this.addParagraph(para, {
+        lineHeight: this.lineHeight,
+      })
+    }
+    // center
+    const centerStrWidth = await this.measureMultiCharWidth(centerStr)
+    const indent = (contentWidth - centerStrWidth) / 2
+    this.newLine(this.lineHeight, indent)
+    await this.addParagraph(centerStr, {
+      lineHeight: this.lineHeight,
+    })
+  }
+
+  private async splitCenterText(text: string, contentWidth: number) {
+    let strWidth = 0
+    let str = ''
+    let paragraph = ''
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i]
+      const { width: charWidth } = await this.measureFont(char)
+      if (strWidth + charWidth > contentWidth) {
+        paragraph += str
+        str = char
+        strWidth = charWidth
+      }
+      else {
+        str += char
+        strWidth += charWidth
+      }
+    }
+    return [paragraph, str]
   }
 
   private async addParagraph(text: string, paraOptions: ParagraphOptions) {
@@ -121,7 +202,7 @@ export class SvgRender {
     const {
       width,
       height,
-      paddingLeft,
+      paddingRight,
       paddingBottom,
     } = this.options
 
@@ -137,7 +218,7 @@ export class SvgRender {
       } = await this.measureFont(char, fontSize, paraOptions.fontWeight)
 
       // newLine
-      if (this.x + charWidth > width - paddingLeft) {
+      if (this.x + charWidth > width - paddingRight) {
         const prevChar = text[i - 1]
         if (!isSpace(prevChar) && isSpace(char)) {
           this.newLine(lineHeight)
@@ -184,12 +265,14 @@ export class SvgRender {
     }
   }
 
-  private addImage(
+  private async addImage(
     src: string,
     alt: string = '',
     imageWidth?: number,
     imageHeight?: number,
+    caption?: string,
   ) {
+    // TODO: handle imageWidth and imageHeight
     const {
       imageRoot,
       height,
@@ -217,6 +300,9 @@ export class SvgRender {
     this.pageText.push(
       this.generateImage(renderX, renderY, src, alt, renderHeight),
     )
+    if (caption) {
+      await this.addCenterParagraph(caption)
+    }
   }
 
   // text tag in svg
@@ -252,8 +338,8 @@ export class SvgRender {
     return `<image x="${x}" y="${y}" height="${height}" href="${src}"${altStr}/>`
   }
 
-  private newLine(lineHeight: number) {
-    this.x = this.options.paddingLeft
+  public newLine(lineHeight: number, indent: number = 0) {
+    this.x = this.options.paddingLeft + indent
     this.y += lineHeight
   }
 
@@ -294,15 +380,25 @@ export class SvgRender {
     })
   }
 
+  private async measureMultiCharWidth(
+    text: string,
+  ) {
+    let textWidth = 0
+    for (const char of text) {
+      const { width } = await this.measureFont(char)
+      textWidth += width
+    }
+    return textWidth
+  }
+
   private generateSvg() {
     const { width, height, fontSize, fontFamily } = this.options
     const svgId = `svg${Math.random().toString(36).substring(2, 9)}`
     return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
-      + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${
-       this.generateStyle(svgId)
-       }${this.generateRect()
-       }${SVGPlaceholder
-       }</svg>`
+      + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${this.generateStyle(svgId)
+      }${this.generateRect()
+      }${SVGPlaceholder
+      }</svg>`
   }
 
   private generateStyle(svgId: string) {
