@@ -119,9 +119,9 @@ export class SvgRender {
     // else if (contentType === ContentType.CODEBLOCK) {
 
     // }
-    // else if (contentType === ContentType.TABLE) {
-
-    // }
+    else if (contentType === ContentType.TABLE) {
+      await this.addTable(content.table)
+    }
     // else if (contentType === ContentType.OL) {
 
     // }
@@ -129,6 +129,34 @@ export class SvgRender {
       await this.addUlList(content.list)
     }
     this.commitToPage()
+  }
+
+  private async addTable(table: string[][]) {
+    const {
+      width,
+      height,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
+    } = this.options
+    const contentWidth = width - paddingLeft - paddingRight
+    const tableColNum = table[0].length
+    const cellWidth = contentWidth / tableColNum
+    for (const line of table) {
+      if (this.y + this.lineHeight > height - paddingTop) {
+        this.commitToPage()
+        this.newPage()
+      }
+      this.newLine(this.lineHeight)
+      for (let i = 0; i < line.length; i++) {
+        const cell = line[i]
+        const cellStrWidth = await this.measureMultiCharWidth(cell)
+        this.newLine(0, i * cellWidth + (cellWidth - cellStrWidth) / 2)
+        await this.addParagraph(cell, {
+          lineHeight: this.lineHeight,
+        })
+      }
+    }
   }
 
   private async addUlList(list: UlOrOlList, index: number = 0) {
@@ -160,7 +188,7 @@ export class SvgRender {
     const contentWidth = width - paddingLeft - paddingRight
     const [para, centerStr] = await this.splitCenterText(text, contentWidth)
     // normal paragraph
-    if (para.length) {
+    if (para.length > 0) {
       this.newLine(this.lineHeight)
       await this.addParagraph(para, {
         lineHeight: this.lineHeight,

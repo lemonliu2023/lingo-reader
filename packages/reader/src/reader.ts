@@ -71,6 +71,7 @@ export function Reader(
             return undefined
           }
           else {
+            nextChapterPages = undefined
             loadChapter(chapterIndex + 1)
               .then((pages) => {
                 nextChapterPages = pages
@@ -101,6 +102,7 @@ export function Reader(
             return undefined
           }
           else {
+            prevChapterPages = undefined
             loadChapter(chapterIndex - 1)
               .then((pages) => {
                 prevChapterPages = pages

@@ -111,7 +111,7 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
           },
           {
             type: ContentType.PARAGRAPH,
-            text: 'hello world2',
+            text: 'hello world2↩',
           },
           {
             type: ContentType.UL,
@@ -121,11 +121,15 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
                 text: 'hello world3',
               },
               {
+                type: ContentType.PARAGRAPH,
+                text: 'hello world4',
+              },
+              {
                 type: ContentType.UL,
                 list: [
                   {
                     type: ContentType.PARAGRAPH,
-                    text: 'hello world4',
+                    text: 'hello world5',
                   },
 
                 ],
@@ -134,8 +138,19 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
           },
           {
             type: ContentType.PARAGRAPH,
-            text: 'hello world2',
+            text: 'hello world6',
           },
+        ],
+      },
+      {
+        type: ContentType.PARAGRAPH,
+        text: 'TABLE:',
+      },
+      {
+        type: ContentType.TABLE,
+        table: [
+          ['hello', 'world', 'hello', 'world'],
+          ['hello', 'world', 'hello', 'world'],
         ],
       },
     ])
