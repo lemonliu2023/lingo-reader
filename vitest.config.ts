@@ -8,5 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['./packages/**/test/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+    },
   },
 })

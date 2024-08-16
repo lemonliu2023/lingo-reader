@@ -1,9 +1,9 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
+// import path from 'node:path'
+// import { fileURLToPath } from 'node:url'
+// import { writeFileSync } from 'node:fs'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
@@ -155,9 +155,9 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
       },
     ])
     const pages = renderer.pages
-    const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
-    writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
+    // const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    // writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
+    // writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
     expect(pages[0].length).toBeGreaterThan(1)
     expect(pages[1].length).toBeGreaterThan(1)
   })
