@@ -1,9 +1,9 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
-// import path from 'node:path'
-// import { fileURLToPath } from 'node:url'
-// import { writeFileSync } from 'node:fs'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
@@ -103,6 +103,10 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
         text: text2.slice(0, 100),
       },
       {
+        type: ContentType.CENTERPARAGRAPH,
+        text: 'center',
+      },
+      {
         type: ContentType.UL,
         list: [
           {
@@ -114,7 +118,7 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
             text: 'hello world2↩',
           },
           {
-            type: ContentType.UL,
+            type: ContentType.OL,
             list: [
               {
                 type: ContentType.PARAGRAPH,
@@ -140,6 +144,12 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
             type: ContentType.PARAGRAPH,
             text: 'hello world6',
           },
+          {
+            type: ContentType.IMAGE,
+            src: '1656147374309.jpg',
+            alt: 'image',
+            caption: 'image',
+          },
         ],
       },
       {
@@ -153,11 +163,20 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
           ['hello', 'world', 'hello', 'world'],
         ],
       },
+      {
+        type: ContentType.CODEBLOCK,
+        text: 'console.log("hello world")',
+      },
     ])
     const pages = renderer.pages
-    // const currentDir = path.dirname(fileURLToPath(import.meta.url))
-    // writeFileSync(path.resolve(currentDir, './uiviewer/1.svg'), renderer.pages[0])
-    // writeFileSync(path.resolve(currentDir, './uiviewer/2.svg'), renderer.pages[1])
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    for (let i = 0; i < pages.length; i++) {
+      writeFileSync(
+        path.resolve(currentDir, `./uiviewer/${i + 1}.svg`),
+        pages[i],
+      )
+    }
+
     expect(pages[0].length).toBeGreaterThan(1)
     expect(pages[1].length).toBeGreaterThan(1)
   })

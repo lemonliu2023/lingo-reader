@@ -122,14 +122,18 @@ export class SvgRender {
     else if (contentType === ContentType.TABLE) {
       await this.addTable(content.table)
     }
-    // else if (contentType === ContentType.OL) {
-
-    // }
+    else if (contentType === ContentType.OL) {
+      await this.addUlList('ol', content.list)
+    }
     else if (contentType === ContentType.UL) {
-      await this.addUlList(content.list)
+      await this.addUlList('ul', content.list)
     }
     this.commitToPage()
   }
+
+  // private async addCodeBlock(code: string) {
+
+  // }
 
   private async addTable(table: string[][]) {
     const {
@@ -159,23 +163,39 @@ export class SvgRender {
     }
   }
 
-  private async addUlList(list: UlOrOlList, index: number = 0) {
-    for (const li of list) {
+  private async addUlList(type: string, list: UlOrOlList, index: number = 0) {
+    for (let i = 0; i < list.length; i++) {
+      const li = list[i]
+      const pad = type === 'ul' ? '· ' : `${i + 1}.`
       if (li.type === ContentType.PARAGRAPH) {
         this.newLine(this.lineHeight, index * this.options.fontSize)
-        await this.addParagraph(li.text, {
+        await this.addParagraph(pad + li.text, {
           lineHeight: this.lineHeight,
         })
       }
-      // else if (li.type === ContentType.IMAGE) {
-
-      // }
-      else if (li.type === ContentType.UL) {
-        await this.addUlList(li.list, index + 1)
+      else if (li.type === ContentType.IMAGE) {
+        this.newLine(3.5 * this.lineHeight)
+        await this.addParagraph(pad, {})
+        await this.addImage(
+          li.src,
+          li.alt,
+          li.width,
+          li.height,
+        )
+        if (li.caption) {
+          const padWidth = await this.measureMultiCharWidth(pad)
+          this.newLine(this.lineHeight, padWidth)
+          await this.addParagraph(li.caption, {
+            lineHeight: this.lineHeight,
+          })
+        }
       }
-      // else if (li.type === ContentType.OL) {
-
-      // }
+      else if (li.type === ContentType.UL) {
+        await this.addUlList('ul', li.list, index + 1)
+      }
+      else if (li.type === ContentType.OL) {
+        await this.addUlList('ol', li.list, index + 1)
+      }
     }
   }
 
@@ -186,32 +206,36 @@ export class SvgRender {
       paddingRight,
     } = this.options
     const contentWidth = width - paddingLeft - paddingRight
-    const [para, centerStr] = await this.splitCenterText(text, contentWidth)
+    const lines = await this.splitCenterText(text, contentWidth)
     // normal paragraph
-    if (para.length > 0) {
+    for (let i = 0; i < lines.length - 1; i++) {
       this.newLine(this.lineHeight)
-      await this.addParagraph(para, {
+      await this.addParagraph(lines[i], {
         lineHeight: this.lineHeight,
       })
     }
     // center
-    const centerStrWidth = await this.measureMultiCharWidth(centerStr)
+    const lastLine = lines[lines.length - 1]
+    const centerStrWidth = await this.measureMultiCharWidth(lastLine)
     const indent = (contentWidth - centerStrWidth) / 2
     this.newLine(this.lineHeight, indent)
-    await this.addParagraph(centerStr, {
+    await this.addParagraph(lastLine, {
       lineHeight: this.lineHeight,
     })
   }
 
   private async splitCenterText(text: string, contentWidth: number) {
+    const res: string[] = []
     let strWidth = 0
     let str = ''
-    let paragraph = ''
     for (let i = 0; i < text.length; i++) {
       const char = text[i]
       const { width: charWidth } = await this.measureFont(char)
       if (strWidth + charWidth > contentWidth) {
-        paragraph += str
+        if (isEnglish(text[i])) {
+          str += '-'
+        }
+        res.push(str)
         str = char
         strWidth = charWidth
       }
@@ -220,7 +244,8 @@ export class SvgRender {
         strWidth += charWidth
       }
     }
-    return [paragraph, str]
+    res.push(str)
+    return res
   }
 
   private async addParagraph(text: string, paraOptions: ParagraphOptions) {
