@@ -141,17 +141,40 @@ export class SvgRender {
       height,
       paddingLeft,
       paddingRight,
-      paddingTop,
+      paddingBottom,
     } = this.options
     const contentWidth = width - paddingLeft - paddingRight
     const tableColNum = table[0].length
     const cellWidth = contentWidth / tableColNum
-    for (const line of table) {
-      if (this.y + this.lineHeight > height - paddingTop) {
+
+    for (let j = 0; j < table.length; j++) {
+      const line = table[j]
+      this.newLine(this.lineHeight)
+      if (this.y + this.lineHeight > height - paddingBottom) {
         this.commitToPage()
         this.newPage()
+        this.newLine(this.lineHeight)
       }
-      this.newLine(this.lineHeight)
+      if (j === 0) {
+        // top line
+        this.pageText.push(
+          this.generateLine(
+            paddingLeft,
+            this.y - this.lineHeight,
+            paddingLeft + contentWidth,
+            this.y - this.lineHeight,
+          ),
+        )
+        // middle line
+        this.pageText.push(
+          this.generateLine(
+            paddingLeft,
+            this.y,
+            paddingLeft + contentWidth,
+            this.y,
+          ),
+        )
+      }
       for (let i = 0; i < line.length; i++) {
         const cell = line[i]
         const cellStrWidth = await this.measureMultiCharWidth(cell)
@@ -161,6 +184,14 @@ export class SvgRender {
         })
       }
     }
+    this.pageText.push(
+      this.generateLine(
+        paddingLeft,
+        this.y,
+        paddingLeft + contentWidth,
+        this.y,
+      ),
+    )
   }
 
   private async addUlList(type: string, list: UlOrOlList, index: number = 0) {
@@ -487,6 +518,19 @@ export class SvgRender {
     const { width, height, backgroundColor } = this.options
     return `<rect width="${width}" height="${height}" `
       + `fill="${backgroundColor}" pointer-events="none"/>`
+  }
+
+  private generateLine(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    strokeWidth: number = 1,
+    stroke: string = 'black',
+  ) {
+    return `<line x1="${x1}" y1="${y1 + strokeWidth + 1}" x2="${x2}" `
+      + `y2="${y2 + strokeWidth + 1}" stroke="${stroke}" `
+      + `stroke-width="${strokeWidth}" />`
   }
 
   // similar to css style padding

@@ -157,10 +157,19 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
         text: 'TABLE:',
       },
       {
+        type: ContentType.PARAGRAPH,
+        text: 'TABLE:',
+      },
+      {
+        type: ContentType.PARAGRAPH,
+        text: 'TABLE:',
+      },
+      {
         type: ContentType.TABLE,
         table: [
-          ['hello', 'world', 'hello', 'world'],
-          ['hello', 'world', 'hello', 'world'],
+          ['hello', 'world', 'hello2', 'world'],
+          ['hello1', 'world', 'hello2', 'world'],
+          ['hello', 'world', 'hello2', 'world'],
         ],
       },
       {
