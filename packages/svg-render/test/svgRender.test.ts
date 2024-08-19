@@ -43,7 +43,7 @@ describe('svgRender', () => {
     + `font-size="${fontSize}px" viewBox="0 0 ${width} ${height}" width="${width}px" `
     + `height="${height}px" font-family="${fontFamily}"><style>#{cursor:${cursor};}# `
     + `text::selection{background-color:${selectionbgColor};}</style><rect `
-    + `width="${width}" height="${height}" fill="${backgroundColor}" pointer-events="none"/>`
+    + `x="0" y="0" width="${width}" height="${height}" fill="${backgroundColor}" pointer-events="none"/>`
     + `##{content}##</svg>`)
   })
 
@@ -174,7 +174,26 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
       },
       {
         type: ContentType.CODEBLOCK,
-        text: 'console.log("hello world")',
+        text: `console.log("hello world")
+const pages = renderer.pages
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+for (let i = 0; i < pages.length; i++) {
+  writeFileSync(
+    path.resolve(currentDir, './uiviewer/i + 1.svg'),
+    pages[i],
+  )
+}
+
+expect(pages[0].length).toBeGreaterThan(1)
+expect(pages[1].length).toBeGreaterThan(1)
+
+expect(pages[0].length).toBeGreaterThan(1)
+expect(pages[1].length).toBeGreaterThan(1)
+expect(pages[0].length).toBeGreaterThan(1)
+expect(pages[1].length).toBeGreaterThan(1)
+expect(pages[0].length).toBeGreaterThan(1)
+expect(pages[1].length).toBeGreaterThan(1)
+`,
       },
     ])
     const pages = renderer.pages

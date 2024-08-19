@@ -116,9 +116,10 @@ export class SvgRender {
       // this.newLine() in addCenterParagraph's inner
       await this.addCenterParagraph(content.text)
     }
-    // else if (contentType === ContentType.CODEBLOCK) {
-
-    // }
+    else if (contentType === ContentType.CODEBLOCK) {
+      const codeLines = await this.splitCode(content.text)
+      await this.addCode(codeLines)
+    }
     else if (contentType === ContentType.TABLE) {
       await this.addTable(content.table)
     }
@@ -131,9 +132,61 @@ export class SvgRender {
     this.commitToPage()
   }
 
-  // private async addCodeBlock(code: string) {
+  private async addCode(codeLines: string[]) {
+    const {
+      height,
+      paddingBottom,
+    } = this.options
+    const remainLineNum = Math.floor((height - this.y - paddingBottom) / this.lineHeight)
+    if (codeLines.length > remainLineNum) {
+      await this.addCodeInOnePage(codeLines.slice(0, remainLineNum - 1))
+      this.commitToPage()
+      this.newPage()
+      await this.addCode(codeLines.slice(remainLineNum - 1))
+    }
+    else {
+      await this.addCodeInOnePage(codeLines)
+    }
+  }
 
-  // }
+  private async addCodeInOnePage(codeLines: string[]) {
+    const {
+      width,
+      paddingLeft,
+      paddingRight,
+    } = this.options
+    this.pageText.push(
+      this.generateRect(
+        paddingLeft,
+        this.y + 0.2 * this.lineHeight,
+        width - paddingLeft - paddingRight,
+        this.lineHeight * codeLines.length + 0.1 * this.lineHeight,
+        '#e6e5e3',
+      ),
+    )
+
+    for (const line of codeLines) {
+      this.newLine(this.lineHeight)
+      await this.addParagraph(line, {
+        lineHeight: this.lineHeight,
+      })
+    }
+  }
+
+  private async splitCode(code: string) {
+    const {
+      width,
+      paddingLeft,
+      paddingRight,
+    } = this.options
+    const res: string[] = []
+    const codeSplit = code.split(/\r?\n/)
+    for (const line of codeSplit) {
+      const splited = await this.splitCenterText(line, width - paddingLeft - paddingRight)
+      res.push(...splited)
+    }
+    return res
+  }
 
   private async addTable(table: string[][]) {
     const {
@@ -476,11 +529,11 @@ export class SvgRender {
   }
 
   private generateSvg() {
-    const { width, height, fontSize, fontFamily } = this.options
+    const { width, height, fontSize, fontFamily, backgroundColor } = this.options
     const svgId = `svg${Math.random().toString(36).substring(2, 9)}`
     return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
       + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${this.generateStyle(svgId)
-      }${this.generateRect()
+      }${this.generateRect(0, 0, width, height, backgroundColor)
       }${SVGPlaceholder
       }</svg>`
   }
@@ -514,9 +567,14 @@ export class SvgRender {
     return `<style>${svgStyle}${svgSelectionStyle}</style>`
   }
 
-  private generateRect() {
-    const { width, height, backgroundColor } = this.options
-    return `<rect width="${width}" height="${height}" `
+  private generateRect(
+    x: number = 0,
+    y: number = 0,
+    width: number,
+    height: number,
+    backgroundColor: string,
+  ) {
+    return `<rect x="${x}" y="${y}" width="${width}" height="${height}" `
       + `fill="${backgroundColor}" pointer-events="none"/>`
   }
 
