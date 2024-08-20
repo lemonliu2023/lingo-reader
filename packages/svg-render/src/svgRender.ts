@@ -170,6 +170,14 @@ export class SvgRender {
       await this.addParagraph(line, {
         lineHeight: this.lineHeight,
       })
+      this.pageText.push(
+        this.generateText(
+          this.x,
+          this.y,
+          '\u21B5',
+          { fontSize: 0 },
+        ),
+      )
     }
   }
 
@@ -453,7 +461,10 @@ export class SvgRender {
     if (options.fontWeight) {
       styleArr.push(`font-weight:${options.fontWeight};`)
     }
-    if (options.fontSize) {
+    if (
+      typeof options.fontSize !== 'undefined'
+      && options.fontSize >= 0
+    ) {
       styleArr.push(`font-size:${options.fontSize}px;`)
     }
     let style = ''
