@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { Reader } from '../src/reader'
 
@@ -5,7 +6,7 @@ import { Reader } from '../src/reader'
 globalThis.__BROWSER__ = false
 
 describe('reader', () => {
-  it('create', async () => {
+  it('alice', async () => {
     const reader = Reader(
       './example/alice.epub',
     )
@@ -27,7 +28,7 @@ describe('reader', () => {
     expect(getPageIndex()).toBe(0)
     expect(getChapterIndex()).toBe(0)
 
-    const nextPage = toNextPage()
+    const nextPage = await toNextPage()
     expect(nextPage).not.toBe(undefined)
     expect(getPageIndex()).toBe(1)
     expect(getChapterIndex()).toBe(0)
@@ -35,13 +36,28 @@ describe('reader', () => {
     // go to last page of the first chapter
     let lastPage = nextPage
     while (lastPage) {
-      lastPage = toNextPage()
+      lastPage = await toNextPage()
     }
     expect(getPageIndex()).toBe(getCurrChapterPageCount() - 1)
     expect(getChapterIndex()).toBe(0)
-    lastPage = toNextPage()
+    lastPage = await toNextPage()
     expect(lastPage).toBe(undefined)
     expect(getPageIndex()).toBe(getCurrChapterPageCount() - 1)
     expect(getChapterIndex()).toBe(0)
+  })
+
+  it('future', async () => {
+    const reader = Reader(
+      './example/future.epub',
+    )
+    const {
+      toNextPage,
+    } = reader
+
+    await reader.init()
+    let nextPage = await toNextPage()
+    nextPage = await toNextPage()
+    nextPage = await toNextPage()
+    writeFileSync(`./example/future-0.svg`, nextPage!)
   })
 })

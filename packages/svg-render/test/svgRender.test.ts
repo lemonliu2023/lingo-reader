@@ -1,12 +1,20 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+const uiviewerDir = path.resolve(currentDir, `./uiviewer`)
+if (!existsSync(uiviewerDir)) {
+  mkdirSync(
+    uiviewerDir,
+  )
+}
 
 describe('svgRender', () => {
   const renderer = new SvgRender({

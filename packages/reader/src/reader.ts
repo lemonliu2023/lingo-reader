@@ -51,7 +51,7 @@ export function Reader(
       return currChapterPages[pageIndex]
     },
 
-    toNextPage() {
+    async toNextPage() {
       const nextPageIndex = pageIndex + 1
       if (nextPageIndex < currChapterPages!.length) {
         pageIndex = nextPageIndex
@@ -72,10 +72,7 @@ export function Reader(
           }
           else {
             nextChapterPages = undefined
-            loadChapter(chapterIndex + 1)
-              .then((pages) => {
-                nextChapterPages = pages
-              })
+            nextChapterPages = await loadChapter(chapterIndex + 1)
           }
           return currChapterPages[pageIndex]
         }
