@@ -40,4 +40,6 @@ const {
 
 Now, it could only render one colume and with no first line indention. This project will also support two/three line rendering in the future, Although you could adjust width/height and x/y to support this.
 
-![0-2](example/0-2.svg)
+![0-2](example/example1.svg)
+
+![0-2](example/example2.svg)
