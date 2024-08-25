@@ -48,10 +48,10 @@ async function measurePlaywright(paras: MeasureStrParas) {
       process.exit(signal === 'exit' ? 0 : 1)
     }
     ['exit', 'SIGINT', 'SIGTERM'].forEach((event) => {
-      process.on(event, async () => handleExit(event))
+      process.on(event, async () => await handleExit(event))
     })
     process.on('uncaughtException', async () => {
-      await handleExit('uncaughtException')
+      await cleanup()
     })
     process.on('unhandledRejection', async () => {
       await handleExit('unhandledRejection')
@@ -60,9 +60,7 @@ async function measurePlaywright(paras: MeasureStrParas) {
   if (paras.remoteFontCSSURL?.length > 1) {
     await page.goto(
       `data:text/html,${getDocument(paras.fontFamily, paras.remoteFontCSSURL)}`,
-      {
-        waitUntil: 'networkidle',
-      },
+      { waitUntil: 'networkidle' },
     )
   }
   return page.evaluate(measureStr, paras)

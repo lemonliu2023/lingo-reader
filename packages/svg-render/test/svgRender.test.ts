@@ -17,12 +17,10 @@ if (!existsSync(uiviewerDir)) {
 }
 
 describe('svgRender', () => {
-  const renderer = new SvgRender({
-    padding: '40',
-    width: 1000,
-    height: 700,
-  })
-  it('options.padding', () => {
+  it('parsePadding with one val', () => {
+    const renderer = new SvgRender({
+      padding: '40',
+    })
     const {
       paddingTop,
       paddingRight,
@@ -35,6 +33,73 @@ describe('svgRender', () => {
     expect(paddingLeft).toBe(40)
   })
 
+  it('parsePadding with two val', () => {
+    const renderer = new SvgRender({
+      padding: '40 20',
+    })
+    const {
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+    } = renderer.options
+    expect(paddingTop).toBe(40)
+    expect(paddingRight).toBe(20)
+    expect(paddingBottom).toBe(40)
+    expect(paddingLeft).toBe(20)
+  })
+
+  it('parsePadding with three val', () => {
+    const renderer = new SvgRender({
+      padding: '40 20 10',
+    })
+    const {
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+    } = renderer.options
+    expect(paddingTop).toBe(40)
+    expect(paddingRight).toBe(20)
+    expect(paddingBottom).toBe(10)
+    expect(paddingLeft).toBe(20)
+  })
+
+  it('parsePadding with four val', () => {
+    const renderer = new SvgRender({
+      padding: '40 20 10 5',
+    })
+    const {
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+    } = renderer.options
+    expect(paddingTop).toBe(40)
+    expect(paddingRight).toBe(20)
+    expect(paddingBottom).toBe(10)
+    expect(paddingLeft).toBe(5)
+  })
+
+  it('parsePadding with invalid val', () => {
+    // for eslint: Do not use 'new' for side effects  no-new
+    const init = () => {
+      return new SvgRender({
+        padding: '40 20 10 5 2',
+      })
+    }
+    expect(() => {
+      init()
+    }).toThrow()
+  })
+
+  const renderer = new SvgRender({
+    padding: '40',
+    width: 1000,
+    height: 700,
+    opacity: 0.99,
+    borderRadius: 1,
+  })
   it('lineHeight', () => {
     const {
       fontSize,
@@ -44,12 +109,23 @@ describe('svgRender', () => {
   })
 
   it('generateRect', () => {
-    const { width, height, backgroundColor, fontSize, fontFamily, cursor, selectionbgColor } = renderer.options
+    const {
+      width,
+      height,
+      backgroundColor,
+      fontSize,
+      fontFamily,
+      cursor,
+      selectionbgColor,
+      opacity,
+      borderRadius,
+    } = renderer.options
     // The id of svg is dynamic, replace svgId with ''
     const svg = renderer.svg.replace(/svg\S{7}/g, '')
     expect(svg).toBe('<svg id="" xmlns="http://www.w3.org/2000/svg" version="1.1" '
     + `font-size="${fontSize}px" viewBox="0 0 ${width} ${height}" width="${width}px" `
-    + `height="${height}px" font-family="${fontFamily}"><style>#{cursor:${cursor};}# `
+    + `height="${height}px" font-family="${fontFamily}"><style>#{cursor:${cursor};`
+    + `opacity:${opacity};border-radius:${borderRadius}px;}# `
     + `text::selection{background-color:${selectionbgColor};}</style><rect `
     + `x="0" y="0" width="${width}" height="${height}" fill="${backgroundColor}" pointer-events="none"/>`
     + `##{content}##</svg>`)
@@ -165,12 +241,13 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
         text: 'TABLE:',
       },
       {
-        type: ContentType.PARAGRAPH,
-        text: 'TABLE:',
-      },
-      {
-        type: ContentType.PARAGRAPH,
-        text: 'TABLE:',
+        type: ContentType.OL,
+        list: [
+          {
+            type: ContentType.PARAGRAPH,
+            text: 'hello world',
+          },
+        ],
       },
       {
         type: ContentType.TABLE,

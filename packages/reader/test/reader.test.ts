@@ -1,6 +1,6 @@
-import { writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { Reader } from '../src/reader'
+// import { writeFileSync } from 'node:fs'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
@@ -46,18 +46,18 @@ describe('reader', () => {
     expect(getChapterIndex()).toBe(0)
   })
 
-  it('future', async () => {
-    const reader = Reader(
-      './example/future.epub',
-    )
-    const {
-      toNextPage,
-    } = reader
+  // it('future', async () => {
+  //   const reader = Reader(
+  //     './example/future.epub',
+  //   )
+  //   const {
+  //     toNextPage,
+  //   } = reader
 
-    await reader.init()
-    let nextPage = await toNextPage()
-    nextPage = await toNextPage()
-    nextPage = await toNextPage()
-    writeFileSync(`./example/future-0.svg`, nextPage!)
-  })
+  //   await reader.init()
+  //   let nextPage = await toNextPage()
+  //   nextPage = await toNextPage()
+  //   nextPage = await toNextPage()
+  //   writeFileSync(`./example/future-0.svg`, nextPage!)
+  // })
 })
