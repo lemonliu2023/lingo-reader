@@ -5,6 +5,7 @@ import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
 import type { ParagraphOptions, SvgRenderOptions } from './types'
 import { charMap, headingRatioMap, isEnglish, isPunctuation, isSpace } from './utils'
+import { measureImage } from './measureImage'
 
 const defaultSvgRenderOptions: SvgRenderOptions = {
   width: 1474,
@@ -103,7 +104,6 @@ export class SvgRender {
       })
     }
     else if (contentType === ContentType.IMAGE) {
-      this.newLine(3.5 * this.lineHeight)
       await this.addImage(
         content.src,
         content.alt,
@@ -190,7 +190,11 @@ export class SvgRender {
     const res: string[] = []
     const codeSplit = code.split(/\r?\n/)
     for (const line of codeSplit) {
-      const splited = await this.splitCenterText(line, width - paddingLeft - paddingRight)
+      const splited = await this.splitCenterText(
+        line,
+        width - paddingLeft - paddingRight,
+        false,
+      )
       res.push(...splited)
     }
     return res
@@ -266,8 +270,6 @@ export class SvgRender {
         })
       }
       else if (li.type === ContentType.IMAGE) {
-        this.newLine(3.5 * this.lineHeight)
-        await this.addParagraph(pad, {})
         await this.addImage(
           li.src,
           li.alt,
@@ -275,9 +277,8 @@ export class SvgRender {
           li.height,
         )
         if (li.caption) {
-          const padWidth = await this.measureMultiCharWidth(pad)
-          this.newLine(this.lineHeight, padWidth)
-          await this.addParagraph(li.caption, {
+          this.newLine(this.lineHeight)
+          await this.addParagraph(pad + li.caption, {
             lineHeight: this.lineHeight,
           })
         }
@@ -316,7 +317,11 @@ export class SvgRender {
     })
   }
 
-  private async splitCenterText(text: string, contentWidth: number) {
+  private async splitCenterText(
+    text: string,
+    contentWidth: number,
+    isText: boolean = true,
+  ) {
     const res: string[] = []
     let strWidth = 0
     let str = ''
@@ -324,7 +329,7 @@ export class SvgRender {
       const char = text[i]
       const { width: charWidth } = await this.measureFont(char)
       if (strWidth + charWidth > contentWidth) {
-        if (isEnglish(text[i])) {
+        if (isText && isEnglish(text[i])) {
           str += '-'
         }
         res.push(str)
@@ -389,7 +394,9 @@ export class SvgRender {
       }
 
       // newPage
-      if (this.y + this.lineHeight > height - paddingBottom) {
+      // if this 'if' is this.y + lineHeight > height - paddingBottom,
+      //  it will not render last line in the page
+      if (this.y > height - paddingBottom) {
         this.commitToPage()
         this.newPage()
         this.newLine(this.lineHeight)
@@ -422,29 +429,55 @@ export class SvgRender {
       imageRoot,
       height,
       width,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
+      paddingBottom,
     } = this.options
     src = resolve(imageRoot, src)
-    const remainHeight = height - this.y + this.lineHeight
-    const renderHeight = 3 * this.lineHeight
-    if (remainHeight < renderHeight) {
-      this.commitToPage()
-      this.newPage()
-      // need to newLine after new page,
-      //  the lineHeight depends on the content are rendering
-      this.newLine(3.5 * this.lineHeight)
+    const contentWidth = width - paddingLeft - paddingRight
+    const contentHeight = height - paddingTop - paddingBottom
+    const remainHeight = contentHeight - this.y
+    // complete imageWidth and imageHeight
+    if (!imageWidth || !imageHeight) {
+      const { width: w, height: h } = await measureImage(src)
+      imageWidth = w
+      imageHeight = h
     }
 
-    const renderY = this.y - renderHeight
-    // center image
-    let renderX = this.x
-    if (imageWidth && imageHeight) {
-      const scale = renderHeight / imageHeight
-      const renderWidth = imageWidth * scale
-      renderX = (width - renderWidth) / 2
+    // first to condense image width
+    if (imageWidth > contentWidth) {
+      imageWidth = contentWidth
+      const ratio = contentWidth / imageWidth
+      imageHeight = imageHeight * ratio
     }
-    this.pageText.push(
-      this.generateImage(renderX, renderY, src, alt, renderHeight),
-    )
+
+    // then to handle image height
+    if (remainHeight >= imageHeight) {
+      // leave blank space at the top
+      this.newLine(0.5 * this.lineHeight)
+      // center image
+      const renderX = (width - imageWidth) / 2
+      this.pageText.push(
+        this.generateImage(renderX, this.y, src, alt, imageHeight, imageWidth),
+      )
+      this.newLine(imageHeight)
+    }
+    else {
+      this.commitToPage()
+      this.newPage()
+      if (imageHeight > contentHeight) {
+        imageHeight = contentHeight
+        const ratio = contentHeight / imageHeight
+        imageWidth = imageWidth * ratio
+      }
+      const renderX = (width - imageWidth) / 2
+      this.pageText.push(
+        this.generateImage(renderX, this.y, src, alt, imageHeight, imageWidth),
+      )
+      this.newLine(imageHeight)
+    }
+
     if (caption) {
       await this.addCenterParagraph(caption)
     }
@@ -481,9 +514,10 @@ export class SvgRender {
     src: string,
     alt: string,
     height: number,
+    width: number,
   ) {
     const altStr = alt.length ? ` alt="${alt}"` : ''
-    return `<image x="${x}" y="${y}" height="${height}" href="${src}"${altStr}/>`
+    return `<image x="${x}" y="${y}" height="${height}" width="${width}" href="${src}"${altStr}/>`
   }
 
   public newLine(lineHeight: number, indent: number = 0) {

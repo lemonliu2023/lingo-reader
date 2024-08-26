@@ -171,6 +171,22 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
       },
       {
         type: ContentType.IMAGE,
+        src: 'Image00000.jpg',
+        alt: 'image',
+        caption: 'Image00000.jpg',
+      },
+      {
+        type: ContentType.IMAGE,
+        src: 'Image00005.jpg',
+        alt: 'image',
+        caption: 'Image00005.jpg',
+      },
+      {
+        type: ContentType.PARAGRAPH,
+        text: 'text2',
+      },
+      {
+        type: ContentType.IMAGE,
         src: '1656147374309.jpg',
         alt: 'image',
         caption: 'image',
@@ -277,7 +293,7 @@ expect(pages[1].length).toBeGreaterThan(1)
 expect(pages[0].length).toBeGreaterThan(1)
 expect(pages[1].length).toBeGreaterThan(1)
 expect(pages[0].length).toBeGreaterThan(1)
-expect(pages[1].length).toBeGreaterThan(1)
+expect(pages[1].length).toBeGreaterThan(1)expect(pages[1].length).toBeGreaterThan(1)expect(pages[1].length).toBeGreaterThan(1)
 `,
       },
     ])
