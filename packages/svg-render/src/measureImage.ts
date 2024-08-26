@@ -25,11 +25,20 @@ function measureImageInNode(src: string): Measurement {
   } as Measurement
 }
 
+const imageMeasureCache = new Map<string, Measurement>()
+
 export async function measureImage(src: string): Promise<Measurement> {
+  if (imageMeasureCache.has(src)) {
+    return imageMeasureCache.get(src)!
+  }
+
   try {
-    return __BROWSER__
+    const measure = __BROWSER__
       ? await measureImageSizeInBrowser(src)
       : measureImageInNode(src)
+
+    imageMeasureCache.set(src, measure)
+    return measure
   }
   catch (e) {
     return {

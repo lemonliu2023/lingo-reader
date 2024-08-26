@@ -34,10 +34,10 @@ describe('measureImage in browser', () => {
       constructor() { }
       set src(url: string) {
         this._src = url
-        if (url === './images/1656147374309.jpg') {
+        if (url === './images/Image00001.jpg') {
           setTimeout(() => {
-            this.naturalWidth = 640
-            this.naturalHeight = 640
+            this.naturalWidth = 749
+            this.naturalHeight = 1000
             if (this.onload) {
               this.onload()
             }
@@ -66,9 +66,9 @@ describe('measureImage in browser', () => {
   })
 
   it('measure existed image', async () => {
-    const { width, height } = await measureImage('./images/1656147374309.jpg')
-    expect(width).toBe(640)
-    expect(height).toBe(640)
+    const { width, height } = await measureImage('./images/Image00001.jpg')
+    expect(width).toBe(749)
+    expect(height).toBe(1000)
   })
 
   it('measure non-existed image', async () => {
