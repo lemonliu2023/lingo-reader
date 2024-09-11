@@ -16,7 +16,7 @@ function replace(opts) {
   })
 }
 
-const external = ['playwright', 'xml2js', 'adm-zip']
+const external = ['playwright', 'xml2js', 'adm-zip', 'image-size']
 // const globals = {}
 export default [
   {
@@ -50,6 +50,11 @@ export default [
         format: 'esm',
       },
     ],
+    treeshake: {
+      // The default is true, and setting it to false here means there are no side effects
+      //  to remove 'import playwright;' and 'import image-size;'
+      moduleSideEffects: false,
+    },
     plugins: [
       replace({
         __BROWSER__: JSON.stringify(true),

@@ -32,11 +32,16 @@ export async function measureImage(src: string): Promise<Measurement> {
     return imageMeasureCache.get(src)!
   }
 
-  try {
-    const measure = __BROWSER__
-      ? await measureImageSizeInBrowser(src)
-      : measureImageInNode(src)
+  let measureFunc: (src: string) => Promise<Measurement> | Measurement
+  if (__BROWSER__) {
+    measureFunc = measureImageSizeInBrowser
+  }
+  else {
+    measureFunc = measureImageInNode
+  }
 
+  try {
+    const measure = await measureFunc(src)
     imageMeasureCache.set(src, measure)
     return measure
   }

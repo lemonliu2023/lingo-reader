@@ -1,5 +1,33 @@
 **The project is developing**
 
+### TodoList
+
+#### kernel:
+
+1. migrate `playwright` to `ski-canvas`
+2. transform ChapterContent to `Object` which has type, offset, text, x, y, and others, offset is an id of a char or image. Afterwards, use these Object to generate svg label text. Now it directly generates label text.
+3. support multi column rendering
+4. exposed apis:
+   1. for saving all chapter pages to disk and assign them a name which represent page information, such as `[epubFileName]-[Chapter]-[pageIndex]`, and the page is an Object which has name, pageSvgText.
+   2. get all chapter pages
+   3. saving one chapter pages (with `offset`, )
+
+#### application:
+
+1. support note taking in aplication.
+
+#### renderer process
+
+text obj(generated from parser or customized)
+
+=> token
+
+=> svg texts
+
+=> svg texts with background
+
+=> res
+
 ### Reasons for Using SVG in a Reader
 
 1.SVG is a vector graphics format that can maintain high-quality text rendering at any resolution without distortion when zoomed in.

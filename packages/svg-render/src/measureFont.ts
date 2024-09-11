@@ -1,5 +1,6 @@
 import process from 'node:process'
-import playwright from 'playwright'
+import { chromium } from 'playwright'
+import type { Browser, Page } from 'playwright'
 import { getDocument } from './utils'
 import type { MeasureOptions, MeasureStrParas, Measurement } from './types'
 
@@ -31,11 +32,11 @@ function measureStr(paras: MeasureStrParas): Measurement {
   }
 }
 
-let browser: playwright.Browser
-let page: playwright.Page
+let browser: Browser
+let page: Page
 async function measurePlaywright(paras: MeasureStrParas) {
   if (!browser) {
-    browser = await playwright.chromium.launch({ headless: true })
+    browser = await chromium.launch({ headless: true })
     page = await browser.newPage()
     // avoid memory leak
     const cleanup = async () => {
