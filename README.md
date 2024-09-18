@@ -4,7 +4,6 @@
 
 #### kernel:
 
-1. migrate `playwright` to `ski-canvas`
 2. transform ChapterContent to `Object` which has type, offset, text, x, y, and others, offset is an id of a char or image. Afterwards, use these Object to generate svg label text. Now it directly generates label text.
 3. support multi column rendering
 4. exposed apis:

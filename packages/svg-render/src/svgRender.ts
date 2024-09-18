@@ -6,6 +6,12 @@ import { measureFont } from './measureFont'
 import type { ParagraphOptions, SvgRenderOptions } from './types'
 import { charMap, headingRatioMap, isEnglish, isPunctuation, isSpace } from './utils'
 import { measureImage } from './measureImage'
+import {
+  svgImage,
+  svgLine,
+  svgRect,
+  svgText,
+} from './svgTags'
 
 const defaultSvgRenderOptions: SvgRenderOptions = {
   width: 1474,
@@ -156,7 +162,7 @@ export class SvgRender {
       paddingRight,
     } = this.options
     this.pageText.push(
-      this.generateRect(
+      svgRect(
         paddingLeft,
         this.y + 0.2 * this.lineHeight,
         width - paddingLeft - paddingRight,
@@ -171,7 +177,7 @@ export class SvgRender {
         lineHeight: this.lineHeight,
       })
       this.pageText.push(
-        this.generateText(
+        svgText(
           this.x,
           this.y,
           '\u21B5',
@@ -223,7 +229,7 @@ export class SvgRender {
       if (j === 0) {
         // top line
         this.pageText.push(
-          this.generateLine(
+          svgLine(
             paddingLeft,
             this.y - this.lineHeight,
             paddingLeft + contentWidth,
@@ -232,7 +238,7 @@ export class SvgRender {
         )
         // middle line
         this.pageText.push(
-          this.generateLine(
+          svgLine(
             paddingLeft,
             this.y,
             paddingLeft + contentWidth,
@@ -250,7 +256,7 @@ export class SvgRender {
       }
     }
     this.pageText.push(
-      this.generateLine(
+      svgLine(
         paddingLeft,
         this.y,
         paddingLeft + contentWidth,
@@ -377,14 +383,14 @@ export class SvgRender {
         else if (isEnglish(prevChar) && isEnglish(char)) {
           this.pageText.push(
             // <text x="x" y="y">-</text>
-            this.generateText(this.x, this.y, '-', paraOptions),
+            svgText(this.x, this.y, '-', paraOptions),
           )
           this.newLine(lineHeight)
         }
         else if (isEnglish(prevChar) && isPunctuation(char)) {
           this.pageText.push(
             // <text x="x" y="y">char</text>
-            this.generateText(this.x, this.y, char, paraOptions),
+            svgText(this.x, this.y, char, paraOptions),
           )
           continue
         }
@@ -404,13 +410,13 @@ export class SvgRender {
       if (charMap.has(char)) {
         // <text x="x" y="y">charMap.get(char)</text>
         this.pageText.push(
-          this.generateText(this.x, this.y, charMap.get(char)!, paraOptions),
+          svgText(this.x, this.y, charMap.get(char)!, paraOptions),
         )
       }
       else {
         // <text x="x" y="y">char</text>
         this.pageText.push(
-          this.generateText(this.x, this.y, char, paraOptions),
+          svgText(this.x, this.y, char, paraOptions),
         )
       }
       this.x += charWidth
@@ -459,7 +465,7 @@ export class SvgRender {
       // center image
       const renderX = (width - imageWidth) / 2
       this.pageText.push(
-        this.generateImage(renderX, this.y, src, alt, imageHeight, imageWidth),
+        svgImage(renderX, this.y, src, alt, imageHeight, imageWidth),
       )
       this.newLine(imageHeight)
     }
@@ -473,7 +479,7 @@ export class SvgRender {
       }
       const renderX = (width - imageWidth) / 2
       this.pageText.push(
-        this.generateImage(renderX, this.y, src, alt, imageHeight, imageWidth),
+        svgImage(renderX, this.y, src, alt, imageHeight, imageWidth),
       )
       this.newLine(imageHeight)
     }
@@ -481,43 +487,6 @@ export class SvgRender {
     if (caption) {
       await this.addCenterParagraph(caption)
     }
-  }
-
-  // text tag in svg
-  private generateText(
-    x: number,
-    y: number,
-    char: string,
-    options: ParagraphOptions,
-  ) {
-    const styleArr = []
-    if (options.fontWeight) {
-      styleArr.push(`font-weight:${options.fontWeight};`)
-    }
-    if (
-      typeof options.fontSize !== 'undefined'
-      && options.fontSize >= 0
-    ) {
-      styleArr.push(`font-size:${options.fontSize}px;`)
-    }
-    let style = ''
-    if (styleArr.length) {
-      style = ` style="${styleArr.join('')}"`
-    }
-    return `<text x="${x}" y="${y}"${style}>${char}</text>`
-  }
-
-  // image tag in svg
-  private generateImage(
-    x: number,
-    y: number,
-    src: string,
-    alt: string,
-    height: number,
-    width: number,
-  ) {
-    const altStr = alt.length ? ` alt="${alt}"` : ''
-    return `<image x="${x}" y="${y}" height="${height}" width="${width}" href="${src}"${altStr}/>`
   }
 
   public newLine(lineHeight: number, indent: number = 0) {
@@ -578,7 +547,7 @@ export class SvgRender {
     const svgId = `svg${Math.random().toString(36).substring(2, 9)}`
     return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
       + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${this.generateStyle(svgId)
-      }${this.generateRect(0, 0, width, height, backgroundColor)
+      }${svgRect(0, 0, width, height, backgroundColor)
       }${SVGPlaceholder
       }</svg>`
   }
@@ -610,30 +579,6 @@ export class SvgRender {
     }
     svgSelectionStyle += '}'
     return `<style>${svgStyle}${svgSelectionStyle}</style>`
-  }
-
-  private generateRect(
-    x: number = 0,
-    y: number = 0,
-    width: number,
-    height: number,
-    backgroundColor: string,
-  ) {
-    return `<rect x="${x}" y="${y}" width="${width}" height="${height}" `
-      + `fill="${backgroundColor}" pointer-events="none"/>`
-  }
-
-  private generateLine(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    strokeWidth: number = 1,
-    stroke: string = 'black',
-  ) {
-    return `<line x1="${x1}" y1="${y1 + strokeWidth + 1}" x2="${x2}" `
-      + `y2="${y2 + strokeWidth + 1}" stroke="${stroke}" `
-      + `stroke-width="${strokeWidth}" />`
   }
 
   // similar to css style padding

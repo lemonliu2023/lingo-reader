@@ -5,6 +5,7 @@ export default defineConfig({
     extensions: ['.ts', '.js', '.json'],
   },
   test: {
+    pool: 'forks',
     globals: true,
     environment: 'node',
     include: ['./packages/**/test/*.test.ts'],
