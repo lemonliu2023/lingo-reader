@@ -219,7 +219,9 @@ export class EpubFile {
         if (!existsSync(imagePath)) {
           writeFileSync(
             imagePath,
-            this.zip.readImage(this.padWithContentDir(element.href)),
+            // cannot assign Buffer to ArrayBufferView, so convert it to Uint8Array,
+            //  which is a subclass of ArrayBufferView
+            new Uint8Array(this.zip.readImage(this.padWithContentDir(element.href))),
           )
         }
       }
