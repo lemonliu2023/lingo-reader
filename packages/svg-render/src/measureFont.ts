@@ -82,7 +82,7 @@ export async function measureFont(
     ...options,
   } as MeasureStrParas
 
-  const cacheKey = char + paras.fontSize
+  const cacheKey = `${char}_${paras.fontSize}`
   if (fontCache.has(cacheKey)) {
     return fontCache.get(cacheKey)!
   }

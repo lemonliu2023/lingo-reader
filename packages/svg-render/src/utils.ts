@@ -40,3 +40,37 @@ export const headingRatioMap = new Map<ContentType, number>([
   [ContentType.HEADING5, 0.83],
   [ContentType.HEADING6, 0.67],
 ])
+
+// similar to css style padding
+export function parsePadding(paddingStr: string) {
+  const paddingSplit = paddingStr!.split(' ').map(val => Number.parseInt(val))
+  if (paddingSplit.length > 4) {
+    throw new Error('padding should be 1-4 values with " " separated')
+  }
+  let paddingArr = [0, 0, 0, 0]
+  if (paddingSplit.length === 1) {
+    paddingArr = [paddingSplit[0], paddingSplit[0], paddingSplit[0], paddingSplit[0]]
+  }
+  else if (paddingSplit.length === 2) {
+    paddingArr = [paddingSplit[0], paddingSplit[1], paddingSplit[0], paddingSplit[1]]
+  }
+  else if (paddingSplit.length === 3) {
+    paddingArr = [paddingSplit[0], paddingSplit[1], paddingSplit[2], paddingSplit[1]]
+  }
+  else if (paddingSplit.length === 4) {
+    paddingArr = paddingSplit
+  }
+  return paddingArr
+}
+
+// handle 4B string in js
+export function* iterateWithStr(str: string) {
+  const len = str.length
+  let index = 0
+  while (index < len) {
+    const codePoint = str.codePointAt(index)
+    const char = String.fromCodePoint(codePoint!)
+    yield [index, char]
+    index += char.length
+  }
+}

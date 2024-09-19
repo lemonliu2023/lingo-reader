@@ -1,10 +1,10 @@
-import { resolve } from 'node:path'
+import { resolve as resolvePath } from 'node:path'
 import process from 'node:process'
 import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
 import type { ParagraphOptions, SvgRenderOptions } from './types'
-import { charMap, headingRatioMap, isEnglish, isPunctuation, isSpace } from './utils'
+import { charMap, headingRatioMap, isEnglish, isPunctuation, isSpace, parsePadding } from './utils'
 import { measureImage } from './measureImage'
 import {
   svgImage,
@@ -12,6 +12,7 @@ import {
   svgRect,
   svgText,
 } from './svgTags'
+import { CONTENTPLACEHOLDER } from './constants'
 
 const defaultSvgRenderOptions: SvgRenderOptions = {
   width: 1474,
@@ -38,15 +39,22 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   remoteFontCSSURL: '',
 }
 
-const SVGPlaceholder = '##{content}##'
-
 export class SvgRender {
   public options: Required<SvgRenderOptions>
-  public svg: string = ''
-  // svg>text position, left bottom corner
+  private svgId: string = ''
+  private styleText: string = ''
+  public svgTemplate: string = ''
+  // svg>text position, left top corner
   private x: number = 0
   private y: number = 0
   public lineHeight: number = 0
+  private rightBoundry: number = 0
+  private bottomBoundry: number = 0
+  private contentWidth: number = 0
+  private contentHeight: number = 0
+  private originX = 0
+  private originY = 0
+
   private pageIndex: number = 0
   public pages: string[] = []
   // text content in the svg
@@ -57,20 +65,36 @@ export class SvgRender {
       ...options,
     } as Required<SvgRenderOptions>
 
-    this.options.imageRoot = resolve(process.cwd(), this.options.imageRoot)
+    this.options.imageRoot = resolvePath(process.cwd(), this.options.imageRoot)
     this.parsePadding()
 
     const {
+      width,
+      height,
       paddingTop,
       paddingLeft,
+      paddingRight,
+      paddingBottom,
       fontSize,
       lineHeightRatio,
     } = this.options
-    this.x = paddingLeft
-    this.y = paddingTop
     this.lineHeight = fontSize * lineHeightRatio
 
-    this.svg = this.generateSvg()
+    this.rightBoundry = width - paddingRight
+    this.bottomBoundry = height - paddingBottom
+
+    this.contentWidth = width - paddingLeft - paddingRight
+    this.contentHeight = height - paddingTop - paddingBottom
+
+    this.originX = paddingLeft
+    this.originY = paddingTop
+
+    this.x = this.originX
+    this.y = this.originY
+
+    this.svgId = `svg${Math.random().toString(36).substring(2, 9)}`
+    this.styleText = this.generateStyle()
+    this.svgTemplate = this.generateSvg()
   }
 
   public async addContents(contents: Content[]) {
@@ -139,16 +163,12 @@ export class SvgRender {
   }
 
   private async addCode(codeLines: string[]) {
-    const {
-      height,
-      paddingBottom,
-    } = this.options
-    const remainLineNum = Math.floor((height - this.y - paddingBottom) / this.lineHeight)
+    const remainLineNum = Math.floor((this.bottomBoundry - this.y) / this.lineHeight)
     if (codeLines.length > remainLineNum) {
-      await this.addCodeInOnePage(codeLines.slice(0, remainLineNum - 1))
+      await this.addCodeInOnePage(codeLines.slice(0, remainLineNum))
       this.commitToPage()
       this.newPage()
-      await this.addCode(codeLines.slice(remainLineNum - 1))
+      await this.addCode(codeLines.slice(remainLineNum))
     }
     else {
       await this.addCodeInOnePage(codeLines)
@@ -156,16 +176,11 @@ export class SvgRender {
   }
 
   private async addCodeInOnePage(codeLines: string[]) {
-    const {
-      width,
-      paddingLeft,
-      paddingRight,
-    } = this.options
     this.pageText.push(
       svgRect(
-        paddingLeft,
+        this.originY,
         this.y + 0.2 * this.lineHeight,
-        width - paddingLeft - paddingRight,
+        this.contentWidth,
         this.lineHeight * codeLines.length + 0.1 * this.lineHeight,
         '#e6e5e3',
       ),
@@ -177,28 +192,19 @@ export class SvgRender {
         lineHeight: this.lineHeight,
       })
       this.pageText.push(
-        svgText(
-          this.x,
-          this.y,
-          '\u21B5',
-          { fontSize: 0 },
-        ),
+        // add ↵ which fontsize is 0
+        svgText(this.x, this.y, '\u21B5', { fontSize: 0 }),
       )
     }
   }
 
   private async splitCode(code: string) {
-    const {
-      width,
-      paddingLeft,
-      paddingRight,
-    } = this.options
     const res: string[] = []
     const codeSplit = code.split(/\r?\n/)
     for (const line of codeSplit) {
       const splited = await this.splitCenterText(
         line,
-        width - paddingLeft - paddingRight,
+        this.contentWidth,
         false,
       )
       res.push(...splited)
@@ -207,21 +213,13 @@ export class SvgRender {
   }
 
   private async addTable(table: string[][]) {
-    const {
-      width,
-      height,
-      paddingLeft,
-      paddingRight,
-      paddingBottom,
-    } = this.options
-    const contentWidth = width - paddingLeft - paddingRight
     const tableColNum = table[0].length
-    const cellWidth = contentWidth / tableColNum
+    const cellWidth = this.contentWidth / tableColNum
 
     for (let j = 0; j < table.length; j++) {
       const line = table[j]
       this.newLine(this.lineHeight)
-      if (this.y + this.lineHeight > height - paddingBottom) {
+      if (this.y + this.lineHeight > this.bottomBoundry) {
         this.commitToPage()
         this.newPage()
         this.newLine(this.lineHeight)
@@ -230,18 +228,18 @@ export class SvgRender {
         // top line
         this.pageText.push(
           svgLine(
-            paddingLeft,
+            this.originX,
             this.y - this.lineHeight,
-            paddingLeft + contentWidth,
+            this.rightBoundry,
             this.y - this.lineHeight,
           ),
         )
         // middle line
         this.pageText.push(
           svgLine(
-            paddingLeft,
+            this.originX,
             this.y,
-            paddingLeft + contentWidth,
+            this.rightBoundry,
             this.y,
           ),
         )
@@ -257,9 +255,9 @@ export class SvgRender {
     }
     this.pageText.push(
       svgLine(
-        paddingLeft,
+        this.originX,
         this.y,
-        paddingLeft + contentWidth,
+        this.rightBoundry,
         this.y,
       ),
     )
@@ -299,13 +297,7 @@ export class SvgRender {
   }
 
   private async addCenterParagraph(text: string) {
-    const {
-      width,
-      paddingLeft,
-      paddingRight,
-    } = this.options
-    const contentWidth = width - paddingLeft - paddingRight
-    const lines = await this.splitCenterText(text, contentWidth)
+    const lines = await this.splitCenterText(text, this.contentWidth)
     // normal paragraph
     for (let i = 0; i < lines.length - 1; i++) {
       this.newLine(this.lineHeight)
@@ -316,7 +308,7 @@ export class SvgRender {
     // center
     const lastLine = lines[lines.length - 1]
     const centerStrWidth = await this.measureMultiCharWidth(lastLine)
-    const indent = (contentWidth - centerStrWidth) / 2
+    const indent = (this.contentWidth - centerStrWidth) / 2
     this.newLine(this.lineHeight, indent)
     await this.addParagraph(lastLine, {
       lineHeight: this.lineHeight,
@@ -351,16 +343,14 @@ export class SvgRender {
     return res
   }
 
+  /**
+   * when currentX + charWidth > rightBoundry, newLine, the last char will render to next line
+   * when currentY + lineheight > bottomBoundry, newPage, the last line will render to next page
+   */
   private async addParagraph(text: string, paraOptions: ParagraphOptions) {
     const textLen = text.length
     const fontSize = paraOptions?.fontSize || this.options.fontSize
     const lineHeight = paraOptions.lineHeight || this.lineHeight
-    const {
-      width,
-      height,
-      paddingRight,
-      paddingBottom,
-    } = this.options
 
     for (let i = 0; i < textLen; i++) {
       const char = text[i]
@@ -374,7 +364,7 @@ export class SvgRender {
       } = await this.measureFont(char, fontSize, paraOptions.fontWeight)
 
       // newLine
-      if (this.x + charWidth > width - paddingRight) {
+      if (this.x + charWidth > this.rightBoundry) {
         const prevChar = text[i - 1]
         if (!isSpace(prevChar) && isSpace(char)) {
           this.newLine(lineHeight)
@@ -401,8 +391,9 @@ export class SvgRender {
 
       // newPage
       // if this 'if' is this.y + lineHeight > height - paddingBottom,
-      //  it will not render last line in the page
-      if (this.y > height - paddingBottom) {
+      //  it will not render last line in the page.
+      // Currently, this.y has been added lineHeight.
+      if (this.y > this.bottomBoundry) {
         this.commitToPage()
         this.newPage()
         this.newLine(this.lineHeight)
@@ -430,20 +421,13 @@ export class SvgRender {
     imageHeight?: number,
     caption?: string,
   ) {
-    // TODO: handle imageWidth and imageHeight
     const {
       imageRoot,
-      height,
       width,
-      paddingLeft,
-      paddingRight,
-      paddingTop,
-      paddingBottom,
     } = this.options
-    src = resolve(imageRoot, src)
-    const contentWidth = width - paddingLeft - paddingRight
-    const contentHeight = height - paddingTop - paddingBottom
-    const remainHeight = contentHeight - this.y
+    src = resolvePath(imageRoot, src)
+    const remainHeight = this.bottomBoundry - this.y
+
     // complete imageWidth and imageHeight
     if (!imageWidth || !imageHeight) {
       const { width: w, height: h } = await measureImage(src)
@@ -452,9 +436,9 @@ export class SvgRender {
     }
 
     // first to condense image width
-    if (imageWidth > contentWidth) {
-      imageWidth = contentWidth
-      const ratio = contentWidth / imageWidth
+    if (imageWidth > this.contentWidth) {
+      imageWidth = this.contentWidth
+      const ratio = this.contentWidth / imageWidth
       imageHeight = imageHeight * ratio
     }
 
@@ -472,9 +456,9 @@ export class SvgRender {
     else {
       this.commitToPage()
       this.newPage()
-      if (imageHeight > contentHeight) {
-        imageHeight = contentHeight
-        const ratio = contentHeight / imageHeight
+      if (imageHeight > this.contentHeight) {
+        imageHeight = this.contentHeight
+        const ratio = this.contentHeight / imageHeight
         imageWidth = imageWidth * ratio
       }
       const renderX = (width - imageWidth) / 2
@@ -490,28 +474,23 @@ export class SvgRender {
   }
 
   public newLine(lineHeight: number, indent: number = 0) {
-    this.x = this.options.paddingLeft + indent
+    this.x = this.originX + indent
     this.y += lineHeight
   }
 
   private commitToPage() {
     if (this.pageText.length) {
-      this.pages[this.pageIndex] = this.svg.replace(
-        SVGPlaceholder,
+      this.pages[this.pageIndex] = this.svgTemplate.replace(
+        CONTENTPLACEHOLDER,
         this.pageText.join(''),
       )
     }
   }
 
   private newPage() {
-    const {
-      paddingLeft,
-      paddingTop,
-    } = this.options
-
     this.pageText = []
-    this.x = paddingLeft
-    this.y = paddingTop
+    this.x = this.originX
+    this.y = this.originY
     this.pageIndex++
   }
 
@@ -534,25 +513,21 @@ export class SvgRender {
   private async measureMultiCharWidth(
     text: string,
   ) {
-    let textWidth = 0
-    for (const char of text) {
-      const { width } = await this.measureFont(char)
-      textWidth += width
-    }
-    return textWidth
+    const measureRes = await Promise.all(
+      text.split('').map(char => this.measureFont(char)),
+    )
+    return measureRes.reduce((acc, cur) => acc + cur.width, 0)
   }
 
   private generateSvg() {
     const { width, height, fontSize, fontFamily, backgroundColor } = this.options
-    const svgId = `svg${Math.random().toString(36).substring(2, 9)}`
-    return `<svg id="${svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
-      + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${this.generateStyle(svgId)
+    return `<svg id="${this.svgId}" xmlns="http://www.w3.org/2000/svg" version="1.1" font-size="${fontSize}px" `
+      + `viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px" font-family="${fontFamily}">${this.styleText
       }${svgRect(0, 0, width, height, backgroundColor)
-      }${SVGPlaceholder
-      }</svg>`
+      }${CONTENTPLACEHOLDER}</svg>`
   }
 
-  private generateStyle(svgId: string) {
+  private generateStyle() {
     const {
       borderRadius,
       cursor,
@@ -562,7 +537,7 @@ export class SvgRender {
     } = this.options
 
     // svg css
-    let svgStyle = `#${svgId}{`
+    let svgStyle = `#${this.svgId}{`
     svgStyle += `cursor:${cursor};`
     if (opacity < 1 && opacity >= 0) {
       svgStyle += `opacity:${opacity};`
@@ -572,7 +547,7 @@ export class SvgRender {
     }
     svgStyle += '}'
     // selection css
-    let svgSelectionStyle = `#${svgId} text::selection{`
+    let svgSelectionStyle = `#${this.svgId} text::selection{`
     svgSelectionStyle += `background-color:${selectionbgColor};`
     if (selectionColor.length > 0) {
       svgSelectionStyle += `fill:${selectionColor};`
@@ -583,26 +558,18 @@ export class SvgRender {
 
   // similar to css style padding
   private parsePadding() {
-    const paddingSplit = this.options.padding!.split(' ').map(val => Number.parseInt(val))
-    if (paddingSplit.length > 4) {
-      throw new Error('padding should be 1-4 values with " " separated')
-    }
-    let paddingArr = [0, 0, 0, 0]
-    if (paddingSplit.length === 1) {
-      paddingArr = [paddingSplit[0], paddingSplit[0], paddingSplit[0], paddingSplit[0]]
-    }
-    else if (paddingSplit.length === 2) {
-      paddingArr = [paddingSplit[0], paddingSplit[1], paddingSplit[0], paddingSplit[1]]
-    }
-    else if (paddingSplit.length === 3) {
-      paddingArr = [paddingSplit[0], paddingSplit[1], paddingSplit[2], paddingSplit[1]]
-    }
-    else if (paddingSplit.length === 4) {
-      paddingArr = paddingSplit
-    }
-    this.options.paddingTop = paddingArr[0]
-    this.options.paddingRight = paddingArr[1]
-    this.options.paddingBottom = paddingArr[2]
-    this.options.paddingLeft = paddingArr[3]
+    const [
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+    ] = parsePadding(this.options.padding)
+
+    Object.assign(this.options, {
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+    })
   }
 }
