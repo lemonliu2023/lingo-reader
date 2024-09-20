@@ -17,7 +17,7 @@ if (!existsSync(uiviewerDir)) {
 }
 
 describe('svgRender', () => {
-  const renderer = new SvgRender({
+  const renderer = new SvgRender('id', {
     padding: '40',
     width: 1000,
     height: 700,

@@ -40,6 +40,8 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
 }
 
 export class SvgRender {
+  private chapterId: string
+
   public options: Required<SvgRenderOptions>
   private svgId: string = ''
   private styleText: string = ''
@@ -52,14 +54,20 @@ export class SvgRender {
   private bottomBoundry: number = 0
   private contentWidth: number = 0
   private contentHeight: number = 0
-  private originX = 0
-  private originY = 0
+  private originX: number = 0
+  private originY: number = 0
+
+  // for assign unique id to svg text and image
+  private contentIndex: number = 0
+  private offset: number = -1
 
   private pageIndex: number = 0
   public pages: string[] = []
   // text content in the svg
   private pageText: string[] = []
-  constructor(options: SvgRenderOptions) {
+  constructor(chapterId: string, options: SvgRenderOptions) {
+    this.chapterId = chapterId
+
     this.options = {
       ...defaultSvgRenderOptions,
       ...options,
@@ -104,12 +112,19 @@ export class SvgRender {
     this.commitToPage()
   }
 
+  private resetOffset() {
+    this.contentIndex++
+    this.offset = -1
+  }
+
   public async addContent(content: Content) {
+    this.resetOffset()
+
     // 1.new line
     // 2.render content
     const contentType = content.type
     if (contentType === ContentType.PARAGRAPH) {
-      this.newLine(this.lineHeight)
+      this.newLine(this.lineHeight, this.options.fontSize * 2)
       await this.addParagraph(content.text, {
         lineHeight: this.lineHeight,
       })
@@ -193,7 +208,7 @@ export class SvgRender {
       })
       this.pageText.push(
         // add ↵ which fontsize is 0
-        svgText(this.x, this.y, '\u21B5', { fontSize: 0 }),
+        this.generateSvgText(this.x, this.y, '\u21B5', { fontSize: 0 }),
       )
     }
   }
@@ -373,14 +388,14 @@ export class SvgRender {
         else if (isEnglish(prevChar) && isEnglish(char)) {
           this.pageText.push(
             // <text x="x" y="y">-</text>
-            svgText(this.x, this.y, '-', paraOptions),
+            this.generateSvgText(this.x, this.y, '-', paraOptions),
           )
           this.newLine(lineHeight)
         }
         else if (isEnglish(prevChar) && isPunctuation(char)) {
           this.pageText.push(
             // <text x="x" y="y">char</text>
-            svgText(this.x, this.y, char, paraOptions),
+            this.generateSvgText(this.x, this.y, char, paraOptions),
           )
           continue
         }
@@ -401,13 +416,13 @@ export class SvgRender {
       if (charMap.has(char)) {
         // <text x="x" y="y">charMap.get(char)</text>
         this.pageText.push(
-          svgText(this.x, this.y, charMap.get(char)!, paraOptions),
+          this.generateSvgText(this.x, this.y, charMap.get(char)!, paraOptions),
         )
       }
       else {
         // <text x="x" y="y">char</text>
         this.pageText.push(
-          svgText(this.x, this.y, char, paraOptions),
+          this.generateSvgText(this.x, this.y, char, paraOptions),
         )
       }
       this.x += charWidth
@@ -449,7 +464,7 @@ export class SvgRender {
       // center image
       const renderX = (width - imageWidth) / 2
       this.pageText.push(
-        svgImage(renderX, this.y, src, alt, imageHeight, imageWidth),
+        this.generateSvgImage(renderX, this.y, src, alt, imageHeight, imageWidth),
       )
       this.newLine(imageHeight)
     }
@@ -463,7 +478,7 @@ export class SvgRender {
       }
       const renderX = (width - imageWidth) / 2
       this.pageText.push(
-        svgImage(renderX, this.y, src, alt, imageHeight, imageWidth),
+        this.generateSvgImage(renderX, this.y, src, alt, imageHeight, imageWidth),
       )
       this.newLine(imageHeight)
     }
@@ -517,6 +532,30 @@ export class SvgRender {
       text.split('').map(char => this.measureFont(char)),
     )
     return measureRes.reduce((acc, cur) => acc + cur.width, 0)
+  }
+
+  private generateSvgText(
+    x: number,
+    y: number,
+    char: string,
+    options: ParagraphOptions,
+  ) {
+    this.offset++
+    const key = `${this.chapterId}_${this.contentIndex}_${this.offset}`
+    return svgText(x, y, char, key, options)
+  }
+
+  private generateSvgImage(
+    x: number,
+    y: number,
+    src: string,
+    alt: string,
+    height: number,
+    width: number,
+  ) {
+    this.offset++
+    const key = `${this.chapterId}_${this.contentIndex}_${this.offset}`
+    return svgImage(x, y, src, key, alt, height, width)
   }
 
   private generateSvg() {

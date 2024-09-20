@@ -22,8 +22,9 @@ export function Reader(
   let prevChapterPages: string[] | undefined
 
   const loadChapter = async (chapterIndex: number) => {
-    const chapter = await epub.getChapter(tableOfContents[chapterIndex].id)
-    const renderer = new SvgRender(svgRenderOptions)
+    const id = tableOfContents[chapterIndex].id
+    const chapter = await epub.getChapter(id)
+    const renderer = new SvgRender(id, svgRenderOptions)
     await renderer.addContents(chapter.contents)
     return renderer.pages
   }

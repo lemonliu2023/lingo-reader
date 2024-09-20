@@ -28,12 +28,13 @@ export function svgImage(
   x: number,
   y: number,
   src: string,
+  offset: string,
   alt: string,
   height: number,
   width: number,
 ) {
   const altStr = alt.length ? ` alt="${alt}"` : ''
-  return `<image x="${x}" y="${y}" height="${height}" width="${width}" href="${src}"${altStr}/>`
+  return `<image x="${x}" y="${y}" offset="${offset}" height="${height}" width="${width}" href="${src}"${altStr}/>`
 }
 
 // text tag in svg
@@ -41,6 +42,7 @@ export function svgText(
   x: number,
   y: number,
   char: string,
+  offset: string,
   options: ParagraphOptions,
 ) {
   const styleArr = []
@@ -55,7 +57,7 @@ export function svgText(
   }
   let style = ''
   if (styleArr.length) {
-    style = ` style="${styleArr.join('')}"`
+    style = `style="${styleArr.join('')}"`
   }
-  return `<text x="${x}" y="${y}"${style}>${char}</text>`
+  return `<text x="${x}" y="${y}" offset="${offset}" ${style}>${char}</text>`
 }
