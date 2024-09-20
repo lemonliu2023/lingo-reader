@@ -21,7 +21,7 @@ export function svgLine(
 ) {
   return `<line x1="${x1}" y1="${y1 + strokeWidth + 1}" x2="${x2}" `
     + `y2="${y2 + strokeWidth + 1}" stroke="${stroke}" `
-    + `stroke-width="${strokeWidth}" />`
+    + `stroke-width="${strokeWidth}" pointer-events="none"/>`
 }
 
 export function svgImage(

@@ -70,7 +70,7 @@ export function* iterateWithStr(str: string) {
   while (index < len) {
     const codePoint = str.codePointAt(index)
     const char = String.fromCodePoint(codePoint!)
-    yield [index, char]
+    yield [index, char] as [number, string]
     index += char.length
   }
 }

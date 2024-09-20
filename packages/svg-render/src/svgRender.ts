@@ -4,7 +4,15 @@ import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
 import type { ParagraphOptions, SvgRenderOptions } from './types'
-import { charMap, headingRatioMap, isEnglish, isPunctuation, isSpace, parsePadding } from './utils'
+import {
+  charMap,
+  headingRatioMap,
+  isEnglish,
+  isPunctuation,
+  isSpace,
+  iterateWithStr,
+  parsePadding,
+} from './utils'
 import { measureImage } from './measureImage'
 import {
   svgImage,
@@ -338,11 +346,10 @@ export class SvgRender {
     const res: string[] = []
     let strWidth = 0
     let str = ''
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i]
+    for (const char of text) {
       const { width: charWidth } = await this.measureFont(char)
       if (strWidth + charWidth > contentWidth) {
-        if (isText && isEnglish(text[i])) {
+        if (isText && isEnglish(char)) {
           str += '-'
         }
         res.push(str)
@@ -363,12 +370,10 @@ export class SvgRender {
    * when currentY + lineheight > bottomBoundry, newPage, the last line will render to next page
    */
   private async addParagraph(text: string, paraOptions: ParagraphOptions) {
-    const textLen = text.length
     const fontSize = paraOptions?.fontSize || this.options.fontSize
     const lineHeight = paraOptions.lineHeight || this.lineHeight
 
-    for (let i = 0; i < textLen; i++) {
-      const char = text[i]
+    for (const [i, char] of iterateWithStr(text)) {
       if (char === '\n') {
         this.newLine(lineHeight)
         continue
