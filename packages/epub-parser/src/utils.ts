@@ -18,7 +18,7 @@ export function pureXmlContent(xmlContent: string) {
 
   // mutiple (\n| ) to one (\n| )
   // xmlContent = xmlContent.replace(/(^|[^\n])\n(?!\n)/g, '$1 ')
-  xmlContent = xmlContent.replace(/\n{2,}/, '\n')
+  xmlContent = xmlContent.replace(/(\r\n|\n|\r){2,}/g, '\n')
   // xmlContent = xmlContent.replace(/[ \f\t\v]+/g, ' ')
 
   return xmlContent

@@ -8,19 +8,12 @@ describe('renderAllPage', async () => {
   it('render alice.epub', async () => {
     const pages = await initAllPage(
       './example/alice.epub',
-      {
-        saveDir: './example/',
-      },
     )
-    // In windows, the number of pages is 60.
-    //  in linux, the number of pages is 59, and the last page index is 58
-    //  but the difference has no affect on reading
-    // and the reason maybe the difference of line break(\n and \r\n)
-    // expect(pages.length).toBe(60)
+    expect(pages.length).toBe(56)
 
     const lastPage = pages[pages.length - 1]
     expect(lastPage.chapterId).toBe('item32')
-    // expect(lastPage.pageIndex).toBe(59)
+    expect(lastPage.pageIndex).toBe(55)
     expect(lastPage.svg.length).toBeGreaterThan(10)
     expect(lastPage.lastContentIndexOfPage).toBe(309)
   })
