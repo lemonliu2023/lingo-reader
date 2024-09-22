@@ -21,6 +21,15 @@ export interface SvgRenderOptions {
 
   // used for playwright font loading
   remoteFontCSSURL?: string
+
+  saveDir?: string
+}
+
+export interface Page {
+  chapterId: string
+  svg: string
+  pageIndex: number
+  lastContentIndexOfPage: number
 }
 
 export interface Measurement {
@@ -49,6 +58,7 @@ export interface MeasureOptions {
 
 export type MeasureStrParas = Required<MeasureOptions> & { char: string }
 
+// used when addParagraph
 export interface ParagraphOptions {
   fontSize?: number
   fontWeight?: string

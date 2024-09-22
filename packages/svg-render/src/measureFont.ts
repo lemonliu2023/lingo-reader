@@ -76,16 +76,16 @@ export async function measureFont(
     throw new Error('char should not be empty')
   }
 
+  const cacheKey = `${char}_${options.fontSize || defaultOptions.fontSize}`
+  if (fontCache.has(cacheKey)) {
+    return fontCache.get(cacheKey)!
+  }
+
   const paras = {
     char,
     ...defaultOptions,
     ...options,
   } as MeasureStrParas
-
-  const cacheKey = `${char}_${paras.fontSize}`
-  if (fontCache.has(cacheKey)) {
-    return fontCache.get(cacheKey)!
-  }
 
   const measurement = __BROWSER__
     ? measureStr(paras)

@@ -28,8 +28,8 @@ describe('svgRender', () => {
     const {
       fontSize,
       lineHeightRatio,
-    } = renderer.options
-    expect(renderer.lineHeight).toBe(fontSize * lineHeightRatio)
+    } = renderer.getRenderOptions()
+    expect(renderer.getLineHeight()).toBe(fontSize * lineHeightRatio)
   })
 
   it('generateRect', () => {
@@ -43,9 +43,9 @@ describe('svgRender', () => {
       selectionbgColor,
       opacity,
       borderRadius,
-    } = renderer.options
+    } = renderer.getRenderOptions()
     // The id of svg is dynamic, replace svgId with ''
-    const svg = renderer.svgTemplate.replace(/svg\S{7}/g, '')
+    const svg = renderer.getSvgTemplate().replace(/svg\S{7}/g, '')
     expect(svg).toBe('<svg id="" xmlns="http://www.w3.org/2000/svg" version="1.1" '
     + `font-size="${fontSize}px" viewBox="0 0 ${width} ${height}" width="${width}px" `
     + `height="${height}px" font-family="${fontFamily}"><style>#{cursor:${cursor};`
@@ -221,16 +221,16 @@ for (let i = 0; i < pages.length; i++) {
 `,
       },
     ])
-    const pages = renderer.pages
+    const pages = renderer.getPages()
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     for (let i = 0; i < pages.length; i++) {
       writeFileSync(
         path.resolve(currentDir, `./uiviewer/${i + 1}.svg`),
-        pages[i],
+        pages[i].svg,
       )
     }
 
-    expect(pages[0].length).toBeGreaterThan(1)
-    expect(pages[1].length).toBeGreaterThan(1)
+    expect(pages[0].svg.length).toBeGreaterThan(1)
+    expect(pages[1].svg.length).toBeGreaterThan(1)
   })
 })

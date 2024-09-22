@@ -3,7 +3,7 @@ import process from 'node:process'
 import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
-import type { ParagraphOptions, SvgRenderOptions } from './types'
+import type { Page, ParagraphOptions, SvgRenderOptions } from './types'
 import {
   charMap,
   headingRatioMap,
@@ -50,14 +50,26 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
 export class SvgRender {
   private chapterId: string
 
-  public options: Required<SvgRenderOptions>
+  private options: Required<SvgRenderOptions>
+  public getRenderOptions() {
+    return this.options
+  }
+
   private svgId: string = ''
   private styleText: string = ''
-  public svgTemplate: string = ''
+  private svgTemplate: string = ''
+  public getSvgTemplate() {
+    return this.svgTemplate
+  }
+
   // svg>text position, left top corner
   private x: number = 0
   private y: number = 0
-  public lineHeight: number = 0
+  private lineHeight: number = 0
+  public getLineHeight() {
+    return this.lineHeight
+  }
+
   private rightBoundry: number = 0
   private bottomBoundry: number = 0
   private contentWidth: number = 0
@@ -66,11 +78,15 @@ export class SvgRender {
   private originY: number = 0
 
   // for assign unique id to svg text and image
-  private contentIndex: number = 0
+  private contentIndex: number = -1
   private offset: number = -1
 
   private pageIndex: number = 0
-  public pages: string[] = []
+  private pages: Page[] = []
+  public getPages() {
+    return this.pages
+  }
+
   // text content in the svg
   private pageText: string[] = []
   constructor(chapterId: string, options: SvgRenderOptions) {
@@ -493,21 +509,26 @@ export class SvgRender {
     }
   }
 
+  private commitToPage() {
+    if (this.pageText.length) {
+      this.pages[this.pageIndex] = {
+        chapterId: this.chapterId,
+        svg: this.svgTemplate.replace(
+          CONTENTPLACEHOLDER,
+          this.pageText.join(''),
+        ),
+        pageIndex: this.pageIndex,
+        lastContentIndexOfPage: this.contentIndex,
+      }
+    }
+  }
+
   public newLine(lineHeight: number, indent: number = 0) {
     this.x = this.originX + indent
     this.y += lineHeight
   }
 
-  private commitToPage() {
-    if (this.pageText.length) {
-      this.pages[this.pageIndex] = this.svgTemplate.replace(
-        CONTENTPLACEHOLDER,
-        this.pageText.join(''),
-      )
-    }
-  }
-
-  private newPage() {
+  public newPage() {
     this.pageText = []
     this.x = this.originX
     this.y = this.originY

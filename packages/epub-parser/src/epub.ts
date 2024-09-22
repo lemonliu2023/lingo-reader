@@ -1,4 +1,4 @@
-import { join, resolve } from 'node:path'
+import path, { join, resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
@@ -7,6 +7,11 @@ import type { GuideReference, ManifestItem, NavPoints, Spine, TOCOutput } from '
 import { parseChapter } from './parseChapter'
 
 export class EpubFile {
+  private fileNameWithoutExt: string
+  public getFileName() {
+    return this.fileNameWithoutExt
+  }
+
   private zip: ZipFile
   private mimeFile: string = 'mimetype'
   public mimeType: string = ''
@@ -30,7 +35,8 @@ export class EpubFile {
   private hrefSet: Set<string> = new Set()
 
   imageSaveDir: string
-  constructor(public epubPath: string, imageRoot: string = './images') {
+  constructor(private epubPath: string, imageRoot: string = './images') {
+    this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
     this.imageSaveDir = resolve(process.cwd(), imageRoot)
     if (!existsSync(this.imageSaveDir)) {
       mkdirSync(this.imageSaveDir, { recursive: true })
@@ -321,7 +327,7 @@ export class EpubFile {
     return join(this.contentDir, href).replace(/\\/g, '/')
   }
 
-  public getToc() {
+  public getToc(): (TOCOutput | ManifestItem)[] {
     return this.toc.length ? this.toc : this.flow
   }
 }
