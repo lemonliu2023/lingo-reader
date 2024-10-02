@@ -1,6 +1,28 @@
 import { ContentType } from '@svg-ebook-reader/shared'
 import type { ChapterImage, ChapterOutput, ChapterParagraph, Content, HEADING, UlOrOlList } from '@svg-ebook-reader/shared'
-import { parsexml, pureXmlContent } from './utils'
+import { parsexml } from './utils'
+
+export function pureXmlContent(xmlContent: string) {
+  // remove <span> b strong i em u s small mark
+  // /<\/?b[^o][^>]*>/gi will remove <b> and its content, keep body, and <i>, <u> is
+  xmlContent = xmlContent
+    .replace(/<\/?(span|strong|s|sup|small|mark|header|footer|section|figure|aside|code|blockquote|tbody|thead)[^>]*>/gi, '')
+  xmlContent = xmlContent.replace(/<\/?(([biua]|em)|([biua]|em)\s[^>]*)>/g, '')
+
+  // remove <tag></tag> with no content
+  xmlContent = xmlContent.replace(/<([a-z][a-z0-9]*)\b[^>]*>\s*<\/\1>/gi, '')
+  // remove <hr /> <br /> <a />
+  xmlContent = xmlContent.replace(/<(hr|br|a)[^>]*>/gi, '')
+  // remove useless attrs, class, id, style, epub:type
+  xmlContent = xmlContent.replace(/\s*(class|id|style|epub:type)=["'][^"']*["']/g, '')
+
+  // mutiple (\n| ) to one (\n| )
+  // xmlContent = xmlContent.replace(/(^|[^\n])\n(?!\n)/g, '$1 ')
+  xmlContent = xmlContent.replace(/(\r\n|\n|\r){2,}/g, '\n')
+  // xmlContent = xmlContent.replace(/[ \f\t\v]+/g, ' ')
+
+  return xmlContent
+}
 
 export async function parseChapter(xmlStr: string) {
   const xmlContent = pureXmlContent(xmlStr)
@@ -18,7 +40,7 @@ export async function parseChapter(xmlStr: string) {
  *  the xml file that generates the tree has been cleaned
  *  in epub.getChapter
  */
-export class Chapter {
+class Chapter {
   private contents: Content[] = []
   private title: string = 'temp'
   constructor(public xmlTree: any) { }

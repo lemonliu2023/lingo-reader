@@ -2,28 +2,6 @@ import xml2js from 'xml2js'
 import AdmZip from 'adm-zip'
 import type { ParserOptions } from 'xml2js'
 
-export function pureXmlContent(xmlContent: string) {
-  // remove <span> b strong i em u s small mark
-  // /<\/?b[^o][^>]*>/gi will remove <b> and its content, keep body, and <i>, <u> is
-  xmlContent = xmlContent
-    .replace(/<\/?(span|strong|s|sup|small|mark|header|footer|section|figure|aside|code|blockquote|tbody|thead)[^>]*>/gi, '')
-  xmlContent = xmlContent.replace(/<\/?(([biua]|em)|([biua]|em)\s[^>]*)>/g, '')
-
-  // remove <tag></tag> with no content
-  xmlContent = xmlContent.replace(/<([a-z][a-z0-9]*)\b[^>]*>\s*<\/\1>/gi, '')
-  // remove <hr /> <br /> <a />
-  xmlContent = xmlContent.replace(/<(hr|br|a)[^>]*>/gi, '')
-  // remove useless attrs, class, id, style, epub:type
-  xmlContent = xmlContent.replace(/\s*(class|id|style|epub:type)=["'][^"']*["']/g, '')
-
-  // mutiple (\n| ) to one (\n| )
-  // xmlContent = xmlContent.replace(/(^|[^\n])\n(?!\n)/g, '$1 ')
-  xmlContent = xmlContent.replace(/(\r\n|\n|\r){2,}/g, '\n')
-  // xmlContent = xmlContent.replace(/[ \f\t\v]+/g, ' ')
-
-  return xmlContent
-}
-
 export async function parsexml(str: string, optionsParserOptions: ParserOptions = {}) {
   try {
     const result = await xml2js.parseStringPromise(str, optionsParserOptions)
@@ -55,7 +33,7 @@ export class ZipFile {
   }
 
   // read inner file in .epub file
-  readFile(name: string) {
+  readFile(name: string): string {
     if (!this.hasFile(name)) {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
@@ -77,15 +55,15 @@ export class ZipFile {
     return content
   }
 
-  hasFile(name: string) {
+  hasFile(name: string): boolean {
     return this.names.has(name.toLowerCase())
   }
 
-  getFileName(name: string) {
+  getFileName(name: string): string | undefined {
     return this.names.get(name.toLowerCase())
   }
 }
 
-export function camelCase(str: string) {
+export function camelCase(str: string): string {
   return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
 }

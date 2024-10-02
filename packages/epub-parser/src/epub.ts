@@ -5,6 +5,21 @@ import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { ZipFile, camelCase, parsexml } from './utils'
 import type { GuideReference, ManifestItem, NavPoints, Spine, TOCOutput } from './types'
 import { parseChapter } from './parseChapter'
+import { parseContainer, parseMimeType } from './parseFiles'
+/*
+  zip file process
+  mimetype file
+
+  meta-inf/container.xml
+  opf file
+    - metadata
+    - manifest
+    - spine
+    - guide
+    - toc
+  read chapter through toc or manifest
+  save image file when parse manifest / imagedir
+*/
 
 export class EpubFile {
   private fileNameWithoutExt: string
@@ -12,12 +27,29 @@ export class EpubFile {
     return this.fileNameWithoutExt
   }
 
+  private imageSaveDir: string
+  getImageSaveDir() {
+    return this.imageSaveDir
+  }
+
+  private mimeType: string = ''
+  public getMimeType() {
+    return this.mimeType
+  }
+
   private zip: ZipFile
-  private mimeFile: string = 'mimetype'
-  public mimeType: string = ''
+
   // meta-inf/container.xml full-path
-  public rootFile: string = ''
-  public contentDir: string = ''
+  private rootFilePath: string = ''
+  public getRootFilePath() {
+    return this.rootFilePath
+  }
+
+  private contentBaseDir: string = ''
+  public getContentBaseDir() {
+    return this.contentBaseDir
+  }
+
   public metadata: Record<string, any> = {}
   public manifest: Record<string, ManifestItem> = {}
   public spine: Spine = {
@@ -34,7 +66,6 @@ export class EpubFile {
   // remove duplicate href item in TOCOutput
   private hrefSet: Set<string> = new Set()
 
-  imageSaveDir: string
   constructor(private epubPath: string, imageRoot: string = './images') {
     this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
     this.imageSaveDir = resolve(process.cwd(), imageRoot)
@@ -47,51 +78,21 @@ export class EpubFile {
   }
 
   async parse() {
-    this.checkMimeType()
-    await this.parseContainer()
+    // mimetype
+    const mimetype = this.zip.readFile('mimetype')
+    this.mimeType = parseMimeType(mimetype)
+
+    // meta-inf/container.xml
+    const containerXml = this.zip.readFile('meta-inf/container.xml')
+    this.rootFilePath = await parseContainer(containerXml)
+    this.contentBaseDir = this.rootFilePath.split('/').slice(0, -1).join('/')
+
     await this.parseRootFile()
-  }
-
-  // parse mimetype
-  private checkMimeType() {
-    const fileContent = this.zip.readFile(this.mimeFile)
-    if (fileContent.toLowerCase() !== 'application/epub+zip') {
-      throw new Error('Unsupported mime type')
-    }
-
-    this.mimeType = fileContent.toLowerCase()
-  }
-
-  // parse meta-inf/container.xml
-  private async parseContainer() {
-    const containerFile = this.zip.getFileName('meta-inf/container.xml')
-    if (!containerFile) {
-      throw new Error('No container.xml in epub file')
-    }
-
-    const containerXml = this.zip.readFile(containerFile)
-    const xmlContainer = (await parsexml(containerXml)).container
-    if (!xmlContainer
-      || !xmlContainer.rootfiles
-      || !xmlContainer.rootfiles.length) {
-      throw new Error('No rootfiles found')
-    }
-
-    const len = xmlContainer.rootfiles.length
-    const rootFile = xmlContainer.rootfiles[len - 1].rootfile[0]
-    const mediaType = rootFile.$['media-type']
-    const fullPath = rootFile.$['full-path']
-    if (mediaType !== 'application/oebps-package+xml'
-      || fullPath.length === 0) {
-      throw new Error('Rootfile in unknow format')
-    }
-    this.rootFile = fullPath
-    this.contentDir = fullPath.split('/').slice(0, -1).join('/')
   }
 
   // opf file package
   private async parseRootFile() {
-    const rootFileOPF = this.zip.readFile(this.rootFile)
+    const rootFileOPF = this.zip.readFile(this.rootFilePath)
     const xml = await parsexml(rootFileOPF)
     const rootKeys = Object.keys(xml)
     let rootFile
@@ -324,7 +325,7 @@ export class EpubFile {
   }
 
   private padWithContentDir(href: string) {
-    return join(this.contentDir, href).replace(/\\/g, '/')
+    return join(this.contentBaseDir, href).replace(/\\/g, '/')
   }
 
   public getToc(): (TOCOutput | ManifestItem)[] {

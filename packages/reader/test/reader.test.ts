@@ -8,6 +8,9 @@ describe('renderAllPage', async () => {
   it('render alice.epub', async () => {
     const pages = await initAllPage(
       './example/alice.epub',
+      // {
+      //   saveDir: './example',
+      // }
     )
     expect(pages.length).toBe(56)
 
