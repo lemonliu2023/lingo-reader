@@ -1,3 +1,50 @@
+// xml:lang scheme
+
+export interface Contributor {
+  contributor: string
+  fileAs?: string
+  role?: string
+
+  // append with in <meta>
+  scheme?: string
+  alternateScript?: string
+}
+
+export interface Subject {
+  subject: string
+  authority?: string
+  term?: string
+}
+
+export interface Identifier {
+  id: string
+  identifierType?: string
+  scheme?: string
+}
+
+export interface Metadata {
+  title: string
+  language: string
+  description?: string
+  publisher?: string
+  type?: string
+  format?: string
+  source?: string
+  relation?: string
+  coverage?: string
+  rights?: string
+
+  date?: Record<string, string>
+  identifier: Identifier
+  packageIdentifier: Identifier
+  creator?: Contributor[]
+  contributor?: Contributor[]
+  subject?: Subject[]
+
+  metas?: Record<string, string>
+  // TODO: <link>
+}
+
 /**
  * ManifestItem is parsed from the manifest tag in the opf file.
  *  content reference like:

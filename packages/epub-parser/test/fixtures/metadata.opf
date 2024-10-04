@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
+  <metadata>
+    <dc:rights>Public domain in the USA.</dc:rights>
+    <dc:coverage>United States</dc:coverage>
+    <dc:description>Alice's</dc:description>
+    <dc:format>application/epub+zip</dc:format>
+    <dc:publisher>Project Gutenberg</dc:publisher>
+    <dc:relation>http://www.gutenberg.org/ebooks/19033</dc:relation>
+    <dc:source>http://www.gutenberg.org/files/19033/19033-h/19033-h.htm</dc:source>
+
+    <dc:type>text</dc:type>
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+    <dc:language xsi:type="dcterms:RFC4646">en</dc:language>
+
+    <dc:date>2000-01-01T00:00:00Z</dc:date>
+    <dc:date opf:event="publication">2006-08-12</dc:date>
+    <dc:date opf:event="conversion">2010-02-16T12:34:12.754941+00:00</dc:date>
+
+    <dc:identifier id="pub-id">uuid:19c0c5cb-002b-476f-baa7-fcf510414f95</dc:identifier>
+    <dc:identifier opf:scheme="URI">http://www.gutenberg.org/ebooks/19033</dc:identifier>
+
+    <dc:subject id="subject01">Fantasy</dc:subject>
+    <dc:subject>Fantasy fiction, English</dc:subject>
+
+    <dc:creator id="creator">creator</dc:creator>
+    <dc:creator opf:file-as="King, Martin Luther Jr." opf:role="aut">Rev. Dr. Martin Luther King Jr.</dc:creator>
+    <dc:contributor>author</dc:contributor>
+    <dc:contributor opf:file-as="Robinson, Gordon" opf:role="ill">Gordon Robinson</dc:contributor>
+
+    <meta content="item32" name="cover" />
+    <meta refines="#pub-id" property="identifier-type" scheme="onix:codelist5">06</meta>
+    <meta refines="#subject01" property="authority">BISAC</meta>
+    <meta refines="#subject01" property="term">FIC024000</meta>
+    <meta refines="#creator" property="alternate-script" xml:lang="ja">上</meta>
+    <meta refines="#creator" property="file-as">Murakami, Haruki</meta>
+    <meta refines="#noId" property="file-as">Murakami, Haruki</meta>
+
+    <meta property="dcterms:modified">2016-02-29T12:34:56Z</meta>
+  </metadata>
+</package>

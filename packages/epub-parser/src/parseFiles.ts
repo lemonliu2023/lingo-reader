@@ -1,6 +1,8 @@
 import path from 'node:path'
-import { parsexml } from './utils'
+import type { Contributor, Identifier, Metadata, Subject } from './types'
+import { camelCase } from './utils'
 
+// mimetype
 export function parseMimeType(file: string): string {
   const fileContent = file.trim().toLowerCase()
   if (fileContent !== 'application/epub+zip') {
@@ -10,9 +12,10 @@ export function parseMimeType(file: string): string {
   return fileContent
 }
 
-export async function parseContainer(containerXml: string): Promise<string> {
+// meta-inf/container.xml
+export async function parseContainer(containerAST: any): Promise<string> {
   // TODO: parse <link/> and more than one <rootfile/>
-  const xmlContainer = (await parsexml(containerXml)).container
+  const xmlContainer = containerAST.container
   if (!xmlContainer
     || !xmlContainer.rootfiles
     || xmlContainer.rootfiles.length === 0) {
@@ -31,4 +34,144 @@ export async function parseContainer(containerXml: string): Promise<string> {
   }
 
   return fullPath
+}
+
+/*
+  can see the sample file in test/fixtures/metadata.opf
+  The parse of opf refers to the
+  EPUB 3.3 specification: https://www.w3.org/TR/epub-33/#sec-pkg-metadata
+  and OPF 2.0 specification: https://idpf.org/epub/20/spec/OPF_2.0_final_spec.html
+*/
+// opf.metadata
+export function parseMetadata(metadataAST: Record<string, any>): Metadata {
+  const metadata: Metadata = {
+    title: '',
+    language: '',
+    identifier: {
+      id: '',
+    },
+    packageIdentifier: {
+      id: '',
+    },
+    metas: {},
+  }
+  const idToElement = new Map<string, Subject | Identifier | Contributor>()
+  for (const key in metadataAST) {
+    const elements = metadataAST[key]
+    const keyName = key.split(':').pop()!
+
+    switch (keyName) {
+      case 'title':
+      case 'language':
+      case 'description':
+      case 'publisher':
+      case 'type':
+      case 'format':
+      case 'source':
+      case 'relation':
+      case 'coverage':
+      case 'rights': {
+        metadata[keyName] = elements[0]._ ?? elements[0] ?? ''
+        break
+      }
+
+      case 'date': {
+        metadata.date = {}
+        for (const dateEl of elements) {
+          const eventName = dateEl.$?.['opf:event'] ?? 'publication'
+          metadata.date[eventName] = dateEl._ ?? dateEl
+        }
+        break
+      }
+
+      case 'identifier': {
+        for (const idEl of elements) {
+          const identifier: Identifier = {
+            id: idEl._,
+            scheme: idEl.$?.['opf:scheme'] ?? '',
+          }
+          const idAttr = idEl.$ && idEl.$.id
+          if (idAttr) {
+            metadata.packageIdentifier = identifier
+            idToElement.set(idAttr, identifier)
+          }
+          else {
+            metadata.identifier = identifier
+          }
+        }
+        break
+      }
+
+      case 'subject': {
+        metadata.subject = []
+        for (const subjectEl of elements) {
+          const $ = subjectEl.$
+          const subject = {
+            subject: subjectEl._ ?? subjectEl,
+            authority: $?.authority ?? '',
+            term: $?.term ?? '',
+          }
+          metadata.subject.push(subject)
+          if (subjectEl.$?.id) {
+            idToElement.set(subjectEl.$.id, subject)
+          }
+        }
+        break
+      }
+
+      case 'creator':
+      case 'contributor': {
+        metadata[keyName] = []
+        for (const contributorEl of elements) {
+          const $ = contributorEl.$
+          const contributor: Contributor = {
+            contributor: contributorEl._ ?? contributorEl,
+            fileAs: $?.['opf:file-as'] ?? '',
+            role: $?.['opf:role'] ?? '',
+          }
+          metadata[keyName].push(contributor)
+          if ($?.id) {
+            idToElement.set($.id, contributor)
+          }
+        }
+        break
+      }
+    }
+  }
+
+  const metas = metadataAST.meta
+  for (const meta of metas) {
+    const $ = meta.$
+    if (meta._) {
+      if ($.refines) {
+        const refinesId: string = $.refines.slice(1)
+        const element = idToElement.get(refinesId)
+        if (!element) {
+          console.warn(`No element with id ${refinesId} found when parsing <metadata>`)
+          continue
+        }
+        const property = camelCase($.property)
+        if ('contributor' in element) {
+          element[property as keyof Contributor] ||= meta._
+        }
+        else if ('subject' in element) {
+          element[property as keyof Subject] ||= meta._
+        }
+        else if ('id' in element) {
+          element[property as keyof Identifier] ||= meta._
+          element.scheme = element.scheme || $.scheme
+        }
+      }
+      else {
+        const property = $.property
+        metadata.metas![property] = meta._
+      }
+    }
+    else {
+      const name = $.name
+      metadata.metas![name] = $.content
+    }
+  }
+
+  return metadata
 }

@@ -51,6 +51,7 @@ export class EpubFile {
   }
 
   public metadata: Record<string, any> = {}
+
   public manifest: Record<string, ManifestItem> = {}
   public spine: Spine = {
     // table of contents
@@ -84,24 +85,19 @@ export class EpubFile {
 
     // meta-inf/container.xml
     const containerXml = this.zip.readFile('meta-inf/container.xml')
-    this.rootFilePath = await parseContainer(containerXml)
+    const containerAST = await parsexml(containerXml)
+    this.rootFilePath = await parseContainer(containerAST)
     this.contentBaseDir = this.rootFilePath.split('/').slice(0, -1).join('/')
 
+    // .opf file
     await this.parseRootFile()
   }
 
-  // opf file package
   private async parseRootFile() {
     const rootFileOPF = this.zip.readFile(this.rootFilePath)
     const xml = await parsexml(rootFileOPF)
-    const rootKeys = Object.keys(xml)
-    let rootFile
-    if (rootKeys.length === 1) {
-      rootFile = xml[rootKeys[0]]
-    }
-    else {
-      rootFile = xml[rootKeys.length - 1]
-    }
+    const rootFile = xml.package
+
     for (const key in rootFile) {
       switch (key) {
         case 'metadata': {
