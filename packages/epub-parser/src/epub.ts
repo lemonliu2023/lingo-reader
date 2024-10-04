@@ -2,10 +2,10 @@ import path, { join, resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
-import { ZipFile, camelCase, parsexml } from './utils'
-import type { GuideReference, ManifestItem, NavPoints, Spine, TOCOutput } from './types'
+import { ZipFile, parsexml } from './utils'
+import type { GuideReference, ManifestItem, Metadata, NavPoints, Spine, TOCOutput } from './types'
 import { parseChapter } from './parseChapter'
-import { parseContainer, parseMimeType } from './parseFiles'
+import { parseContainer, parseMetadata, parseMimeType } from './parseFiles'
 /*
   zip file process
   mimetype file
@@ -50,7 +50,10 @@ export class EpubFile {
     return this.contentBaseDir
   }
 
-  public metadata: Record<string, any> = {}
+  private metadata?: Metadata
+  public getMetadata() {
+    return this.metadata!
+  }
 
   public manifest: Record<string, ManifestItem> = {}
   public spine: Spine = {
@@ -101,7 +104,7 @@ export class EpubFile {
     for (const key in rootFile) {
       switch (key) {
         case 'metadata': {
-          this.parseMetadata(rootFile[key][0])
+          this.metadata = parseMetadata(rootFile[key][0])
           break
         }
         case 'manifest': {
@@ -121,85 +124,6 @@ export class EpubFile {
 
     if (this.spine.tocPath.length > 0) {
       await this.parseTOC()
-    }
-  }
-
-  private parseMetadata(metadata: Record<string, any>) {
-    for (const key in metadata) {
-      const keyName = key.split(':').pop()!
-      switch (keyName) {
-        case 'title':
-        case 'subject':
-        case 'description':
-        case 'publisher':
-        case 'type':
-        case 'format':
-        case 'source':
-        case 'language':
-        case 'relation':
-        case 'rights':
-        case 'coverage': {
-          this.metadata[keyName] = metadata[key][0]._ || metadata[key][0] || ''
-          break
-        }
-
-        case 'creator':
-        case 'contributor': {
-          this.metadata[keyName] = { [keyName]: metadata[key][0]._ || '' }
-          const $: Record<string, string> = metadata[key][0].$
-          for (const attr in $) {
-            const attrName = camelCase(attr.split(':').pop()!)
-            this.metadata[keyName][attrName] = $[attr]
-          }
-          break
-        }
-
-        case 'date': {
-          if (!metadata[key][0].$) {
-            this.metadata[keyName] = metadata[key][0] || ''
-          }
-          else {
-            this.metadata[keyName] = {}
-            for (const event of metadata[key]) {
-              const key = event.$['opf:event']
-              const value = event._
-              this.metadata[keyName][key] = value
-            }
-          }
-          break
-        }
-
-        case 'identifier': {
-          const $OfIdentifier = metadata[key][0].$
-          const content = metadata[key][0]._
-          if ($OfIdentifier['opf:scheme']) {
-            this.metadata[$OfIdentifier['opf:scheme'].toUpperCase()] = content
-          }
-          else {
-            const contentSplit = content.split(':')
-            if (content.startsWith('urn') && contentSplit.length > 1) {
-              this.metadata[contentSplit[1].toUpperCase()] = contentSplit[2]
-            }
-            else {
-              this.metadata.identifier = content
-            }
-          }
-          break
-        }
-      }
-    }
-
-    // <meta />
-    const metas = metadata.meta
-    for (const meta of metas) {
-      if (meta.$ && meta.$.name) {
-        const name = meta.$.name
-        this.metadata[name] = meta.$.content
-      }
-      if (meta._ && meta._.property) {
-        const property = meta._.property.split(':').pop()
-        this.metadata[property] = meta._
-      }
     }
   }
 
