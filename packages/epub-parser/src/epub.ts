@@ -220,6 +220,7 @@ export class EpubFile {
             title,
             level,
             id: '',
+            mediaType: '',
           }
           if (idList[href]) {
             Object.assign(element, this.manifest[idList[href]])

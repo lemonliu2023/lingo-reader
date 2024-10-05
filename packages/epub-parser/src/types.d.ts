@@ -5,7 +5,7 @@ export interface Contributor {
   fileAs?: string
   role?: string
 
-  // append with in <meta>
+  // append in <meta>
   scheme?: string
   alternateScript?: string
 }
@@ -53,7 +53,10 @@ export interface Metadata {
 export interface ManifestItem {
   id: string
   href: string
-  mediaType?: string
+  mediaType: string
+  properties?: string
+  mediaOverlay?: string
+  fallback?: string[]
 }
 
 export interface GuideReference {

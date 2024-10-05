@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
+  <manifest0>
+    <item properties="scripted mathml" id="c2" href="c2.xhtml" media-type="application/xhtml+xml" />
+    <item id="ch1" href="chapter1.xhtml" media-type="application/xhtml+xml"
+      media-overlay="ch1_audio" />
+
+    <item href="www.gutenberg.org@files@19033@19033-h@images@i010_th.jpg" id="item14"
+      media-type="image/jpeg" />
+    <item href="pgepub.css" id="item29" media-type="text/css" />
+    <item href="www.gutenberg.org@files@19033@19033-h@19033-h-0.htm" id="item32"
+      media-type="application/xhtml+xml" />
+    <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml" />
+  </manifest0>
+  <manifest1>
+    <!-- img01 infographic-svg -->
+    <item id="img02" href="images/info2.jpg" media-type="image/jpeg"
+      fallback="img01" />
+    <!-- infographic-svg -->
+    <item id="img01" href="images/info1.jpg" media-type="image/jpeg"
+      fallback="infographic-svg" />
+    <item id="infographic-svg" href="images/infographic.svg" media-type="image/svg+xml" />
+    <!-- img01 infographic-svg -->
+    <item id='img03' href="images/info3.jpg" media-type="image/jpeg" fallback="img01" />
+    <!-- img03 img01 infographic-svg -->
+    <item id='img04' href="images/info4.jpg" media-type="image/jpeg" fallback="img03" />
+  </manifest1>
+
+  <manifest2>
+    <!-- cycle reference -->
+    <!-- fallback: xhtml2 -->
+    <item id="xhtml1" href="html1" media-type="application/xhtml+xml" fallback="xhtml2" />
+    <!-- fallback: xhtml1 -->
+    <item id="xhtml2" href="html2" media-type="application/xhtml+xml" fallback="xhtml1" />
+    <!-- fallback: xhtml2 xhtml1 -->
+    <item id="xhtml3" href="html3" media-type="application/xhtml+xml" fallback="xhtml2" />
+  </manifest2>
+
+  <manifest3>
+    <!-- lack of necessary info -->
+    <item id="item14" media-type="image/jpeg" />
+  </manifest3>
+
+  <manifest4>
+    <!-- no <item> -->
+  </manifest4>
+</package>

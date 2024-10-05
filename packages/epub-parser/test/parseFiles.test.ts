@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parseContainer, parseMetadata, parseMimeType } from '../src/parseFiles'
+import { parseContainer, parseManifest, parseMetadata, parseMimeType } from '../src/parseFiles'
 import { parsexml } from '../src/utils'
 
 describe('parseFiles', () => {
@@ -81,13 +81,13 @@ describe('parseContainer', () => {
 })
 
 describe('parseMetadata', async () => {
-  // refines="noId"
   const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
 
   const metadataFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/metadata.opf')
   const fileContent = readFileSync(metadataFilePath, 'utf-8')
   const metadataAST = await parsexml(fileContent)
   const metadata = parseMetadata(metadataAST.package.metadata[0])
+
   it('simple field', () => {
     expect(metadata.rights).toBe('Public domain in the USA.')
     expect(metadata.coverage).toBe('United States')
@@ -161,7 +161,8 @@ describe('parseMetadata', async () => {
   })
 
   it('refined id does not exist', () => {
-    expect(warnSpy).toBeCalledWith('No element with id noId found when parsing <metadata>')
+    expect(warnSpy).toBeCalledWith('No element with id "noId" found when parsing <metadata>')
+    warnSpy.mockRestore()
   })
 
   it('metas field', () => {
@@ -169,5 +170,121 @@ describe('parseMetadata', async () => {
       'cover': 'item32',
       'dcterms:modified': '2016-02-29T12:34:56Z',
     })
+  })
+})
+
+describe('parseManifest', async () => {
+  const manifestFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/manifest.opf')
+  const fileContent = readFileSync(manifestFilePath, 'utf-8')
+  const metadataAST = await parsexml(fileContent)
+  it('normal resource', () => {
+    const manifest = parseManifest(metadataAST.package.manifest0[0])
+
+    expect(manifest.c2).toEqual({
+      id: 'c2',
+      href: 'c2.xhtml',
+      mediaType: 'application/xhtml+xml',
+      properties: 'scripted mathml',
+      mediaOverlay: '',
+    })
+
+    expect(manifest.ch1).toEqual({
+      id: 'ch1',
+      href: 'chapter1.xhtml',
+      mediaType: 'application/xhtml+xml',
+      properties: '',
+      mediaOverlay: 'ch1_audio',
+    })
+
+    expect(manifest.item14).toEqual({
+      id: 'item14',
+      href: 'www.gutenberg.org@files@19033@19033-h@images@i010_th.jpg',
+      mediaType: 'image/jpeg',
+      properties: '',
+      mediaOverlay: '',
+    })
+
+    expect(manifest.item29).toEqual({
+      id: 'item29',
+      href: 'pgepub.css',
+      mediaType: 'text/css',
+      properties: '',
+      mediaOverlay: '',
+    })
+
+    expect(manifest.item32).toEqual({
+      id: 'item32',
+      href: 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      mediaType: 'application/xhtml+xml',
+      properties: '',
+      mediaOverlay: '',
+    })
+
+    expect(manifest.ncx).toEqual({
+      id: 'ncx',
+      href: 'toc.ncx',
+      mediaType: 'application/x-dtbncx+xml',
+      properties: '',
+      mediaOverlay: '',
+    })
+  })
+
+  it('fallback', () => {
+    const manifest = parseManifest(metadataAST.package.manifest1[0])
+
+    expect(manifest.img02.fallback).toEqual(['img01', 'infographic-svg'])
+    expect(manifest.img01.fallback).toEqual(['infographic-svg'])
+    expect(manifest['infographic-svg'].fallback).toBeUndefined()
+    expect(manifest.img03.fallback).toEqual(['img01', 'infographic-svg'])
+    expect(manifest.img04.fallback).toEqual(['img03', 'img01', 'infographic-svg'])
+  })
+
+  it('fallback cycle reference', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
+    const manifest = parseManifest(metadataAST.package.manifest2[0])
+
+    expect(manifest.xhtml1).toEqual({
+      id: 'xhtml1',
+      href: 'html1',
+      mediaType: 'application/xhtml+xml',
+      fallback: ['xhtml2'],
+      mediaOverlay: '',
+      properties: '',
+    })
+
+    expect(manifest.xhtml2).toEqual({
+      id: 'xhtml2',
+      href: 'html2',
+      mediaType: 'application/xhtml+xml',
+      fallback: ['xhtml1'],
+      mediaOverlay: '',
+      properties: '',
+    })
+
+    expect(manifest.xhtml3).toEqual({
+      id: 'xhtml3',
+      href: 'html3',
+      mediaType: 'application/xhtml+xml',
+      fallback: ['xhtml2', 'xhtml1'],
+      mediaOverlay: '',
+      properties: '',
+    })
+
+    // cycle reference warning
+    expect(warnSpy).toBeCalled()
+    warnSpy.mockRestore()
+  })
+
+  it('lack of necessary info: href', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
+    parseManifest(metadataAST.package.manifest3[0])
+    expect(warnSpy).toBeCalledWith('The item in manifest must have attributes id, href and mediaType. So skip this item.')
+    warnSpy.mockRestore()
+  })
+
+  it('no <item>', () => {
+    expect(
+      () => parseManifest(metadataAST.package.manifest4[0]),
+    ).toThrowError('The manifest element must contain one or more item elements')
   })
 })

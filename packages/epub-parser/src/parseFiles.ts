@@ -1,5 +1,5 @@
-import path from 'node:path'
-import type { Contributor, Identifier, Metadata, Subject } from './types'
+import { isAbsolute } from 'node:path'
+import type { Contributor, Identifier, ManifestItem, Metadata, Subject } from './types'
 import { camelCase } from './utils'
 
 // mimetype
@@ -29,7 +29,7 @@ export async function parseContainer(containerAST: any): Promise<string> {
   }
 
   const fullPath = rootFile.$['full-path']
-  if (path.isAbsolute(fullPath)) {
+  if (isAbsolute(fullPath)) {
     throw new Error('full-path must be a relative path')
   }
 
@@ -147,7 +147,7 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
         const refinesId: string = $.refines.slice(1)
         const element = idToElement.get(refinesId)
         if (!element) {
-          console.warn(`No element with id ${refinesId} found when parsing <metadata>`)
+          console.warn(`No element with id "${refinesId}" found when parsing <metadata>`)
           continue
         }
         const property = camelCase($.property)
@@ -174,4 +174,66 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
   }
 
   return metadata
+}
+
+// read test/fixtures/metadata.opf to see the test case
+export function parseManifest(manifestAST: Record<string, any>): Record<string, ManifestItem> {
+  const items = manifestAST.item
+  if (!items) {
+    throw new Error('The manifest element must contain one or more item elements')
+  }
+
+  const manifest: Record<string, ManifestItem> = {}
+  const needToFallback: ManifestItem[] = []
+  for (const item of items) {
+    const $ = item.$
+    const {
+      id,
+      href,
+      'media-type': mediaType,
+      'media-overlay': mediaOverlay,
+      properties,
+    } = $
+    if (!$ || !id || !href || !mediaType) {
+      console.warn('The item in manifest must have attributes id, href and mediaType. So skip this item.')
+      continue
+    }
+    manifest[id] = {
+      id,
+      href,
+      mediaType,
+      properties: properties || '',
+      mediaOverlay: mediaOverlay || '',
+    }
+    if ($.fallback) {
+      manifest[id].fallback = [$.fallback]
+      needToFallback.push(manifest[id])
+    }
+  }
+
+  // fallback attribute
+  for (const item of needToFallback) {
+    const set = new Set<string>()
+    set.add(item.id)
+    let nextItem = manifest[item.fallback![0]]
+    while (nextItem && nextItem.fallback) {
+      set.add(nextItem.id)
+      const fallback = nextItem.fallback
+      if (fallback.length > 1) {
+        item.fallback!.push(...fallback)
+        break
+      }
+      const fallbackId = fallback[0]
+      if (set.has(fallbackId)) {
+        console.warn(`Cycle references have appeard when next item id is "${fallbackId}". `
+        + 'Therefore stop parsing.')
+        break
+      }
+      item.fallback!.push(fallbackId)
+
+      nextItem = manifest[fallbackId]
+    }
+  }
+
+  return manifest
 }
