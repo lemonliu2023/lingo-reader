@@ -24,7 +24,7 @@ export function pureXmlContent(xmlContent: string) {
   return xmlContent
 }
 
-export async function parseChapter(xmlStr: string) {
+export async function parseChapter(xmlStr: string): Promise<ChapterOutput> {
   const xmlContent = pureXmlContent(xmlStr)
   const xmlTree = await parsexml(xmlContent, {
     preserveChildrenOrder: true,

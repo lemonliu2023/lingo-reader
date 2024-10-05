@@ -13,7 +13,7 @@ export function parseMimeType(file: string): string {
 }
 
 // meta-inf/container.xml
-export async function parseContainer(containerAST: any): Promise<string> {
+export function parseContainer(containerAST: any): string {
   // TODO: parse <link/> and more than one <rootfile/>
   const xmlContainer = containerAST.container
   if (!xmlContainer

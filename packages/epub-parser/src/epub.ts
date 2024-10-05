@@ -5,7 +5,7 @@ import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { ZipFile, parsexml } from './utils'
 import type { GuideReference, ManifestItem, Metadata, NavPoints, Spine, TOCOutput } from './types'
 import { parseChapter } from './parseChapter'
-import { parseContainer, parseMetadata, parseMimeType } from './parseFiles'
+import { parseContainer, parseManifest, parseMetadata, parseMimeType } from './parseFiles'
 /*
   zip file process
   mimetype file
@@ -55,7 +55,11 @@ export class EpubFile {
     return this.metadata!
   }
 
-  public manifest: Record<string, ManifestItem> = {}
+  private manifest: Record<string, ManifestItem> = {}
+  public getManifest() {
+    return this.manifest
+  }
+
   public spine: Spine = {
     // table of contents
     tocPath: '',
@@ -89,7 +93,7 @@ export class EpubFile {
     // meta-inf/container.xml
     const containerXml = this.zip.readFile('meta-inf/container.xml')
     const containerAST = await parsexml(containerXml)
-    this.rootFilePath = await parseContainer(containerAST)
+    this.rootFilePath = parseContainer(containerAST)
     this.contentBaseDir = this.rootFilePath.split('/').slice(0, -1).join('/')
 
     // .opf file
@@ -108,7 +112,27 @@ export class EpubFile {
           break
         }
         case 'manifest': {
-          await this.parseManifest(rootFile[key][0])
+          this.manifest = parseManifest(rootFile[key][0])
+          // save element if it is an image,
+          // which was determined by whether media-type starts with 'image'
+          for (const key in this.manifest) {
+            const manifestItem = this.manifest[key]
+            // TODO: pad all href with content dir, include manifest and toc
+            // manifestItem.href = this.padWithContentDir(manifestItem.href)
+
+            if (manifestItem.mediaType.startsWith('image')) {
+              const imageName: string = manifestItem.href.split('/').pop()!
+              const imagePath = resolve(this.imageSaveDir, imageName)
+              if (!existsSync(imagePath)) {
+                writeFileSync(
+                  imagePath,
+                  // cannot assign Buffer to ArrayBufferView, so convert it to Uint8Array,
+                  //  which is a subclass of ArrayBufferView
+                  new Uint8Array(this.zip.readImage(this.padWithContentDir(manifestItem.href))),
+                )
+              }
+            }
+          }
           break
         }
         case 'spine': {
@@ -124,35 +148,6 @@ export class EpubFile {
 
     if (this.spine.tocPath.length > 0) {
       await this.parseTOC()
-    }
-  }
-
-  private async parseManifest(manifest: Record<string, any>) {
-    const items = manifest.item
-    if (!items) {
-      throw new Error('The manifest element must contain one or more item elements')
-    }
-
-    for (const item of items) {
-      const element = item.$
-      if (!element || !element.id || !element.href || !element['media-type']) {
-        throw new Error('The item in manifest must have attributes id, href and mediaType.')
-      }
-      // save element if it is an image,
-      // which was determined by whether media-type starts with 'image'
-      if (element['media-type'].startsWith('image')) {
-        const imageName: string = element.href.split('/').pop()
-        const imagePath = resolve(this.imageSaveDir, imageName)
-        if (!existsSync(imagePath)) {
-          writeFileSync(
-            imagePath,
-            // cannot assign Buffer to ArrayBufferView, so convert it to Uint8Array,
-            //  which is a subclass of ArrayBufferView
-            new Uint8Array(this.zip.readImage(this.padWithContentDir(element.href))),
-          )
-        }
-      }
-      this.manifest[element.id] = element
     }
   }
 

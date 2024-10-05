@@ -65,17 +65,33 @@ describe('epubFile', async () => {
     })
   })
 
-  // it('parseManifest', () => {
-  //   const manifest = epub.manifest
+  it('parseManifest', () => {
+    const manifest = epub.getManifest()
 
-  //   // 33 items in manifest
-  //   expect(Object.keys(manifest).length).toBe(33)
-  //   expect(manifest.item1).toEqual({
-  //     'id': 'item1',
-  //     'href': 'www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
-  //     'media-type': 'image/jpeg',
-  //   })
-  // })
+    // 33 items in manifest
+    expect(Object.keys(manifest).length).toBe(33)
+    expect(manifest.item1).toEqual({
+      id: 'item1',
+      href: 'www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
+      mediaType: 'image/jpeg',
+      properties: '',
+      mediaOverlay: '',
+    })
+    expect(manifest.ncx).toEqual({
+      id: 'ncx',
+      href: 'toc.ncx',
+      mediaType: 'application/x-dtbncx+xml',
+      properties: '',
+      mediaOverlay: '',
+    })
+    expect(manifest.item32).toEqual({
+      id: 'item32',
+      href: 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      mediaType: 'application/xhtml+xml',
+      properties: '',
+      mediaOverlay: '',
+    })
+  })
 
   // it('parseGuide', () => {
   //   const guide = epub.guide
