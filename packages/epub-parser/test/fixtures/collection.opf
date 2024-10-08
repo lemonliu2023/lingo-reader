@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
+  <collection role="index">
+    <link href="subjectIndex01.xhtml"/>
+    <link href="subjectIndex02.xhtml"/>
+    <link href="subjectIndex03.xhtml"/>
+  </collection>
+</package>

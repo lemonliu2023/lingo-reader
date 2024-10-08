@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from '../src/parseFiles'
+import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from '../src/parseFiles'
 import { parsexml } from '../src/utils'
 
 describe('parseFiles', () => {
@@ -390,5 +390,24 @@ describe('parseGuide', async () => {
     expect(
       () => parseGuide(guideAST.package.guide1[0], ''),
     ).toThrowError('Within the package there may be one guide element, containing one or more reference elements.')
+  })
+})
+
+describe('parseCollection', async () => {
+  const collectionFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/collection.opf')
+  const fileContent = readFileSync(collectionFilePath, 'utf-8')
+  const collectionAST = await parsexml(fileContent)
+
+  it('should parse collection', () => {
+    const collections = parseCollection(collectionAST.package.collection, '19033/')
+    expect(collections.length).toBe(1)
+    expect(collections).toEqual([{
+      role: 'index',
+      links: [
+        '19033/subjectIndex01.xhtml',
+        '19033/subjectIndex02.xhtml',
+        '19033/subjectIndex03.xhtml',
+      ],
+    }])
   })
 })

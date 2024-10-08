@@ -68,9 +68,9 @@ export interface GuideReference {
   href: string
 }
 
-export interface Spine {
-  tocPath: string
-  contents: ManifestItem[]
+export interface CollectionItem {
+  role: string
+  links: string[]
 }
 
 // navPoint in toc.ncx

@@ -2,8 +2,8 @@ import path, { resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import { ZipFile, parsexml } from './utils'
-import type { GuideReference, ManifestItem, Metadata, SpineItem } from './types'
-import { parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from './parseFiles'
+import type { CollectionItem, GuideReference, ManifestItem, Metadata, SpineItem } from './types'
+import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from './parseFiles'
 /*
   zip file process
   mimetype file
@@ -71,6 +71,11 @@ export class EpubFile {
   private guide: GuideReference[] = []
   public getGuide() {
     return this.guide
+  }
+
+  private collections: CollectionItem[] = []
+  public getCollection() {
+    return this.collections
   }
 
   // // table of contents
@@ -146,6 +151,10 @@ export class EpubFile {
         }
         case 'guide': {
           this.guide = parseGuide(rootFile[key][0], this.contentBaseDir)
+          break
+        }
+        case 'collection': {
+          this.collections = parseCollection(rootFile[key], this.contentBaseDir)
           break
         }
       }

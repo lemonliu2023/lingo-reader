@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { Contributor, GuideReference, Identifier, ManifestItem, Metadata, SpineItem, Subject } from './types'
+import type { CollectionItem, Contributor, GuideReference, Identifier, ManifestItem, Metadata, SpineItem, Subject } from './types'
 import { camelCase } from './utils'
 
 // mimetype
@@ -286,4 +286,20 @@ export function parseGuide(guideAST: Record<string, any>, baseDir: string): Guid
     guide.push(element)
   }
   return guide
+}
+
+export function parseCollection(collectionAST: any[], contentBaseDir: string): CollectionItem[] {
+  const collections: CollectionItem[] = []
+  for (const collection of collectionAST) {
+    const role = collection.$.role
+    const links: string[] = []
+    for (const link of collection.link) {
+      links.push(path.posix.join(contentBaseDir, (link.$.href)))
+    }
+    collections.push({
+      role,
+      links,
+    })
+  }
+  return collections
 }
