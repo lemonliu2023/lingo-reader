@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { CollectionItem, Contributor, GuideReference, Identifier, ManifestItem, Metadata, SpineItem, Subject } from './types'
+import type { CollectionItem, Contributor, GuideReference, Identifier, ManifestItem, Metadata, NavList, NavPoint, NavTarget, PageList, PageTarget, SpineItem, Subject } from './types'
 import { camelCase } from './utils'
 
 // mimetype
@@ -302,4 +302,115 @@ export function parseCollection(collectionAST: any[], contentBaseDir: string): C
     })
   }
   return collections
+}
+
+// .ncx file
+export function parseNavMap(
+  navMap: Record<string, any>,
+  hrefToIdMap: Record<string, string>,
+  ncxBaseDir: string,
+): NavPoint[] {
+  const output: NavPoint[] = []
+  walkNavMap(output, navMap.navPoint, hrefToIdMap, ncxBaseDir)
+  return output
+}
+
+function walkNavMap(
+  output: NavPoint[],
+  navPoints: any[],
+  hrefToIdMap: Record<string, string>,
+  ncxBaseDir: string,
+  depth: number = 0,
+) {
+  if (depth > 7) {
+    return
+  }
+
+  for (const navPoint of navPoints) {
+    if (navPoint.navLabel) {
+      const src = path.posix.join(ncxBaseDir, navPoint.content[0].$?.src)
+      const href = src.split('#')[0]
+      const element: NavPoint = {
+        depth,
+        label: navPoint.navLabel[0]?.text[0],
+        src,
+        correspondId: hrefToIdMap[href],
+        playOrder: navPoint.$?.playOrder,
+      }
+      output.push(element)
+    }
+
+    if (navPoint.navPoint) {
+      walkNavMap(
+        output,
+        navPoint.navPoint,
+        hrefToIdMap,
+        ncxBaseDir,
+        depth + 1,
+      )
+    }
+  }
+}
+
+export function parsePageList(
+  pageList: Record<string, any>,
+  hrefToIdMap: Record<string, string>,
+  ncxBaseDir: string,
+): PageList {
+  let label: string = ''
+  if (pageList.navLabel) {
+    label = pageList.navLabel[0].text[0]
+  }
+  const output: PageTarget[] = []
+  for (const pageTarget of pageList.pageTarget) {
+    const src = path.posix.join(ncxBaseDir, pageTarget.content[0].$?.src)
+    const href = src.split('#')[0]
+    const $ = pageTarget.$
+
+    const element: PageTarget = {
+      label: pageTarget.navLabel[0].text[0],
+      value: $.value,
+      src,
+      playOrder: $.playOrder,
+      type: $.type,
+      correspondId: hrefToIdMap[href],
+    }
+
+    output.push(element)
+  }
+
+  return {
+    label,
+    pageTargets: output,
+  }
+}
+
+export function parseNavList(
+  navList: Record<string, any>,
+  hrefToIdMap: Record<string, string>,
+  ncxBaseDir: string,
+): NavList {
+  let label: string = ''
+  if (navList.navLabel) {
+    label = navList.navLabel[0].text[0]
+  }
+
+  const navTargets: NavTarget[] = []
+  for (const navTarget of navList.navTarget) {
+    const src = path.posix.join(ncxBaseDir, navTarget.content[0].$?.src)
+    const href = src.split('#')[0]
+
+    const element: NavTarget = {
+      label: navTarget.navLabel[0].text[0],
+      src,
+      correspondId: hrefToIdMap[href],
+    }
+
+    navTargets.push(element)
+  }
+
+  return {
+    label,
+    navTargets,
+  }
 }

@@ -72,20 +72,47 @@ export interface CollectionItem {
   role: string
   links: string[]
 }
-
-// navPoint in toc.ncx
+// for .ncx file
 export interface NavPoint {
-  $: { id: string, playOrder: string }
-  navLabel: any
-  content: any
-  navPoint: NavPoint[]
+  depth: number
+  label: string
+  src: string
+  correspondId: string
+  playOrder: string
 }
-export type NavPoints = NavPoint[]
 
-// table of contents that is parsed from navMap in toc.ncx
-//  which is equal to ManifestItem
-export interface TOCOutput extends ManifestItem {
-  level: number
-  order: number
-  title: string
+// export type NavMap = NavPoint[]
+
+export interface PageTarget {
+  label: string
+  value: string
+  src: string
+  playOrder: string
+  type: string
+  correspondId: string
 }
+
+export interface PageList {
+  label: string
+  pageTargets: PageTarget[]
+}
+
+export interface NavTarget {
+  label: string
+  src: string
+  correspondId: string
+}
+
+export interface NavList {
+  label: string
+  navTargets: NavTarget[]
+}
+
+// // navPoint in toc.ncx
+// export interface NavPoint {
+//   $: { id: string, playOrder: string }
+//   navLabel: any
+//   content: any
+//   navPoint: NavPoint[]
+// }
+// export type NavPoints = NavPoint[]

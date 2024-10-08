@@ -2,8 +2,28 @@ import path, { resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import { ZipFile, parsexml } from './utils'
-import type { CollectionItem, GuideReference, ManifestItem, Metadata, SpineItem } from './types'
-import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from './parseFiles'
+import type {
+  CollectionItem,
+  GuideReference,
+  ManifestItem,
+  Metadata,
+  NavList,
+  NavPoint,
+  PageList,
+  SpineItem,
+} from './types'
+import {
+  parseCollection,
+  parseContainer,
+  parseGuide,
+  parseManifest,
+  parseMetadata,
+  parseMimeType,
+  parseNavList,
+  parseNavMap,
+  parsePageList,
+  parseSpine,
+} from './parseFiles'
 /*
   zip file process
   mimetype file
@@ -78,10 +98,28 @@ export class EpubFile {
     return this.collections
   }
 
-  // // table of contents
-  // public toc: TOCOutput[] = []
-  // remove duplicate href item in TOCOutput
-  // private hrefSet: Set<string> = new Set()
+  private navMap: NavPoint[] = []
+  public getNavMap() {
+    return this.navMap
+  }
+
+  private pageList: PageList = {
+    label: '',
+    pageTargets: [],
+  }
+
+  public getPageList() {
+    return this.pageList
+  }
+
+  private navList: NavList = {
+    label: '',
+    navTargets: [],
+  }
+
+  public getNavList() {
+    return this.navList
+  }
 
   constructor(private epubPath: string, imageRoot: string = './images') {
     this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
@@ -161,82 +199,30 @@ export class EpubFile {
     }
 
     if (tocPath.length > 0) {
-      // await this.parseTOC()
+      const tocDirPath = path.posix.dirname(tocPath)
+      // href to id
+      const hrefToIdMap: Record<string, string> = {}
+      for (const item of this.spine) {
+        hrefToIdMap[item.href] = item.id
+      }
+      const tocNcxFile = this.zip.readFile(tocPath)
+      const ncx = (await parsexml(tocNcxFile)).ncx
+      // navMap
+      if (ncx.navMap)
+        this.navMap = parseNavMap(ncx.navMap[0], hrefToIdMap, tocDirPath)
+      // pageList
+      if (ncx.pageList)
+        this.pageList = parsePageList(ncx.pageList[0], hrefToIdMap, tocDirPath)
+
+      // navList
+      if (ncx.navList)
+        this.navList = parseNavList(ncx.navList[0], hrefToIdMap, tocDirPath)
     }
   }
-
-  // private parseGuide(guide: Record<string, any>) {
-  //   const references = guide.reference
-  //   if (!references) {
-  //     throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
-  //   }
-  //   for (const reference of references) {
-  //     const element = reference.$
-  //     this.guide.push(element)
-  //   }
-  // }
-
-  // private async parseTOC() {
-  //   // href to id
-  //   const idList: Record<string, string> = {}
-  //   const ids = Object.keys(this.manifest)
-  //   for (const id of ids) {
-  //     idList[this.manifest[id].href] = id
-  //   }
-  //   const tocNcxFile = this.zip.readFile(this.padWithContentDir(this.spine.tocPath))
-  //   const ncxXml = (await parsexml(tocNcxFile)).ncx
-  //   if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
-  //     throw new Error('navMap is a required element in the NCX')
-  //   }
-
-  //   this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
-  // }
-
-  // private walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
-  //   if (level > 7) {
-  //     return []
-  //   }
-  //   const output: TOCOutput[] = []
-  //   for (const navPoint of navPoints) {
-  //     if (navPoint.navLabel) {
-  //       const title = navPoint.navLabel[0]?.text[0]
-  //       const order = Number.parseInt(navPoint.$?.playOrder)
-  //       const href = navPoint.content[0].$?.src.split('#')[0]
-
-  //       if (!this.hrefSet.has(href)) {
-  //         const element: TOCOutput = {
-  //           href,
-  //           order,
-  //           title,
-  //           level,
-  //           id: '',
-  //           mediaType: '',
-  //         }
-  //         if (idList[href]) {
-  //           Object.assign(element, this.manifest[idList[href]])
-  //         }
-  //         else {
-  //           element.id = navPoint.$?.id || ''
-  //         }
-  //         output.push(element)
-  //         this.hrefSet.add(href)
-  //       }
-  //     }
-
-  //     if (navPoint.navPoint) {
-  //       output.push(...this.walkNavMap(navPoint.navPoint, idList, level + 1))
-  //     }
-  //   }
-  //   return output
-  // }
 
   // getChapter(id: string): Promise<ChapterOutput> {
   //   const xmlHref = this.manifest[id].href
   //   return parseChapter(this.zip.readFile(this.padWithContentDir(xmlHref)))
-  // }
-
-  // private padWithContentDir(href: string) {
-  //   return join(this.contentBaseDir, href).replace(/\\/g, '/')
   // }
 
   // public getToc(): (TOCOutput | ManifestItem)[] {
