@@ -59,6 +59,15 @@ export interface ManifestItem {
   fallback?: string[]
 }
 
+type SpineItem = ManifestItem & { linear?: string }
+
+// export interface SpineItem {
+//   idref: string
+//   linear?: string
+//   id?: string
+//   properties?: string
+// }
+
 export interface GuideReference {
   title: string
   type: string

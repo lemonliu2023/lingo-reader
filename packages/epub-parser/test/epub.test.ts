@@ -72,21 +72,21 @@ describe('epubFile', async () => {
     expect(Object.keys(manifest).length).toBe(33)
     expect(manifest.item1).toEqual({
       id: 'item1',
-      href: 'www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
+      href: '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
       mediaType: 'image/jpeg',
       properties: '',
       mediaOverlay: '',
     })
     expect(manifest.ncx).toEqual({
       id: 'ncx',
-      href: 'toc.ncx',
+      href: '19033/toc.ncx',
       mediaType: 'application/x-dtbncx+xml',
       properties: '',
       mediaOverlay: '',
     })
     expect(manifest.item32).toEqual({
       id: 'item32',
-      href: 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      href: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       mediaType: 'application/xhtml+xml',
       properties: '',
       mediaOverlay: '',
@@ -105,18 +105,19 @@ describe('epubFile', async () => {
   //   }])
   // })
 
-  // it('parseSpine', () => {
-  //   const spine = epub.spine
+  it('parseSpine', () => {
+    const spine = epub.getSpine()
 
-  //   expect(spine.tocPath).toBe('toc.ncx')
-  //   expect(spine.contents.length).toBe(1)
-  //   expect(epub.flow.length).toBe(spine.contents.length)
-  //   expect(spine.contents[0]).toEqual({
-  //     'id': 'item32',
-  //     'href': 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
-  //     'media-type': 'application/xhtml+xml',
-  //   })
-  // })
+    expect(spine.length).toBe(1)
+    expect(spine[0]).toEqual({
+      id: 'item32',
+      href: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      mediaType: 'application/xhtml+xml',
+      mediaOverlay: '',
+      properties: '',
+      linear: 'yes',
+    })
+  })
 
   // it('walkNavMap', () => {
   //   expect(epub.toc.length).toBe(1)

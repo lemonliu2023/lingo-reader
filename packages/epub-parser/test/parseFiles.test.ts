@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parseContainer, parseManifest, parseMetadata, parseMimeType } from '../src/parseFiles'
+import { parseContainer, parseManifest, parseMetadata, parseMimeType, parseSpine } from '../src/parseFiles'
 import { parsexml } from '../src/utils'
 
 describe('parseFiles', () => {
@@ -178,11 +178,11 @@ describe('parseManifest', async () => {
   const fileContent = readFileSync(manifestFilePath, 'utf-8')
   const metadataAST = await parsexml(fileContent)
   it('normal resource', () => {
-    const manifest = parseManifest(metadataAST.package.manifest0[0])
+    const manifest = parseManifest(metadataAST.package.manifest0[0], '19033/')
 
     expect(manifest.c2).toEqual({
       id: 'c2',
-      href: 'c2.xhtml',
+      href: '19033/c2.xhtml',
       mediaType: 'application/xhtml+xml',
       properties: 'scripted mathml',
       mediaOverlay: '',
@@ -190,7 +190,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.ch1).toEqual({
       id: 'ch1',
-      href: 'chapter1.xhtml',
+      href: '19033/chapter1.xhtml',
       mediaType: 'application/xhtml+xml',
       properties: '',
       mediaOverlay: 'ch1_audio',
@@ -198,7 +198,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.item14).toEqual({
       id: 'item14',
-      href: 'www.gutenberg.org@files@19033@19033-h@images@i010_th.jpg',
+      href: '19033/www.gutenberg.org@files@19033@19033-h@images@i010_th.jpg',
       mediaType: 'image/jpeg',
       properties: '',
       mediaOverlay: '',
@@ -206,7 +206,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.item29).toEqual({
       id: 'item29',
-      href: 'pgepub.css',
+      href: '19033/pgepub.css',
       mediaType: 'text/css',
       properties: '',
       mediaOverlay: '',
@@ -214,7 +214,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.item32).toEqual({
       id: 'item32',
-      href: 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      href: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       mediaType: 'application/xhtml+xml',
       properties: '',
       mediaOverlay: '',
@@ -222,7 +222,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.ncx).toEqual({
       id: 'ncx',
-      href: 'toc.ncx',
+      href: '19033/toc.ncx',
       mediaType: 'application/x-dtbncx+xml',
       properties: '',
       mediaOverlay: '',
@@ -230,7 +230,7 @@ describe('parseManifest', async () => {
   })
 
   it('fallback', () => {
-    const manifest = parseManifest(metadataAST.package.manifest1[0])
+    const manifest = parseManifest(metadataAST.package.manifest1[0], '19033/')
 
     expect(manifest.img02.fallback).toEqual(['img01', 'infographic-svg'])
     expect(manifest.img01.fallback).toEqual(['infographic-svg'])
@@ -241,11 +241,11 @@ describe('parseManifest', async () => {
 
   it('fallback cycle reference', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
-    const manifest = parseManifest(metadataAST.package.manifest2[0])
+    const manifest = parseManifest(metadataAST.package.manifest2[0], '19033/')
 
     expect(manifest.xhtml1).toEqual({
       id: 'xhtml1',
-      href: 'html1',
+      href: '19033/html1',
       mediaType: 'application/xhtml+xml',
       fallback: ['xhtml2'],
       mediaOverlay: '',
@@ -254,7 +254,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.xhtml2).toEqual({
       id: 'xhtml2',
-      href: 'html2',
+      href: '19033/html2',
       mediaType: 'application/xhtml+xml',
       fallback: ['xhtml1'],
       mediaOverlay: '',
@@ -263,7 +263,7 @@ describe('parseManifest', async () => {
 
     expect(manifest.xhtml3).toEqual({
       id: 'xhtml3',
-      href: 'html3',
+      href: '19033/html3',
       mediaType: 'application/xhtml+xml',
       fallback: ['xhtml2', 'xhtml1'],
       mediaOverlay: '',
@@ -277,14 +277,86 @@ describe('parseManifest', async () => {
 
   it('lack of necessary info: href', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
-    parseManifest(metadataAST.package.manifest3[0])
+    parseManifest(metadataAST.package.manifest3[0], '19033/')
     expect(warnSpy).toBeCalledWith('The item in manifest must have attributes id, href and mediaType. So skip this item.')
     warnSpy.mockRestore()
   })
 
   it('no <item>', () => {
     expect(
-      () => parseManifest(metadataAST.package.manifest4[0]),
+      () => parseManifest(metadataAST.package.manifest4[0], ''),
     ).toThrowError('The manifest element must contain one or more item elements')
+  })
+})
+
+describe('parseSpine', async () => {
+  const manifestFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/spine.opf')
+  const fileContent = readFileSync(manifestFilePath, 'utf-8')
+  const metadataAST = await parsexml(fileContent)
+
+  it('should handle tocPath, idref and linear', () => {
+    const manifest = {
+      'ncx': {
+        id: 'ncx',
+        href: 'toc.ncx',
+        mediaType: 'application/x-dtbncx+xml',
+        properties: '',
+        mediaOverlay: '',
+      },
+      'intro': {
+        id: 'intro',
+        href: 'intro.xhtml',
+        mediaType: 'application/xhtml+xml',
+        properties: '',
+        mediaOverlay: '',
+      },
+      'c1': {
+        id: 'c1',
+        href: 'chapter1.xhtml',
+        mediaType: 'application/xhtml+xml',
+        properties: '',
+        mediaOverlay: '',
+      },
+      'c1-answerkey': {
+        id: 'c1-answerkey',
+        href: 'chapter1-answerkey.xhtml',
+        mediaType: 'application/xhtml+xml',
+        properties: '',
+        mediaOverlay: '',
+      },
+    }
+    const { tocPath, spine } = parseSpine(metadataAST.package.spine0[0], manifest)
+    expect(tocPath).toBe('toc.ncx')
+    expect(spine.length).toBe(3)
+    expect(spine[0]).toEqual({
+      id: 'intro',
+      href: 'intro.xhtml',
+      mediaType: 'application/xhtml+xml',
+      properties: '',
+      mediaOverlay: '',
+      linear: 'yes',
+    })
+    expect(spine[1]).toEqual({
+      id: 'c1',
+      href: 'chapter1.xhtml',
+      mediaType: 'application/xhtml+xml',
+      properties: '',
+      mediaOverlay: '',
+      linear: 'yes',
+    })
+    expect(spine[2]).toEqual({
+      id: 'c1-answerkey',
+      href: 'chapter1-answerkey.xhtml',
+      mediaType: 'application/xhtml+xml',
+      properties: '',
+      mediaOverlay: '',
+      linear: 'no',
+    })
+  })
+
+  it('will throw an error when itemref is not found', () => {
+    expect(
+      () => parseSpine(metadataAST.package.spine1[0], {}),
+    ).toThrowError('The spine element must contain one or more itemref elements')
   })
 })

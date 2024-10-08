@@ -1,22 +1,25 @@
-import path, { join, resolve } from 'node:path'
+import path, { resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
-import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { ZipFile, parsexml } from './utils'
-import type { GuideReference, ManifestItem, Metadata, NavPoints, Spine, TOCOutput } from './types'
-import { parseChapter } from './parseChapter'
-import { parseContainer, parseManifest, parseMetadata, parseMimeType } from './parseFiles'
+import type { ManifestItem, Metadata, SpineItem } from './types'
+import { parseContainer, parseManifest, parseMetadata, parseMimeType, parseSpine } from './parseFiles'
 /*
   zip file process
   mimetype file
+
+  links
+
+  <meta name="1" content="34">
 
   meta-inf/container.xml
   opf file
     - metadata
     - manifest
     - spine
-    - guide
     - toc
+    - collections
+    - guide epub2: machine-processable navigation
   read chapter through toc or manifest
   save image file when parse manifest / imagedir
 */
@@ -60,19 +63,18 @@ export class EpubFile {
     return this.manifest
   }
 
-  public spine: Spine = {
-    // table of contents
-    tocPath: '',
-    contents: [],
+  private spine: SpineItem[] = []
+  public getSpine() {
+    return this.spine
   }
 
-  public guide: GuideReference[] = []
-  // reference to the spine.contents
-  public flow: ManifestItem[] = []
-  // table of contents
-  public toc: TOCOutput[] = []
+  // public guide: GuideReference[] = []
+  // // reference to the spine.contents
+  // public flow: ManifestItem[] = []
+  // // table of contents
+  // public toc: TOCOutput[] = []
   // remove duplicate href item in TOCOutput
-  private hrefSet: Set<string> = new Set()
+  // private hrefSet: Set<string> = new Set()
 
   constructor(private epubPath: string, imageRoot: string = './images') {
     this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
@@ -105,6 +107,7 @@ export class EpubFile {
     const xml = await parsexml(rootFileOPF)
     const rootFile = xml.package
 
+    let tocPath = ''
     for (const key in rootFile) {
       switch (key) {
         case 'metadata': {
@@ -112,13 +115,11 @@ export class EpubFile {
           break
         }
         case 'manifest': {
-          this.manifest = parseManifest(rootFile[key][0])
+          this.manifest = parseManifest(rootFile[key][0], this.contentBaseDir)
           // save element if it is an image,
           // which was determined by whether media-type starts with 'image'
           for (const key in this.manifest) {
             const manifestItem = this.manifest[key]
-            // TODO: pad all href with content dir, include manifest and toc
-            // manifestItem.href = this.padWithContentDir(manifestItem.href)
 
             if (manifestItem.mediaType.startsWith('image')) {
               const imageName: string = manifestItem.href.split('/').pop()!
@@ -128,7 +129,7 @@ export class EpubFile {
                   imagePath,
                   // cannot assign Buffer to ArrayBufferView, so convert it to Uint8Array,
                   //  which is a subclass of ArrayBufferView
-                  new Uint8Array(this.zip.readImage(this.padWithContentDir(manifestItem.href))),
+                  new Uint8Array(this.zip.readImage(manifestItem.href)),
                 )
               }
             }
@@ -136,117 +137,100 @@ export class EpubFile {
           break
         }
         case 'spine': {
-          this.parseSpine(rootFile[key][0])
+          const res = parseSpine(rootFile[key][0], this.manifest)
+          tocPath = res.tocPath
+          this.spine = res.spine
           break
         }
         case 'guide': {
-          this.parseGuide(rootFile[key][0])
+          // this.parseGuide(rootFile[key][0])
           break
         }
       }
     }
 
-    if (this.spine.tocPath.length > 0) {
-      await this.parseTOC()
+    if (tocPath.length > 0) {
+      // await this.parseTOC()
     }
   }
 
-  private parseSpine(spine: Record<string, any>) {
-    if (spine.$?.toc) {
-      this.spine.tocPath = this.manifest[spine.$.toc].href || ''
-    }
+  // private parseGuide(guide: Record<string, any>) {
+  //   const references = guide.reference
+  //   if (!references) {
+  //     throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
+  //   }
+  //   for (const reference of references) {
+  //     const element = reference.$
+  //     this.guide.push(element)
+  //   }
+  // }
 
-    const itemrefs = spine.itemref
-    if (!itemrefs) {
-      throw new Error('The spine element must contain one or more itemref elements')
-    }
-    for (const itemref of itemrefs) {
-      const $ = itemref.$
-      if ($.idref) {
-        const element = this.manifest[$.idref]
-        this.spine.contents.push(element)
-      }
-    }
-    this.flow = this.spine.contents
-  }
+  // private async parseTOC() {
+  //   // href to id
+  //   const idList: Record<string, string> = {}
+  //   const ids = Object.keys(this.manifest)
+  //   for (const id of ids) {
+  //     idList[this.manifest[id].href] = id
+  //   }
+  //   const tocNcxFile = this.zip.readFile(this.padWithContentDir(this.spine.tocPath))
+  //   const ncxXml = (await parsexml(tocNcxFile)).ncx
+  //   if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
+  //     throw new Error('navMap is a required element in the NCX')
+  //   }
 
-  private parseGuide(guide: Record<string, any>) {
-    const references = guide.reference
-    if (!references) {
-      throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
-    }
-    for (const reference of references) {
-      const element = reference.$
-      this.guide.push(element)
-    }
-  }
+  //   this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
+  // }
 
-  private async parseTOC() {
-    // href to id
-    const idList: Record<string, string> = {}
-    const ids = Object.keys(this.manifest)
-    for (const id of ids) {
-      idList[this.manifest[id].href] = id
-    }
-    const tocNcxFile = this.zip.readFile(this.padWithContentDir(this.spine.tocPath))
-    const ncxXml = (await parsexml(tocNcxFile)).ncx
-    if (!ncxXml.navMap || !ncxXml.navMap[0].navPoint) {
-      throw new Error('navMap is a required element in the NCX')
-    }
+  // private walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
+  //   if (level > 7) {
+  //     return []
+  //   }
+  //   const output: TOCOutput[] = []
+  //   for (const navPoint of navPoints) {
+  //     if (navPoint.navLabel) {
+  //       const title = navPoint.navLabel[0]?.text[0]
+  //       const order = Number.parseInt(navPoint.$?.playOrder)
+  //       const href = navPoint.content[0].$?.src.split('#')[0]
 
-    this.toc = this.walkNavMap(ncxXml.navMap[0].navPoint, idList)
-  }
+  //       if (!this.hrefSet.has(href)) {
+  //         const element: TOCOutput = {
+  //           href,
+  //           order,
+  //           title,
+  //           level,
+  //           id: '',
+  //           mediaType: '',
+  //         }
+  //         if (idList[href]) {
+  //           Object.assign(element, this.manifest[idList[href]])
+  //         }
+  //         else {
+  //           element.id = navPoint.$?.id || ''
+  //         }
+  //         output.push(element)
+  //         this.hrefSet.add(href)
+  //       }
+  //     }
 
-  private walkNavMap(navPoints: NavPoints, idList: Record<string, string>, level: number = 0) {
-    if (level > 7) {
-      return []
-    }
-    const output: TOCOutput[] = []
-    for (const navPoint of navPoints) {
-      if (navPoint.navLabel) {
-        const title = navPoint.navLabel[0]?.text[0]
-        const order = Number.parseInt(navPoint.$?.playOrder)
-        const href = navPoint.content[0].$?.src.split('#')[0]
+  //     if (navPoint.navPoint) {
+  //       output.push(...this.walkNavMap(navPoint.navPoint, idList, level + 1))
+  //     }
+  //   }
+  //   return output
+  // }
 
-        if (!this.hrefSet.has(href)) {
-          const element: TOCOutput = {
-            href,
-            order,
-            title,
-            level,
-            id: '',
-            mediaType: '',
-          }
-          if (idList[href]) {
-            Object.assign(element, this.manifest[idList[href]])
-          }
-          else {
-            element.id = navPoint.$?.id || ''
-          }
-          output.push(element)
-          this.hrefSet.add(href)
-        }
-      }
+  // getChapter(id: string): Promise<ChapterOutput> {
+  //   const xmlHref = this.manifest[id].href
+  //   return parseChapter(this.zip.readFile(this.padWithContentDir(xmlHref)))
+  // }
 
-      if (navPoint.navPoint) {
-        output.push(...this.walkNavMap(navPoint.navPoint, idList, level + 1))
-      }
-    }
-    return output
-  }
+  // private padWithContentDir(href: string) {
+  //   return join(this.contentBaseDir, href).replace(/\\/g, '/')
+  // }
 
-  getChapter(id: string): Promise<ChapterOutput> {
-    const xmlHref = this.manifest[id].href
-    return parseChapter(this.zip.readFile(this.padWithContentDir(xmlHref)))
-  }
-
-  private padWithContentDir(href: string) {
-    return join(this.contentBaseDir, href).replace(/\\/g, '/')
-  }
-
-  public getToc(): (TOCOutput | ManifestItem)[] {
-    return this.toc.length ? this.toc : this.flow
-  }
+  // public getToc(): (TOCOutput | ManifestItem)[] {
+  //   return this.toc.length ? this.toc : this.flow
+  // }
 }
 
 // wrapper for async constructor, because EpubFile constructor has async code

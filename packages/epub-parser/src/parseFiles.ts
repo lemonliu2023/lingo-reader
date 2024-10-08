@@ -1,5 +1,5 @@
-import { isAbsolute } from 'node:path'
-import type { Contributor, Identifier, ManifestItem, Metadata, Subject } from './types'
+import path from 'node:path'
+import type { Contributor, Identifier, ManifestItem, Metadata, SpineItem, Subject } from './types'
 import { camelCase } from './utils'
 
 // mimetype
@@ -29,7 +29,7 @@ export function parseContainer(containerAST: any): string {
   }
 
   const fullPath = rootFile.$['full-path']
-  if (isAbsolute(fullPath)) {
+  if (path.posix.isAbsolute(fullPath)) {
     throw new Error('full-path must be a relative path')
   }
 
@@ -177,7 +177,10 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
 }
 
 // read test/fixtures/metadata.opf to see the test case
-export function parseManifest(manifestAST: Record<string, any>): Record<string, ManifestItem> {
+export function parseManifest(
+  manifestAST: Record<string, any>,
+  contentBaseDir: string,
+): Record<string, ManifestItem> {
   const items = manifestAST.item
   if (!items) {
     throw new Error('The manifest element must contain one or more item elements')
@@ -200,7 +203,7 @@ export function parseManifest(manifestAST: Record<string, any>): Record<string, 
     }
     manifest[id] = {
       id,
-      href,
+      href: path.posix.join(contentBaseDir, href),
       mediaType,
       properties: properties || '',
       mediaOverlay: mediaOverlay || '',
@@ -236,4 +239,35 @@ export function parseManifest(manifestAST: Record<string, any>): Record<string, 
   }
 
   return manifest
+}
+
+export function parseSpine(
+  spineAST: Record<string, any>,
+  manifest: Record<string, ManifestItem>,
+): { tocPath: string, spine: SpineItem[] } {
+  let tocPath = ''
+  if (spineAST.$?.toc) {
+    tocPath = manifest[spineAST.$.toc].href || ''
+  }
+
+  const spine: SpineItem[] = []
+  const itemrefs = spineAST.itemref
+  if (!itemrefs) {
+    throw new Error('The spine element must contain one or more itemref elements')
+  }
+  for (const itemref of itemrefs) {
+    const $ = itemref.$
+    if ($.idref) {
+      const element = manifest[$.idref]
+      spine.push({
+        ...element,
+        // default to 'yes'
+        linear: $.linear || 'yes',
+      })
+    }
+  }
+  return {
+    tocPath,
+    spine,
+  }
 }
