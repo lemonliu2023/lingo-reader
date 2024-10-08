@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parseContainer, parseManifest, parseMetadata, parseMimeType, parseSpine } from '../src/parseFiles'
+import { parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from '../src/parseFiles'
 import { parsexml } from '../src/utils'
 
 describe('parseFiles', () => {
@@ -290,9 +290,9 @@ describe('parseManifest', async () => {
 })
 
 describe('parseSpine', async () => {
-  const manifestFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/spine.opf')
-  const fileContent = readFileSync(manifestFilePath, 'utf-8')
-  const metadataAST = await parsexml(fileContent)
+  const spineFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/spine.opf')
+  const fileContent = readFileSync(spineFilePath, 'utf-8')
+  const spineAST = await parsexml(fileContent)
 
   it('should handle tocPath, idref and linear', () => {
     const manifest = {
@@ -325,7 +325,7 @@ describe('parseSpine', async () => {
         mediaOverlay: '',
       },
     }
-    const { tocPath, spine } = parseSpine(metadataAST.package.spine0[0], manifest)
+    const { tocPath, spine } = parseSpine(spineAST.package.spine0[0], manifest)
     expect(tocPath).toBe('toc.ncx')
     expect(spine.length).toBe(3)
     expect(spine[0]).toEqual({
@@ -356,7 +356,39 @@ describe('parseSpine', async () => {
 
   it('will throw an error when itemref is not found', () => {
     expect(
-      () => parseSpine(metadataAST.package.spine1[0], {}),
+      () => parseSpine(spineAST.package.spine1[0], {}),
     ).toThrowError('The spine element must contain one or more itemref elements')
+  })
+})
+
+describe('parseGuide', async () => {
+  const guideFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/guide.opf')
+  const fileContent = readFileSync(guideFilePath, 'utf-8')
+  const guideAST = await parsexml(fileContent)
+
+  it('should parse guide reference: type, title, href', () => {
+    const guide = parseGuide(guideAST.package.guide0[0], '19033/')
+    expect(guide.length).toBe(3)
+    expect(guide[0]).toEqual({
+      type: 'toc',
+      title: 'Table of Contents',
+      href: '19033/toc.html',
+    })
+    expect(guide[1]).toEqual({
+      type: 'loi',
+      title: 'List Of Illustrations',
+      href: '19033/toc.html#figures',
+    })
+    expect(guide[2]).toEqual({
+      type: 'other.intro',
+      title: 'Introduction',
+      href: '19033/intro.html',
+    })
+  })
+
+  it('will throw an error when reference is not found', () => {
+    expect(
+      () => parseGuide(guideAST.package.guide1[0], ''),
+    ).toThrowError('Within the package there may be one guide element, containing one or more reference elements.')
   })
 })

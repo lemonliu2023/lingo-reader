@@ -2,8 +2,8 @@ import path, { resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import { ZipFile, parsexml } from './utils'
-import type { ManifestItem, Metadata, SpineItem } from './types'
-import { parseContainer, parseManifest, parseMetadata, parseMimeType, parseSpine } from './parseFiles'
+import type { GuideReference, ManifestItem, Metadata, SpineItem } from './types'
+import { parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from './parseFiles'
 /*
   zip file process
   mimetype file
@@ -68,9 +68,11 @@ export class EpubFile {
     return this.spine
   }
 
-  // public guide: GuideReference[] = []
-  // // reference to the spine.contents
-  // public flow: ManifestItem[] = []
+  private guide: GuideReference[] = []
+  public getGuide() {
+    return this.guide
+  }
+
   // // table of contents
   // public toc: TOCOutput[] = []
   // remove duplicate href item in TOCOutput
@@ -143,7 +145,7 @@ export class EpubFile {
           break
         }
         case 'guide': {
-          // this.parseGuide(rootFile[key][0])
+          this.guide = parseGuide(rootFile[key][0], this.contentBaseDir)
           break
         }
       }

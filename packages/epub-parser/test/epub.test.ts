@@ -93,18 +93,6 @@ describe('epubFile', async () => {
     })
   })
 
-  // it('parseGuide', () => {
-  //   const guide = epub.guide
-
-  //   // 1 reference in guide
-  //   expect(Object.keys(guide).length).toBe(1)
-  //   expect(guide).toEqual([{
-  //     title: 'Cover Image',
-  //     type: 'cover',
-  //     href: 'www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
-  //   }])
-  // })
-
   it('parseSpine', () => {
     const spine = epub.getSpine()
 
@@ -117,6 +105,17 @@ describe('epubFile', async () => {
       properties: '',
       linear: 'yes',
     })
+  })
+
+  it('parseGuide', () => {
+    const guide = epub.getGuide()
+
+    expect(guide.length).toBe(1)
+    expect(guide).toEqual([{
+      title: 'Cover Image',
+      type: 'cover',
+      href: '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
+    }])
   })
 
   // it('walkNavMap', () => {

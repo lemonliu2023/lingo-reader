@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { Contributor, Identifier, ManifestItem, Metadata, SpineItem, Subject } from './types'
+import type { Contributor, GuideReference, Identifier, ManifestItem, Metadata, SpineItem, Subject } from './types'
 import { camelCase } from './utils'
 
 // mimetype
@@ -270,4 +270,20 @@ export function parseSpine(
     tocPath,
     spine,
   }
+}
+
+export function parseGuide(guideAST: Record<string, any>, baseDir: string): GuideReference[] {
+  const guide: GuideReference[] = []
+  const references = guideAST.reference
+  if (!references) {
+    throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
+  }
+  for (const reference of references) {
+    const element = reference.$
+    if (element.href && element.href.length > 0) {
+      element.href = path.posix.join(baseDir, element.href)
+    }
+    guide.push(element)
+  }
+  return guide
 }
