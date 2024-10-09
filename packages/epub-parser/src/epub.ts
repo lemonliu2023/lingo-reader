@@ -210,6 +210,7 @@ export class EpubFile {
       // navMap
       if (ncx.navMap)
         this.navMap = parseNavMap(ncx.navMap[0], hrefToIdMap, tocDirPath)
+
       // pageList
       if (ncx.pageList)
         this.pageList = parsePageList(ncx.pageList[0], hrefToIdMap, tocDirPath)

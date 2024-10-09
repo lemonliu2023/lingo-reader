@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseSpine } from '../src/parseFiles'
+import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseNavList, parseNavMap, parsePageList, parseSpine } from '../src/parseFiles'
 import { parsexml } from '../src/utils'
 
 describe('parseFiles', () => {
@@ -413,3 +413,123 @@ describe('parseCollection', async () => {
 })
 
 // .ncx file
+describe('parseNcx', async () => {
+  const navMapFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/toc.ncx')
+  const fileContent = readFileSync(navMapFilePath, 'utf-8')
+  const ncxAST = await parsexml(fileContent)
+
+  it('parse navMap', () => {
+    const hrefToIdMap = {
+      'OEBPS/content.html': 'id',
+    }
+    const navMap = parseNavMap(
+      ncxAST.ncx.navMap[0],
+      hrefToIdMap,
+      'OEBPS/',
+    )
+    expect(navMap.length).toBe(4)
+    expect(navMap[0]).toEqual({
+      depth: 0,
+      label: 'Chapter 1',
+      src: 'OEBPS/content.html#ch_1',
+      correspondId: 'id',
+      playOrder: '1',
+    })
+    expect(navMap[1]).toEqual({
+      depth: 1,
+      label: 'Chapter 1.1',
+      src: 'OEBPS/content.html#ch_1_1',
+      correspondId: 'id',
+      playOrder: '',
+    })
+    expect(navMap[2]).toEqual({
+      depth: 0,
+      label: 'Chapter 2',
+      src: 'OEBPS/content.html#ch_2',
+      correspondId: 'id',
+      playOrder: '',
+    })
+    expect(navMap[3]).toEqual({
+      depth: 0,
+      label: 'Chapter 3',
+      src: 'OEBPS/content2.html#ch_3',
+      correspondId: undefined,
+      playOrder: '',
+    })
+  })
+
+  it('parse pageList without top navLabel', () => {
+    const pageList = parsePageList(
+      ncxAST.ncx.pageList[0],
+      {
+        'OEBPS/content.html': 'id',
+      },
+      'OEBPS/',
+    )
+    expect(pageList.label).toBe('')
+    expect(pageList.pageTargets.length).toBe(3)
+    expect(pageList.pageTargets[0]).toEqual({
+      label: '1',
+      value: '1',
+      src: 'OEBPS/content.html#p1',
+      playOrder: '1',
+      type: 'normal',
+      correspondId: 'id',
+    })
+    expect(pageList.pageTargets[1]).toEqual({
+      label: '2',
+      value: '2',
+      src: 'OEBPS/content.html#p2',
+      playOrder: '',
+      type: 'normal',
+      correspondId: 'id',
+    })
+    expect(pageList.pageTargets[2]).toEqual({
+      label: '',
+      value: '',
+      src: 'OEBPS/content3.html#p3',
+      playOrder: '',
+      type: '',
+      correspondId: undefined,
+    })
+  })
+
+  it('parse pageList with top navLabel', () => {
+    const pageList = parsePageList(
+      ncxAST.ncx.pageList2[0],
+      {
+        'OEBPS/content.html': 'id',
+      },
+      'OEBPS/',
+    )
+    expect(pageList.label).toBe('1')
+    expect(pageList.pageTargets.length).toBe(1)
+  })
+
+  it('parse navList', () => {
+    const navList = parseNavList(
+      ncxAST.ncx.navList[0],
+      {
+        'OEBPS/content.html': 'id',
+      },
+      'OEBPS/',
+    )
+    expect(navList.label).toBe('List of Illustrations')
+    expect(navList.navTargets.length).toBe(3)
+    expect(navList.navTargets[0]).toEqual({
+      label: 'Portratit of Georg Gisze (Holbein)',
+      src: 'OEBPS/content.html#ill1',
+      correspondId: 'id',
+    })
+    expect(navList.navTargets[1]).toEqual({
+      label: 'The adoration of the lamb (Van Eyck)',
+      src: 'OEBPS/content.html#ill2',
+      correspondId: 'id',
+    })
+    expect(navList.navTargets[2]).toEqual({
+      label: '',
+      src: 'OEBPS/content2.html#ill2',
+      correspondId: undefined,
+    })
+  })
+})

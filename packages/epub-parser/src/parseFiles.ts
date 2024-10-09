@@ -173,6 +173,9 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
     }
   }
 
+  // TODO: links
+  // const links = metadataAST.link
+
   return metadata
 }
 
@@ -332,10 +335,10 @@ function walkNavMap(
       const href = src.split('#')[0]
       const element: NavPoint = {
         depth,
-        label: navPoint.navLabel[0]?.text[0],
+        label: navPoint.navLabel[0]?.text[0] || '',
         src,
         correspondId: hrefToIdMap[href],
-        playOrder: navPoint.$?.playOrder,
+        playOrder: navPoint.$?.playOrder || '',
       }
       output.push(element)
     }
@@ -368,11 +371,11 @@ export function parsePageList(
     const $ = pageTarget.$
 
     const element: PageTarget = {
-      label: pageTarget.navLabel[0].text[0],
-      value: $.value,
+      label: pageTarget.navLabel[0].text[0] || '',
+      value: $.value || '',
       src,
-      playOrder: $.playOrder,
-      type: $.type,
+      playOrder: $.playOrder || '',
+      type: $.type || '',
       correspondId: hrefToIdMap[href],
     }
 
@@ -401,7 +404,7 @@ export function parseNavList(
     const href = src.split('#')[0]
 
     const element: NavTarget = {
-      label: navTarget.navLabel[0].text[0],
+      label: navTarget.navLabel[0]?.text?.[0] || '',
       src,
       correspondId: hrefToIdMap[href],
     }

@@ -118,17 +118,37 @@ describe('epubFile', async () => {
     }])
   })
 
-  // it('walkNavMap', () => {
-  //   expect(epub.toc.length).toBe(1)
-  //   expect(epub.toc[0]).toEqual({
-  //     'id': 'item32',
-  //     'href': 'www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
-  //     'order': 1,
-  //     'title': 'THE "STORYLAND" SERIES',
-  //     'level': 0,
-  //     'media-type': 'application/xhtml+xml',
-  //   })
-  // })
+  it('.ncx navMap', () => {
+    const navMap = epub.getNavMap()
+    expect(navMap.length).toBe(14)
+    expect(navMap[13]).toEqual({
+      depth: 1,
+      label: 'X—ALICE\'S EVIDENCE',
+      src: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00058',
+      correspondId: 'item32',
+      playOrder: '59',
+    })
+  })
+
+  it('.ncx pageList', () => {
+    const pageList = epub.getPageList()
+    expect(pageList.label).toBe('Pages')
+    expect(pageList.pageTargets.length).toBe(48)
+    expect(pageList.pageTargets[47]).toEqual({
+      label: '[Pg 48]',
+      value: '48',
+      src: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#Page_48',
+      playOrder: '62',
+      type: 'normal',
+      correspondId: 'item32',
+    })
+  })
+
+  it('alice epub has no navList in toc.ncx', () => {
+    const navList = epub.getNavList()
+    expect(navList.label).toBe('')
+    expect(navList.navTargets.length).toBe(0)
+  })
 
   // it('getChapter', async () => {
   //   const chapterContents = await epub.getChapter('item32')

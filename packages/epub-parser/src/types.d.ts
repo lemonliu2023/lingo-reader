@@ -42,7 +42,7 @@ export interface Metadata {
   subject?: Subject[]
 
   metas?: Record<string, string>
-  // TODO: <link>
+  // links?:
 }
 
 /**
@@ -77,7 +77,7 @@ export interface NavPoint {
   depth: number
   label: string
   src: string
-  correspondId: string
+  correspondId: string | undefined
   playOrder: string
 }
 
