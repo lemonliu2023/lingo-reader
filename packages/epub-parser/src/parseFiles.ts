@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { CollectionItem, Contributor, GuideReference, Identifier, ManifestItem, Metadata, NavList, NavPoint, NavTarget, PageList, PageTarget, SpineItem, Subject } from './types'
+import type { CollectionItem, Contributor, GuideReference, Identifier, Link, ManifestItem, Metadata, NavList, NavPoint, NavTarget, PageList, PageTarget, SpineItem, Subject } from './types'
 import { camelCase } from './utils'
 
 // mimetype
@@ -139,7 +139,8 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
     }
   }
 
-  const metas = metadataAST.meta
+  // <meta>
+  const metas = metadataAST.meta ?? []
   for (const meta of metas) {
     const $ = meta.$
     if (meta._) {
@@ -173,8 +174,36 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
     }
   }
 
-  // TODO: links
-  // const links = metadataAST.link
+  // link
+  const linksTag = metadataAST.link ?? []
+  const links: Link[] = []
+  for (const link of linksTag) {
+    const $ = link.$
+    if (!$.refines) {
+      const element: Link = {
+        href: '',
+        rel: '',
+      }
+      for (const key in $) {
+        element[camelCase(key) as keyof Link] = $[key]
+      }
+      links.push(element)
+    }
+    else {
+      const refinesId: string = $.refines.slice(1)
+      const element = idToElement.get(refinesId)
+      if (!element) {
+        console.warn(`No element with id "${refinesId}" found when parsing <metadata>`)
+        continue
+      }
+      const rel = camelCase($.rel)
+      const href: string = $.href
+      // @ts-expect-error Unable to determine what key the element will have.
+      //  element is a Contributor | Subject | Identifier
+      element[rel] = href
+    }
+  }
+  metadata.links = links
 
   return metadata
 }

@@ -39,5 +39,13 @@
     <meta refines="#noId" property="file-as">Murakami, Haruki</meta>
 
     <meta property="dcterms:modified">2016-02-29T12:34:56Z</meta>
+
+
+    <link rel="record" href="front.xhtml#meta-json" media-type="application/xhtml+xml" hreflang="en"/>
+    <link rel="record" href="meta/9780000000001.xml" media-type="application/marc"/>
+    <link rel="record" href="http://example.org/meta/12389347?format=onix" media-type="application/xml" properties="onix"/>
+    <link refines="#creator" rel="foaf:homepage" href="http://example.org/book-info/12389347" />
+    <link refines="#creator02" rel="foaf:homepage" href="http://example.org/book-info/12389347" />
+    <link rel="dcterms:description" href="description.html" media-type="text/html"/>
   </metadata>
 </package>

@@ -120,6 +120,12 @@ describe('epubFile', async () => {
     }])
   })
 
+  it('parseCollection: alice.epub has no collection', () => {
+    const collection = epub.getCollection()
+    expect(collection.length).toBe(0)
+  })
+
+  // .ncx file
   it('.ncx navMap', () => {
     const navMap = epub.getNavMap()
     expect(navMap.length).toBe(14)

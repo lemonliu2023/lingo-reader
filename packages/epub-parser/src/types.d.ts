@@ -22,6 +22,15 @@ export interface Identifier {
   scheme?: string
 }
 
+export interface Link {
+  href: string
+  hreflang?: string
+  id?: string
+  mediaType?: string
+  properties?: string
+  rel: string
+}
+
 export interface Metadata {
   title: string
   language: string
@@ -42,7 +51,7 @@ export interface Metadata {
   subject?: Subject[]
 
   metas?: Record<string, string>
-  // links?:
+  links?: Link[]
 }
 
 /**

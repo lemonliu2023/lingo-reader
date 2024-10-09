@@ -135,10 +135,11 @@ describe('parseMetadata', async () => {
 
   it('creator field', () => {
     expect(metadata.creator![0]).toEqual({
-      contributor: 'creator',
-      fileAs: 'Murakami, Haruki',
-      alternateScript: '上',
-      role: '',
+      'contributor': 'creator',
+      'fileAs': 'Murakami, Haruki',
+      'alternateScript': '上',
+      'role': '',
+      'foaf:homepage': 'http://example.org/book-info/12389347',
     })
     expect(metadata.creator![1]).toEqual({
       contributor: 'Rev. Dr. Martin Luther King Jr.',
@@ -160,8 +161,8 @@ describe('parseMetadata', async () => {
     })
   })
 
-  it('refined id does not exist', () => {
-    expect(warnSpy).toBeCalledWith('No element with id "noId" found when parsing <metadata>')
+  it('refined id does not exist, include <meta> and <tag> refines', () => {
+    expect(warnSpy).toBeCalledTimes(2)
     warnSpy.mockRestore()
   })
 
@@ -170,6 +171,33 @@ describe('parseMetadata', async () => {
       'cover': 'item32',
       'dcterms:modified': '2016-02-29T12:34:56Z',
     })
+  })
+
+  it('links field', () => {
+    expect(metadata.links).toEqual([
+      {
+        href: 'front.xhtml#meta-json',
+        rel: 'record',
+        mediaType: 'application/xhtml+xml',
+        hreflang: 'en',
+      },
+      {
+        href: 'meta/9780000000001.xml',
+        rel: 'record',
+        mediaType: 'application/marc',
+      },
+      {
+        rel: 'record',
+        href: 'http://example.org/meta/12389347?format=onix',
+        mediaType: 'application/xml',
+        properties: 'onix',
+      },
+      {
+        href: 'description.html',
+        rel: 'dcterms:description',
+        mediaType: 'text/html',
+      },
+    ])
   })
 })
 
