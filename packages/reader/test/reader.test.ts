@@ -1,28 +1,28 @@
 import { describe, expect, it } from 'vitest'
-// import { initAllPage } from '../src/reader'
+import { initAllPage } from '../src/reader'
 // import { writeFileSync } from 'node:fs'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options
 globalThis.__BROWSER__ = false
 describe('renderAllPage', async () => {
-  // it('render alice.epub', async () => {
-  //   const pages = await initAllPage(
-  //     './example/alice.epub',
-  //     // {
-  //     //   saveDir: './example',
-  //     // }
-  //   )
-  //   expect(pages.length).toBe(56)
+  it('render alice.epub', async () => {
+    const pages = await initAllPage(
+      './example/alice.epub',
+      // {
+      //   saveDir: './example',
+      // }
+    )
+    expect(pages.length).toBe(56)
 
-  //   const lastPage = pages[pages.length - 1]
-  //   expect(lastPage.chapterId).toBe('item32')
-  //   expect(lastPage.pageIndex).toBe(55)
-  //   expect(lastPage.svg.length).toBeGreaterThan(10)
-  //   expect(lastPage.lastContentIndexOfPage).toBe(309)
-  // })
-  it('expect 1', () => {
-    expect(1).toBe(1)
+    const lastPage = pages[pages.length - 1]
+    expect(lastPage.chapterId).toBe('item32')
+    expect(lastPage.pageIndex).toBe(55)
+    expect(lastPage.svg.length).toBeGreaterThan(10)
+    expect(lastPage.lastContentIndexOfPage).toBe(309)
   })
+  // it('expect 1', () => {
+  //   expect(1).toBe(1)
+  // })
 })
 
 // describe('reader', () => {

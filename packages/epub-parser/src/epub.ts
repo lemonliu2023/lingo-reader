@@ -1,6 +1,7 @@
 import path, { resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
+import type { ChapterOutput } from '@svg-ebook-reader/shared/index'
 import { ZipFile, parsexml } from './utils'
 import type {
   CollectionItem,
@@ -24,6 +25,7 @@ import {
   parsePageList,
   parseSpine,
 } from './parseFiles'
+import { parseChapter } from './parseChapter'
 /*
   zip file process
   mimetype file
@@ -44,7 +46,14 @@ import {
   save image file when parse manifest / imagedir
 */
 
-export class EpubFile {
+// wrapper for async constructor, because EpubFile constructor has async code
+export async function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
+  const epub = new EpubFile(epubPath, imageRoot)
+  await epub.parse()
+  return epub
+}
+
+class EpubFile {
   private fileNameWithoutExt: string
   public getFileName() {
     return this.fileNameWithoutExt
@@ -129,10 +138,9 @@ export class EpubFile {
     }
     // TODO: link root
     this.zip = new ZipFile(this.epubPath)
-    this.parse()
   }
 
-  async parse() {
+  public async parse() {
     // mimetype
     const mimetype = this.zip.readFile('mimetype')
     this.mimeType = parseMimeType(mimetype)
@@ -221,22 +229,12 @@ export class EpubFile {
     }
   }
 
-  // getChapter(id: string): Promise<ChapterOutput> {
-  //   const xmlHref = this.manifest[id].href
-  //   return parseChapter(this.zip.readFile(this.padWithContentDir(xmlHref)))
-  // }
+  getChapter(id: string): Promise<ChapterOutput> {
+    const xmlHref = this.manifest[id].href
+    return parseChapter(this.zip.readFile(xmlHref))
+  }
 
-  // public getToc(): (TOCOutput | ManifestItem)[] {
-  //   return this.toc.length ? this.toc : this.flow
-  // }
-}
-
-// wrapper for async constructor, because EpubFile constructor has async code
-export function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
-  return new Promise((resolve) => {
-    const epub = new EpubFile(epubPath, imageRoot)
-    setTimeout(() => {
-      resolve(epub)
-    }, 0)
-  })
+  public getToc(): SpineItem[] {
+    return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
+  }
 }

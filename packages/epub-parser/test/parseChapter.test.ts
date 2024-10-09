@@ -43,43 +43,43 @@ describe('pureXmlContent', () => {
 describe('parseChapter normal', async () => {
   const normalPath = new URL('./html/normal.html', import.meta.url)
   const normalHtml = readFileSync(normalPath, 'utf-8')
-  const normalChapter = await parseChapter(normalHtml)
+  const { title, contents } = await parseChapter(normalHtml)
 
   it('normal.html', () => {
-    expect(normalChapter.contents.length).toBe(19)
-    expect(normalChapter.title).toBe('')
-    expect(normalChapter.contents[0]).toEqual({
+    expect(contents.length).toBe(19)
+    expect(title).toBe('')
+    expect(contents[0]).toEqual({
       type: ContentType.PARAGRAPH,
       text: 'What',
     })
 
-    expect(normalChapter.contents[1]).toEqual({
+    expect(contents[1]).toEqual({
       type: ContentType.HEADING3,
       heading: 'Right Tool for the Right Job',
     })
 
-    expect(normalChapter.contents[2]).toEqual({
+    expect(contents[2]).toEqual({
       type: ContentType.PARAGRAPH,
       text: '1',
     })
 
-    expect(normalChapter.contents[5]).toEqual({
+    expect(contents[5]).toEqual({
       type: ContentType.HEADING1,
       heading: '自序',
     })
 
-    expect(normalChapter.contents[6]).toEqual({
+    expect(contents[6]).toEqual({
       type: ContentType.PARAGRAPH,
       text: 'divdiv',
     })
 
-    expect(normalChapter.contents[8]).toEqual({
+    expect(contents[8]).toEqual({
       type: ContentType.IMAGE,
       src: '../images/cover.jpg',
       alt: 'Cover Image',
     })
 
-    expect(normalChapter.contents[9]).toEqual({
+    expect(contents[9]).toEqual({
       type: ContentType.IMAGE,
       src: 'graphics/f0058-01.jpg',
       alt: 'Images',
@@ -87,13 +87,13 @@ describe('parseChapter normal', async () => {
       height: 48,
     })
 
-    expect(normalChapter.contents[10]).toEqual({
+    expect(contents[10]).toEqual({
       type: ContentType.IMAGE,
       src: '../images/cover.jpg',
       alt: 'Cover Image',
     })
 
-    expect(normalChapter.contents[13]).toEqual({
+    expect(contents[13]).toEqual({
       type: ContentType.IMAGE,
       src: 'graphics/pg400-01.jpg',
       alt: 'images',
@@ -101,12 +101,12 @@ describe('parseChapter normal', async () => {
       height: 1461,
     })
 
-    expect(normalChapter.contents[15]).toEqual({
+    expect(contents[15]).toEqual({
       type: ContentType.CENTERPARAGRAPH,
       text: 'FIGURE 2-6',
     })
 
-    const lastContent = normalChapter.contents[18] as ChapterCodeBlock
+    const lastContent = contents[18] as ChapterCodeBlock
     expect(lastContent.type).toBe(ContentType.CODEBLOCK)
     expect(lastContent.text.indexOf('\n')).toBeGreaterThan(0)
   })
@@ -115,16 +115,16 @@ describe('parseChapter normal', async () => {
 describe('parseChapter ulAndTable', async () => {
   const ulPath = new URL('./html/ulAndTable.html', import.meta.url)
   const ulHtml = readFileSync(ulPath, 'utf-8')
-  const chapter = await parseChapter(ulHtml)
+  const { contents: ChapterContent } = await parseChapter(ulHtml)
   it('table', () => {
-    expect(chapter.contents.length).toBe(4)
-    expect(chapter.contents[0].type).toBe(ContentType.UL)
-    expect(chapter.contents[2].type).toBe(ContentType.OL)
-    expect(chapter.contents[3].type).toBe(ContentType.TABLE)
+    expect(ChapterContent.length).toBe(4)
+    expect(ChapterContent[0].type).toBe(ContentType.UL)
+    expect(ChapterContent[2].type).toBe(ContentType.OL)
+    expect(ChapterContent[3].type).toBe(ContentType.TABLE)
   })
 
   it('table extract', () => {
-    const tableContent = chapter.contents[3] as ChapterTable
+    const tableContent = ChapterContent[3] as ChapterTable
     const tableLength = tableContent.table.length
     expect(tableLength).toBe(6)
 
@@ -140,7 +140,7 @@ describe('parseChapter ulAndTable', async () => {
   })
 
   it('ul extract', () => {
-    const firstUl = chapter.contents[0] as ChapterUL
+    const firstUl = ChapterContent[0] as ChapterUL
     expect(firstUl.list.length).toBe(3)
 
     const firstLi = firstUl.list[0] as ChapterImage
@@ -150,12 +150,12 @@ describe('parseChapter ulAndTable', async () => {
     expect(firstLi.width).toBe(25)
     expect(firstLi.height).toBe(40)
 
-    const secondUl = chapter.contents[1] as ChapterUL
+    const secondUl = ChapterContent[1] as ChapterUL
     expect(secondUl.list.length).toBe(3)
   })
 
   it('ol list and sub list', () => {
-    const ol = chapter.contents[2] as ChapterOL
+    const ol = ChapterContent[2] as ChapterOL
     expect(ol.list.length).toBe(2)
     const subList = ol.list[0] as ChapterParagraph
     expect(subList.type).toBe(ContentType.PARAGRAPH)

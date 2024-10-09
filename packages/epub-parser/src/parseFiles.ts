@@ -129,7 +129,7 @@ export function parseMetadata(metadataAST: Record<string, any>): Metadata {
             fileAs: $?.['opf:file-as'] ?? '',
             role: $?.['opf:role'] ?? '',
           }
-          metadata[keyName].push(contributor)
+          metadata[keyName]!.push(contributor)
           if ($?.id) {
             idToElement.set($.id, contributor)
           }

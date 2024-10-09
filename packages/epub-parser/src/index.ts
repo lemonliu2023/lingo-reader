@@ -1,2 +1,2 @@
-export { EpubFile, initEpubFile } from './epub'
+export { initEpubFile } from './epub'
 export type * from './types'
