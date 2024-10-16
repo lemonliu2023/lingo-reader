@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
-import type { ChapterOutput } from '@svg-ebook-reader/shared/index'
+import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { ZipFile, parsexml } from './utils'
 import type {
   CollectionItem,

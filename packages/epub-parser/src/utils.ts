@@ -15,25 +15,26 @@ export async function parsexml(str: string, optionsParserOptions: ParserOptions 
 // wrap epub file into a class, epub file is a zip file
 //  expose file operation(readFile, readImage..) to process the file in .zip
 export class ZipFile {
-  admZip: AdmZip
-  names: Map<string, string>
-  count: number
+  private admZip: AdmZip
+  private names: Map<string, string>
+  public getNames() {
+    return [...this.names.values()]
+  }
+
   constructor(public filePath: string) {
     this.admZip = new AdmZip(filePath)
     this.names = new Map(this.admZip.getEntries().map(
       (zipEntry) => {
         return [zipEntry.entryName.toLowerCase(), zipEntry.entryName]
       },
-    ),
-    )
-    this.count = this.names.size
-    if (this.count === 0) {
+    ))
+    if (this.names.size === 0) {
       throw new Error('No file in zip')
     }
   }
 
   // read inner file in .epub file
-  readFile(name: string): string {
+  public readFile(name: string): string {
     if (!this.hasFile(name)) {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
@@ -46,7 +47,7 @@ export class ZipFile {
     return txt
   }
 
-  readImage(name: string) {
+  public readImage(name: string) {
     if (!this.hasFile(name)) {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }
@@ -55,11 +56,11 @@ export class ZipFile {
     return content
   }
 
-  hasFile(name: string): boolean {
+  private hasFile(name: string): boolean {
     return this.names.has(name.toLowerCase())
   }
 
-  getFileName(name: string): string | undefined {
+  private getFileName(name: string): string | undefined {
     return this.names.get(name.toLowerCase())
   }
 }

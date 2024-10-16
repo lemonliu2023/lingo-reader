@@ -461,7 +461,8 @@ export class SvgRender {
       imageRoot,
       width,
     } = this.options
-    src = resolvePath(imageRoot, src)
+
+    src = resolvePath(imageRoot, src.split('/').pop()!)
     const remainHeight = this.bottomBoundry - this.y
 
     // complete imageWidth and imageHeight
