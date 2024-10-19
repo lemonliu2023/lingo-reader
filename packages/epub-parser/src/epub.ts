@@ -1,4 +1,4 @@
-import path, { resolve } from 'node:path'
+import path from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
@@ -132,7 +132,7 @@ class EpubFile {
 
   constructor(private epubPath: string, imageRoot: string = './images') {
     this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
-    this.imageSaveDir = resolve(process.cwd(), imageRoot)
+    this.imageSaveDir = path.resolve(process.cwd(), imageRoot)
     if (!existsSync(this.imageSaveDir)) {
       mkdirSync(this.imageSaveDir, { recursive: true })
     }
@@ -176,7 +176,7 @@ class EpubFile {
 
             if (manifestItem.mediaType.startsWith('image')) {
               const imageName: string = manifestItem.href.split('/').pop()!
-              const imagePath = resolve(this.imageSaveDir, imageName)
+              const imagePath = path.resolve(this.imageSaveDir, imageName)
               if (!existsSync(imagePath)) {
                 writeFileSync(
                   imagePath,
@@ -207,7 +207,7 @@ class EpubFile {
     }
 
     if (tocPath.length > 0) {
-      const tocDirPath = path.posix.dirname(tocPath)
+      const tocDirPath = path.dirname(tocPath)
       // href to id
       const hrefToIdMap: Record<string, string> = {}
       for (const item of this.spine) {

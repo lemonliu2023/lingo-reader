@@ -1,6 +1,10 @@
+import fs from 'node:fs'
 import xml2js from 'xml2js'
 import AdmZip from 'adm-zip'
+import JSZip from 'jszip'
 import type { ParserOptions } from 'xml2js'
+
+declare let __BROWSER__: boolean
 
 export async function parsexml(str: string, optionsParserOptions: ParserOptions = {}) {
   try {
@@ -63,6 +67,81 @@ export class ZipFile {
   private getFileName(name: string): string | undefined {
     return this.names.get(name.toLowerCase())
   }
+}
+
+class ZipFile2 {
+  private jsZip!: JSZip
+  private names!: Map<string, string>
+  public getNames() {
+    return [...this.names.values()]
+  }
+
+  constructor(private filePath: string | File) { }
+
+  public async loadZip() {
+    this.jsZip = await this.readZip(this.filePath)
+    this.names = new Map(Object.keys(this.jsZip.files).map(
+      (name) => {
+        return [name.toLowerCase(), name]
+      },
+    ))
+  }
+
+  private async readZip(file: string | File): Promise<JSZip> {
+    return new Promise((resolve, reject) => {
+      if (__BROWSER__) {
+        const reader = new FileReader()
+        reader.onload = () => {
+          new JSZip()
+            .loadAsync(reader.result!)
+            .then((zipFile) => {
+              resolve(zipFile)
+            })
+        }
+        reader.readAsArrayBuffer(file as File)
+        reader.onerror = reject
+      }
+      else {
+        new JSZip()
+          .loadAsync(fs.readFileSync(file as string))
+          .then((zipFile) => {
+            resolve(zipFile)
+          })
+      }
+    })
+  }
+
+  public async readFile(name: string): Promise<string> {
+    if (!this.hasFile(name)) {
+      throw new Error(`${name} file was not exit in ${this.filePath}`)
+    }
+    const fileName = this.getFileName(name)!
+    const file = await this.jsZip.file(fileName)!.async('string')
+    return file
+  }
+
+  public async readImage(name: string): Promise<Uint8Array> {
+    if (!this.hasFile(name)) {
+      throw new Error(`${name} file was not exit in ${this.filePath}`)
+    }
+    const fileName = this.getFileName(name)!
+    const file = await this.jsZip.file(fileName)!.async('uint8array')
+    return file
+  }
+
+  private hasFile(name: string): boolean {
+    return this.names.has(name.toLowerCase())
+  }
+
+  private getFileName(name: string): string | undefined {
+    return this.names.get(name.toLowerCase())
+  }
+}
+
+export async function createZipFile(filePath: string | File) {
+  const zip = new ZipFile2(filePath)
+  await zip.loadZip()
+  return zip
 }
 
 export function camelCase(str: string): string {

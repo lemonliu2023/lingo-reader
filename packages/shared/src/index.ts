@@ -31,6 +31,7 @@ interface ChapterHeading {
 export interface ChapterImage {
   type: ContentType.IMAGE
   src: string
+  // imageName: string
   alt: string
   width?: number
   height?: number
