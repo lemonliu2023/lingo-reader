@@ -1,7 +1,15 @@
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ZipFile, createZipFile, parsexml } from '../src/utils.ts'
+import { createZipFile, parsexml } from '../src/utils.ts'
+
+describe('parsexml', () => {
+  it('parsexml', async () => {
+    const xml = '<root><a>1</a><b>2</b></root>'
+    const result = await parsexml(xml)
+    expect(result).toEqual({ root: { a: ['1'], b: ['2'] } })
+  })
+})
 
 const aliceEpubNames = [
   'mimetype',
@@ -41,36 +49,6 @@ const aliceEpubNames = [
   '19033/toc.ncx',
   '19033/content.opf',
 ]
-
-describe('utils', () => {
-  // alice.epub file path
-  const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
-  const epubFile = new ZipFile(epubPath)
-
-  it('parsexml', async () => {
-    const xml = '<root><a>1</a><b>2</b></root>'
-    const result = await parsexml(xml)
-    expect(result).toEqual({ root: { a: ['1'], b: ['2'] } })
-  })
-
-  it('zipFile.readFile file exit', () => {
-    expect([...epubFile.getNames()]).toEqual(aliceEpubNames)
-    const fileContent = epubFile.readFile(aliceEpubNames[0])
-    expect(fileContent).toEqual('application/epub+zip')
-  })
-
-  it('zipFile.readFile file not exit', () => {
-    // await expect(epubFile.readFile('not-exist')).rejects.toThrow()
-    expect(() => epubFile.readFile('not-exist')).toThrow()
-  })
-
-  it('zipFile.readImage', () => {
-    expect(epubFile.readImage(
-      '19033/www.gutenberg.org@files@19033@19033-h@images@i022_th.jpg',
-    ).length).toBeGreaterThan(0)
-  })
-})
 
 describe('createZipFile in Node', async () => {
   // @ts-expect-error __BROWSER__ is for build process

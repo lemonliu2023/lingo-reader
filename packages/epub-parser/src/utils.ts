@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import xml2js from 'xml2js'
-import AdmZip from 'adm-zip'
 import JSZip from 'jszip'
 import type { ParserOptions } from 'xml2js'
 
@@ -19,57 +18,6 @@ export async function parsexml(str: string, optionsParserOptions: ParserOptions 
 // wrap epub file into a class, epub file is a zip file
 //  expose file operation(readFile, readImage..) to process the file in .zip
 export class ZipFile {
-  private admZip: AdmZip
-  private names: Map<string, string>
-  public getNames() {
-    return [...this.names.values()]
-  }
-
-  constructor(public filePath: string) {
-    this.admZip = new AdmZip(filePath)
-    this.names = new Map(this.admZip.getEntries().map(
-      (zipEntry) => {
-        return [zipEntry.entryName.toLowerCase(), zipEntry.entryName]
-      },
-    ))
-    if (this.names.size === 0) {
-      throw new Error('No file in zip')
-    }
-  }
-
-  // read inner file in .epub file
-  public readFile(name: string): string {
-    if (!this.hasFile(name)) {
-      throw new Error(`${name} file was not exit in ${this.filePath}`)
-    }
-    const fileName = this.getFileName(name)!
-    const content = this.admZip.readAsText(this.admZip.getEntry(fileName)!)
-    const txt = content.trim()
-    if (txt.length === 0) {
-      throw new Error(`${name} file is empty`)
-    }
-    return txt
-  }
-
-  public readImage(name: string) {
-    if (!this.hasFile(name)) {
-      throw new Error(`${name} file was not exit in ${this.filePath}`)
-    }
-    const fileName = this.getFileName(name)!
-    const content = this.admZip.readFile(this.admZip.getEntry(fileName)!)!
-    return content
-  }
-
-  private hasFile(name: string): boolean {
-    return this.names.has(name.toLowerCase())
-  }
-
-  private getFileName(name: string): string | undefined {
-    return this.names.get(name.toLowerCase())
-  }
-}
-
-class ZipFile2 {
   private jsZip!: JSZip
   private names!: Map<string, string>
   public getNames() {
@@ -89,6 +37,11 @@ class ZipFile2 {
 
   private async readZip(file: string | File): Promise<JSZip> {
     return new Promise((resolve, reject) => {
+      // TODO: test readZip in browser environment
+      // Now I don't know how to test readZip in browser,
+      // because FileReader and File is not available in node.
+      // But it can work normally in browser, I have been tested
+      // it in browser environment
       if (__BROWSER__) {
         const reader = new FileReader()
         reader.onload = () => {
@@ -139,7 +92,7 @@ class ZipFile2 {
 }
 
 export async function createZipFile(filePath: string | File) {
-  const zip = new ZipFile2(filePath)
+  const zip = new ZipFile(filePath)
   await zip.loadZip()
   return zip
 }

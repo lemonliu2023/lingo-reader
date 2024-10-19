@@ -2,7 +2,7 @@ import path from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
-import { ZipFile, parsexml } from './utils'
+import { type ZipFile, createZipFile, parsexml } from './utils'
 import type {
   CollectionItem,
   GuideReference,
@@ -49,6 +49,7 @@ import { parseChapter } from './parseChapter'
 // wrapper for async constructor, because EpubFile constructor has async code
 export async function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
   const epub = new EpubFile(epubPath, imageRoot)
+  await epub.loadEpub()
   await epub.parse()
   return epub
 }
@@ -69,7 +70,7 @@ class EpubFile {
     return this.mimeType
   }
 
-  private zip: ZipFile
+  private zip!: ZipFile
 
   // meta-inf/container.xml full-path
   private rootFilePath: string = ''
@@ -136,17 +137,19 @@ class EpubFile {
     if (!existsSync(this.imageSaveDir)) {
       mkdirSync(this.imageSaveDir, { recursive: true })
     }
-    // TODO: link root
-    this.zip = new ZipFile(this.epubPath)
+  }
+
+  async loadEpub() {
+    this.zip = await createZipFile(this.epubPath)
   }
 
   public async parse() {
     // mimetype
-    const mimetype = this.zip.readFile('mimetype')
+    const mimetype = await this.zip.readFile('mimetype')
     this.mimeType = parseMimeType(mimetype)
 
     // meta-inf/container.xml
-    const containerXml = this.zip.readFile('meta-inf/container.xml')
+    const containerXml = await this.zip.readFile('meta-inf/container.xml')
     const containerAST = await parsexml(containerXml)
     this.rootFilePath = parseContainer(containerAST)
     this.contentBaseDir = this.rootFilePath.split('/').slice(0, -1).join('/')
@@ -156,7 +159,7 @@ class EpubFile {
   }
 
   private async parseRootFile() {
-    const rootFileOPF = this.zip.readFile(this.rootFilePath)
+    const rootFileOPF = await this.zip.readFile(this.rootFilePath)
     const xml = await parsexml(rootFileOPF)
     const rootFile = xml.package
 
@@ -180,9 +183,7 @@ class EpubFile {
               if (!existsSync(imagePath)) {
                 writeFileSync(
                   imagePath,
-                  // cannot assign Buffer to ArrayBufferView, so convert it to Uint8Array,
-                  //  which is a subclass of ArrayBufferView
-                  new Uint8Array(this.zip.readImage(manifestItem.href)),
+                  await this.zip.readImage(manifestItem.href),
                 )
               }
             }
@@ -213,7 +214,7 @@ class EpubFile {
       for (const item of this.spine) {
         hrefToIdMap[item.href] = item.id
       }
-      const tocNcxFile = this.zip.readFile(tocPath)
+      const tocNcxFile = await this.zip.readFile(tocPath)
       const ncx = (await parsexml(tocNcxFile)).ncx
       // navMap
       if (ncx.navMap)
@@ -229,9 +230,9 @@ class EpubFile {
     }
   }
 
-  getChapter(id: string): Promise<ChapterOutput> {
+  async getChapter(id: string): Promise<ChapterOutput> {
     const xmlHref = this.manifest[id].href
-    return parseChapter(this.zip.readFile(xmlHref))
+    return parseChapter(await this.zip.readFile(xmlHref))
   }
 
   public getToc(): SpineItem[] {

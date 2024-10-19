@@ -59,9 +59,6 @@ importers:
       '@svg-ebook-reader/shared':
         specifier: workspace:^
         version: link:../shared
-      adm-zip:
-        specifier: ^0.5.14
-        version: 0.5.14
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -69,9 +66,6 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2
     devDependencies:
-      '@types/adm-zip':
-        specifier: ^0.5.5
-        version: 0.5.5
       '@types/node':
         specifier: ^20.14.8
         version: 20.14.8
@@ -735,9 +729,6 @@ packages:
     peerDependencies:
       eslint: '>=8.40.0'
 
-  '@types/adm-zip@0.5.5':
-    resolution: {integrity: sha512-YCGstVMjc4LTY5uK9/obvxBya93axZOVOyf2GSUulADzmLhYE45u2nAssCs/fWBs1Ifq5Vat75JTPwd5XZoPJw==}
-
   '@types/eslint@8.56.10':
     resolution: {integrity: sha512-Shavhk87gCtY2fhXDctcfS3e6FdxWkCx1iUZ9eEUbh7rTqlZT0/IzOkCOVt0fCjcFuZ9FPYfuezTBImfHCDBGQ==}
 
@@ -895,10 +886,6 @@ packages:
     resolution: {integrity: sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
-
-  adm-zip@0.5.14:
-    resolution: {integrity: sha512-DnyqqifT4Jrcvb8USYjp6FHtBpEIz1mnXu6pTRHZ0RL69LbQYiO+0lDFg5+OKA7U29oWSs3a/i8fhn8ZcceIWg==}
-    engines: {node: '>=12.0'}
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -2975,10 +2962,6 @@ snapshots:
       - supports-color
       - typescript
 
-  '@types/adm-zip@0.5.5':
-    dependencies:
-      '@types/node': 20.14.8
-
   '@types/eslint@8.56.10':
     dependencies:
       '@types/estree': 1.0.5
@@ -3204,8 +3187,6 @@ snapshots:
   acorn-walk@8.3.2: {}
 
   acorn@8.11.3: {}
-
-  adm-zip@0.5.14: {}
 
   ajv@6.12.6:
     dependencies:

@@ -5,6 +5,9 @@ import { ContentType } from '@svg-ebook-reader/shared'
 import { initEpubFile } from '../src/epub.ts'
 
 describe('epubFile', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = false
+
   // alice.epub file path
   const epub = await initEpubFile('./example/alice.epub')
 
