@@ -1,8 +1,6 @@
 import sizeOf from 'image-size'
 import type { Measurement } from './types'
 
-declare let __BROWSER__: boolean
-
 function measureImageSizeInBrowser(src: string): Promise<Measurement> {
   return new Promise((resolve, reject) => {
     const img = new Image()

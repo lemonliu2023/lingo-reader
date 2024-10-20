@@ -3,8 +3,6 @@ import xml2js from 'xml2js'
 import JSZip from 'jszip'
 import type { ParserOptions } from 'xml2js'
 
-declare let __BROWSER__: boolean
-
 export async function parsexml(str: string, optionsParserOptions: ParserOptions = {}) {
   try {
     const result = await xml2js.parseStringPromise(str, optionsParserOptions)

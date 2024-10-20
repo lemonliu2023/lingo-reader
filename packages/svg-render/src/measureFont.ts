@@ -4,8 +4,6 @@ import type { Browser, Page } from 'playwright'
 import { getDocument } from './utils'
 import type { MeasureOptions, MeasureStrParas, Measurement } from './types'
 
-declare let __BROWSER__: boolean
-
 const defaultOptions: MeasureOptions = {
   fontSize: 20,
   fontFamily: 'Lucida Console, Courier, monospace',
