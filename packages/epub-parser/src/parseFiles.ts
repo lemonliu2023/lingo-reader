@@ -1,4 +1,4 @@
-import path from 'node:path'
+import path from '@svg-ebook-reader/shared/path'
 import type { CollectionItem, Contributor, GuideReference, Identifier, Link, ManifestItem, Metadata, NavList, NavPoint, NavTarget, PageList, PageTarget, SpineItem, Subject } from './types'
 import { camelCase } from './utils'
 
@@ -29,7 +29,7 @@ export function parseContainer(containerAST: any): string {
   }
 
   const fullPath = rootFile.$['full-path']
-  if (path.posix.isAbsolute(fullPath)) {
+  if (path.isAbsolutePosix(fullPath)) {
     throw new Error('full-path must be a relative path')
   }
 
@@ -235,7 +235,7 @@ export function parseManifest(
     }
     manifest[id] = {
       id,
-      href: path.posix.join(contentBaseDir, href),
+      href: path.joinPosix(contentBaseDir, href),
       mediaType,
       properties: properties || '',
       mediaOverlay: mediaOverlay || '',
@@ -313,7 +313,7 @@ export function parseGuide(guideAST: Record<string, any>, baseDir: string): Guid
   for (const reference of references) {
     const element = reference.$
     if (element.href && element.href.length > 0) {
-      element.href = path.posix.join(baseDir, element.href)
+      element.href = path.joinPosix(baseDir, element.href)
     }
     guide.push(element)
   }
@@ -326,7 +326,7 @@ export function parseCollection(collectionAST: any[], contentBaseDir: string): C
     const role = collection.$.role
     const links: string[] = []
     for (const link of collection.link) {
-      links.push(path.posix.join(contentBaseDir, (link.$.href)))
+      links.push(path.joinPosix(contentBaseDir, (link.$.href)))
     }
     collections.push({
       role,
@@ -360,7 +360,7 @@ function walkNavMap(
 
   for (const navPoint of navPoints) {
     if (navPoint.navLabel) {
-      const src = path.posix.join(ncxBaseDir, navPoint.content[0].$?.src)
+      const src = path.joinPosix(ncxBaseDir, navPoint.content[0].$?.src)
       const href = src.split('#')[0]
       const element: NavPoint = {
         depth,
@@ -395,7 +395,7 @@ export function parsePageList(
   }
   const output: PageTarget[] = []
   for (const pageTarget of pageList.pageTarget) {
-    const src = path.posix.join(ncxBaseDir, pageTarget.content[0].$?.src)
+    const src = path.joinPosix(ncxBaseDir, pageTarget.content[0].$?.src)
     const href = src.split('#')[0]
     const $ = pageTarget.$
 
@@ -429,7 +429,7 @@ export function parseNavList(
 
   const navTargets: NavTarget[] = []
   for (const navTarget of navList.navTarget) {
-    const src = path.posix.join(ncxBaseDir, navTarget.content[0].$?.src)
+    const src = path.joinPosix(ncxBaseDir, navTarget.content[0].$?.src)
     const href = src.split('#')[0]
 
     const element: NavTarget = {

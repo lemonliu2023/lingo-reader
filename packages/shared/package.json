@@ -6,6 +6,31 @@
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
   "keywords": [],
-  "main": "./src/index.ts",
-  "module": "./src/index.ts"
+  "exports": {
+    ".": {
+      "browser": "./dist/index.browser.mjs",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./path": {
+      "browser": "./dist/path/path.browser.mts",
+      "types": "./dist/path/path.d.ts",
+      "import": "./dist/path/path.mjs",
+      "require": "./dist/path/path.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.browser.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "dependencies": {
+    "path-browserify": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/path-browserify": "^1.0.3"
+  }
 }

@@ -1,6 +1,6 @@
-import path from 'node:path'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
+import path from '@svg-ebook-reader/shared/path'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { type ZipFile, createZipFile, parsexml } from './utils'
 import type {

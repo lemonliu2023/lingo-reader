@@ -1,5 +1,5 @@
-import { resolve as resolvePath } from 'node:path'
 import process from 'node:process'
+import path from '@svg-ebook-reader/shared/path'
 import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
@@ -97,7 +97,7 @@ export class SvgRender {
       ...options,
     } as Required<SvgRenderOptions>
 
-    this.options.imageRoot = resolvePath(process.cwd(), this.options.imageRoot)
+    this.options.imageRoot = path.resolve(process.cwd(), this.options.imageRoot)
     this.parsePadding()
 
     const {
@@ -462,7 +462,7 @@ export class SvgRender {
       width,
     } = this.options
 
-    src = resolvePath(imageRoot, src.split('/').pop()!)
+    src = path.resolve(imageRoot, src.split('/').pop()!)
     const remainHeight = this.bottomBoundry - this.y
 
     // complete imageWidth and imageHeight

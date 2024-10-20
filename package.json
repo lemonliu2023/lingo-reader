@@ -16,7 +16,7 @@
     "lint": "eslint . --cache",
     "tsc": "tsc --noEmit",
     "test": "vitest",
-    "build": "rollup -c",
+    "build": "pnpm run -C packages/shared build",
     "prepare": "simple-git-hooks",
     "coverage": "vitest run --coverage"
   },
