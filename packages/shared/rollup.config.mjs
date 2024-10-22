@@ -80,12 +80,7 @@ function dtsConfig(input, output) {
         format: 'es',
       },
     ],
-    plugins: [
-      replace({
-        __BROWSER__: JSON.stringify(false),
-      }),
-      dts(),
-    ],
+    plugins: [dts()],
   }
 }
 

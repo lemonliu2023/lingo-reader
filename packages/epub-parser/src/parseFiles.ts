@@ -1,5 +1,20 @@
 import path from '@svg-ebook-reader/shared/path'
-import type { CollectionItem, Contributor, GuideReference, Identifier, Link, ManifestItem, Metadata, NavList, NavPoint, NavTarget, PageList, PageTarget, SpineItem, Subject } from './types'
+import type {
+  CollectionItem,
+  Contributor,
+  GuideReference,
+  Identifier,
+  Link,
+  ManifestItem,
+  Metadata,
+  NavList,
+  NavPoint,
+  NavTarget,
+  PageList,
+  PageTarget,
+  SpineItem,
+  Subject,
+} from './types'
 import { camelCase } from './utils'
 
 // mimetype

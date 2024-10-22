@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { createZipFile, parsexml } from '../src/utils.ts'
 
@@ -80,5 +81,35 @@ describe('createZipFile in Node', async () => {
 
   it('readImage if file not exit', async () => {
     await expect(epubFile.readImage('not-exist')).rejects.toThrow()
+  })
+})
+
+describe('createZipFile in Browser', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = true
+
+  const currentDir = path.dirname(fileURLToPath(import.meta.url))
+  const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
+  const fileReaderResult = fs.readFileSync(epubPath)
+
+  // simulate FileReader in browser
+  class FileReader {
+    result: any
+    onload = () => { }
+    onerror = () => { }
+    readAsArrayBuffer = () => { }
+    constructor() {
+      this.result = fileReaderResult
+      setTimeout(() => {
+        this.onload()
+      }, 10)
+    }
+  }
+  // @ts-expect-error simulate FileReader in browser
+  globalThis.FileReader = FileReader
+
+  it('can parse .zip file through FileReader', async () => {
+    const epubFile = await createZipFile(epubPath)
+    expect(epubFile.getNames()).toEqual(aliceEpubNames)
   })
 })
