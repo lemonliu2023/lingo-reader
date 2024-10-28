@@ -98,3 +98,18 @@ export async function createZipFile(filePath: string | File) {
 export function camelCase(str: string): string {
   return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
 }
+
+export const imageExtensionToMimeType: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  bmp: 'image/bmp',
+  ico: 'image/x-icon',
+  tiff: 'image/tiff',
+  tif: 'image/tiff',
+  heic: 'image/heic',
+  avif: 'image/avif',
+}

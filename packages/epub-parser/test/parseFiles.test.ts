@@ -74,7 +74,7 @@ describe('parseContainer', () => {
     expect(
       async () => {
         const containerAST = await parsexml(containerXMLWithAbsolutePath)
-        await parseContainer(containerAST)
+        parseContainer(containerAST)
       },
     ).rejects.toThrowError('full-path must be a relative path')
   })

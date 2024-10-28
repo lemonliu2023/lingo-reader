@@ -7,7 +7,9 @@ import type {
   HEADING,
   UlOrOlList,
 } from '@svg-ebook-reader/shared'
-import { parsexml } from './utils'
+import path from '@svg-ebook-reader/shared/path'
+import { imageExtensionToMimeType, parsexml } from './utils'
+import { readFileSync } from './fsImagePolyfill'
 
 export function pureXmlContent(xmlContent: string) {
   // remove <span> b strong i em u s small mark
@@ -31,14 +33,14 @@ export function pureXmlContent(xmlContent: string) {
   return xmlContent
 }
 
-export async function parseChapter(xmlStr: string): Promise<ChapterOutput> {
+export async function parseChapter(xmlStr: string, imageSaveDir: string): Promise<ChapterOutput> {
   const xmlContent = pureXmlContent(xmlStr)
   const xmlTree = await parsexml(xmlContent, {
     preserveChildrenOrder: true,
     explicitChildren: true,
     childkey: 'children',
   })
-  const chapterContent = new Chapter(xmlTree)
+  const chapterContent = new Chapter(xmlTree, imageSaveDir)
   return chapterContent.getContents()
 }
 
@@ -50,7 +52,7 @@ export async function parseChapter(xmlStr: string): Promise<ChapterOutput> {
 class Chapter {
   private contents: Content[] = []
   private title: string = 'temp'
-  constructor(public xmlTree: any) { }
+  constructor(public xmlTree: any, public imageSaveDir: string) { }
 
   // export
   public getContents(): ChapterOutput {
@@ -66,9 +68,20 @@ class Chapter {
 
   private extractImg(element: any) {
     const attrs = element.$
+
+    const imageName = attrs.src.split('/').pop()
+    let imageSrc = path.resolve(this.imageSaveDir, imageName)
+    if (__BROWSER__) {
+      const ext = imageName.split('.').pop()
+      const blobType = imageExtensionToMimeType[ext]
+      const image = new Uint8Array(readFileSync(imageSrc))
+      const blob = new Blob([image], { type: blobType })
+      imageSrc = URL.createObjectURL(blob)
+    }
+
     const imageContent: ChapterImage = {
       type: ContentType.IMAGE,
-      src: attrs.src,
+      src: imageSrc,
       alt: attrs.alt || '',
     }
     if (attrs.width) {

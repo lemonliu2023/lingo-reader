@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { ChapterCodeBlock, ChapterImage, ChapterOL, ChapterParagraph, ChapterTable, ChapterUL } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
@@ -41,9 +42,13 @@ describe('pureXmlContent', () => {
 })
 
 describe('parseChapter normal', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = false
+
   const normalPath = new URL('./html/normal.html', import.meta.url)
   const normalHtml = readFileSync(normalPath, 'utf-8')
-  const { title, contents } = await parseChapter(normalHtml)
+  const imageDir = path.resolve('./images')
+  const { title, contents } = await parseChapter(normalHtml, imageDir)
 
   it('normal.html', () => {
     expect(contents.length).toBe(19)
@@ -75,13 +80,13 @@ describe('parseChapter normal', async () => {
 
     expect(contents[8]).toEqual({
       type: ContentType.IMAGE,
-      src: '../images/cover.jpg',
+      src: path.resolve(imageDir, 'cover.jpg'),
       alt: 'Cover Image',
     })
 
     expect(contents[9]).toEqual({
       type: ContentType.IMAGE,
-      src: 'graphics/f0058-01.jpg',
+      src: path.resolve(imageDir, 'f0058-01.jpg'),
       alt: 'Images',
       width: 777,
       height: 48,
@@ -89,13 +94,13 @@ describe('parseChapter normal', async () => {
 
     expect(contents[10]).toEqual({
       type: ContentType.IMAGE,
-      src: '../images/cover.jpg',
+      src: path.resolve(imageDir, 'cover.jpg'),
       alt: 'Cover Image',
     })
 
     expect(contents[13]).toEqual({
       type: ContentType.IMAGE,
-      src: 'graphics/pg400-01.jpg',
+      src: path.resolve(imageDir, 'pg400-01.jpg'),
       alt: 'images',
       width: 1149,
       height: 1461,
@@ -113,9 +118,13 @@ describe('parseChapter normal', async () => {
 })
 
 describe('parseChapter ulAndTable', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = false
+
   const ulPath = new URL('./html/ulAndTable.html', import.meta.url)
   const ulHtml = readFileSync(ulPath, 'utf-8')
-  const { contents: ChapterContent } = await parseChapter(ulHtml)
+  const imageDir = path.resolve('./images')
+  const { contents: ChapterContent } = await parseChapter(ulHtml, imageDir)
   it('table', () => {
     expect(ChapterContent.length).toBe(4)
     expect(ChapterContent[0].type).toBe(ContentType.UL)
@@ -145,7 +154,7 @@ describe('parseChapter ulAndTable', async () => {
 
     const firstLi = firstUl.list[0] as ChapterImage
     expect(firstLi.type).toBe(ContentType.IMAGE)
-    expect(firstLi.src).toBe('graphics/ask_a_question.jpg')
+    expect(firstLi.src).toBe(path.resolve(imageDir, 'ask_a_question.jpg'))
     expect(firstLi.caption).toBe('Ask a question: https://forum.kirupa.com')
     expect(firstLi.width).toBe(25)
     expect(firstLi.height).toBe(40)

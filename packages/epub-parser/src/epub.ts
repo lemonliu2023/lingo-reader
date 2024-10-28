@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
 import path from '@svg-ebook-reader/shared/path'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
+import { existsSync, mkdirSync, writeFileSync } from './fsImagePolyfill'
 import { type ZipFile, createZipFile, parsexml } from './utils'
 import type {
   CollectionItem,
@@ -133,6 +133,7 @@ export class EpubFile {
 
   constructor(private epubPath: string, imageRoot: string = './images') {
     this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
+    // imageSaveDir must be an absolute path
     this.imageSaveDir = path.resolve(process.cwd(), imageRoot)
     if (!existsSync(this.imageSaveDir)) {
       mkdirSync(this.imageSaveDir, { recursive: true })
@@ -232,7 +233,7 @@ export class EpubFile {
 
   async getChapter(id: string): Promise<ChapterOutput> {
     const xmlHref = this.manifest[id].href
-    return parseChapter(await this.zip.readFile(xmlHref))
+    return parseChapter(await this.zip.readFile(xmlHref), this.imageSaveDir)
   }
 
   public getToc(): SpineItem[] {

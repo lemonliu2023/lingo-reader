@@ -1,10 +1,13 @@
 import path from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
+import { beforeAll, describe, expect, it } from 'vitest'
 import type { ChapterImage } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
+import type { EpubFile } from '../src/epub.ts'
 import { initEpubFile } from '../src/epub.ts'
 
-describe('epubFile', async () => {
+describe('parse epubFile', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false
 
@@ -172,11 +175,52 @@ describe('epubFile', async () => {
     const imgElement = chapterContents.contents.filter(
       content => content.type === ContentType.IMAGE,
     )[0] as ChapterImage
+    // src of img token should be an absolute path
     expect(imgElement.src.startsWith(`${epub.getContentBaseDir()}/`)).toBe(false)
   })
 
   it('getToc', () => {
     const toc = epub.getToc()
     expect(toc.length).toBe(1)
+  })
+})
+
+describe('parse epubFile in browser', async () => {
+  let epub: EpubFile
+  beforeAll(async () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = true
+
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
+    const fileReaderResult = fs.readFileSync(epubPath)
+
+    // simulate FileReader in browser
+    class FileReader {
+      result: any
+      onload = () => { }
+      onerror = () => { }
+      readAsArrayBuffer = () => { }
+      constructor() {
+        this.result = fileReaderResult
+        setTimeout(() => {
+          this.onload()
+        }, 0)
+      }
+    }
+    // @ts-expect-error simulate FileReader in browser
+    globalThis.FileReader = FileReader
+
+    // alice.epub file path
+    epub = await initEpubFile('./example/alice.epub')
+  })
+
+  it('image src should be a blob url in browser env', async () => {
+    const chapter = await epub.getChapter('item32')
+    chapter.contents
+      .filter(content => content.type === ContentType.IMAGE)
+      .forEach((content) => {
+        expect(content.src.startsWith('blob:')).toBe(true)
+      })
   })
 })
