@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { measureImage } from '../src/measureImage'
 
 describe('measureImage in node', () => {
@@ -13,9 +13,13 @@ describe('measureImage in node', () => {
     expect(height).toBe(640)
   })
   it('measure non-existed image', async () => {
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { width, height } = await measureImage('./images/non-existed.jpg')
     expect(width).toBe(50)
     expect(height).toBe(50)
+    expect(consoleWarn)
+      .toHaveBeenCalledWith('measure image failed: ./images/non-existed.jpg, it will return { width: 50, height: 50}')
+    consoleWarn.mockRestore()
   })
 })
 
@@ -72,8 +76,11 @@ describe('measureImage in browser', () => {
   })
 
   it('measure non-existed image', async () => {
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { width, height } = await measureImage('./images/non-existed.jpg')
     expect(width).toBe(50)
     expect(height).toBe(50)
+    expect(consoleWarn)
+      .toHaveBeenCalledWith('measure image failed: ./images/non-existed.jpg, it will return { width: 50, height: 50}')
   })
 })

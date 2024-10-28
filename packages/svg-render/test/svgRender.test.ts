@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { SvgRender } from '../src/svgRender'
 
@@ -76,6 +76,8 @@ and then—she found herself at last in the beautiful garden,
 among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
 
   it('addContent', async () => {
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const imageDir = path.resolve('./images')
     await renderer.addContents([
       {
         type: ContentType.PARAGRAPH,
@@ -95,13 +97,13 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
       },
       {
         type: ContentType.IMAGE,
-        src: 'Image00000.jpg',
+        src: path.join(imageDir, 'Image00000.jpg'),
         alt: 'image',
         caption: 'Image00000.jpg',
       },
       {
         type: ContentType.IMAGE,
-        src: 'Image00005.jpg',
+        src: path.join(imageDir, 'Image00005.jpg'),
         alt: 'image',
         caption: 'Image00005.jpg',
       },
@@ -111,7 +113,7 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
       },
       {
         type: ContentType.IMAGE,
-        src: '1656147374309.jpg',
+        src: path.join(imageDir, '1656147374309.jpg'),
         alt: 'image',
         caption: 'image',
       },
@@ -170,7 +172,7 @@ among the bright flower-beds and the cool fountains.`.replace(/\n/g, '')
           },
           {
             type: ContentType.IMAGE,
-            src: '1656147374309.jpg',
+            src: path.join(imageDir, '1656147374309.jpg'),
             alt: 'image',
             caption: 'image',
           },
@@ -232,5 +234,6 @@ for (let i = 0; i < pages.length; i++) {
 
     expect(pages[0].svg.length).toBeGreaterThan(1)
     expect(pages[1].svg.length).toBeGreaterThan(1)
+    expect(consoleWarn).not.toHaveBeenCalled()
   })
 })

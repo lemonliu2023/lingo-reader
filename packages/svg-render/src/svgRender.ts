@@ -1,5 +1,3 @@
-import process from 'node:process'
-import path from '@svg-ebook-reader/shared/path'
 import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
 import { measureFont } from './measureFont'
@@ -27,7 +25,6 @@ const defaultSvgRenderOptions: SvgRenderOptions = {
   height: 743,
   fontFamily: 'Lucida Console, Courier, monospace',
   fontSize: 20,
-  imageRoot: './images',
   lineHeightRatio: 1.5,
   padding: '40',
   paddingLeft: 0,
@@ -97,7 +94,6 @@ export class SvgRender {
       ...options,
     } as Required<SvgRenderOptions>
 
-    this.options.imageRoot = path.resolve(process.cwd(), this.options.imageRoot)
     this.parsePadding()
 
     const {
@@ -458,11 +454,9 @@ export class SvgRender {
     caption?: string,
   ) {
     const {
-      imageRoot,
       width,
     } = this.options
 
-    src = path.resolve(imageRoot, src.split('/').pop()!)
     const remainHeight = this.bottomBoundry - this.y
 
     // complete imageWidth and imageHeight

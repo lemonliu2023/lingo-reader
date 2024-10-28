@@ -44,6 +44,7 @@ export async function measureImage(src: string): Promise<Measurement> {
     return measure
   }
   catch (e) {
+    console.warn(`measure image failed: ${src}, it will return { width: 50, height: 50}`)
     return {
       width: 50,
       height: 50,
