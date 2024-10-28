@@ -1,12 +1,13 @@
 import pathNode from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import pathBrowser from 'path-browserify'
+import path from '../src/path'
 
-describe('path in browser', async () => {
-  // @ts-expect-error __BROWSER__ is a global variable
-  globalThis.__BROWSER__ = true
-
-  const path = (await import('../src/path.ts')).default
+describe('path in browser', () => {
+  beforeAll(() => {
+    // @ts-expect-error __BROWSER__ is a global variable
+    globalThis.__BROWSER__ = true
+  })
 
   it('resolve', () => {
     // There exists process.cwd() in path-browserify,
@@ -37,16 +38,11 @@ describe('path in browser', async () => {
   })
 })
 
-describe('path in node', async () => {
-  // @ts-expect-error __BROWSER__ is a global variable
-  globalThis.__BROWSER__ = false
-
-  // @ts-expect-error add cacheBust=node to avoid cache
-  // it will throw error if `import path from '../src/path.ts'` directly
-  //  for __BROWSER__ is not defined.
-  // Because the cache of import() and __BROWSER__ has changed,
-  //  we could add cacheBust=node to load the module again.
-  const path = (await import('../src/path.ts?cacheBust=node')).default
+describe('path in node', () => {
+  beforeAll(() => {
+    // @ts-expect-error __BROWSER__ is a global variable
+    globalThis.__BROWSER__ = false
+  })
 
   it('resolve', () => {
     expect(path.resolve('a', 'b')).toBe(pathNode.resolve('a', 'b'))

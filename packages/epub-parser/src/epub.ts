@@ -54,7 +54,7 @@ export async function initEpubFile(epubPath: string, imageRoot?: string): Promis
   return epub
 }
 
-class EpubFile {
+export class EpubFile {
   private fileNameWithoutExt: string
   public getFileName() {
     return this.fileNameWithoutExt

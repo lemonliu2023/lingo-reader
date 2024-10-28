@@ -17,11 +17,35 @@ import {
   resolve as resolveBrowserify,
 } from 'path-browserify'
 
+function resolve(...args: string[]): string {
+  return __BROWSER__ ? resolveBrowserify(...args) : resolveNode(...args)
+}
+
+function basename(p: string, ext?: string): string {
+  return __BROWSER__ ? basenameBrowserify(p, ext) : basenameNode(p, ext)
+}
+
+function extname(p: string): string {
+  return __BROWSER__ ? extnameBrowserify(p) : extnameNode(p)
+}
+
+function dirname(p: string): string {
+  return __BROWSER__ ? dirnameBrowserify(p) : dirnameNode(p)
+}
+
+function isAbsolutePosix(p: string): boolean {
+  return __BROWSER__ ? isAbsoluteBrowserify(p) : path.posix.isAbsolute(p)
+}
+
+function joinPosix(...paths: string[]): string {
+  return __BROWSER__ ? joinBrowserify(...paths) : path.posix.join(...paths)
+}
+
 export default {
-  resolve: __BROWSER__ ? resolveBrowserify : resolveNode,
-  basename: __BROWSER__ ? basenameBrowserify : basenameNode,
-  extname: __BROWSER__ ? extnameBrowserify : extnameNode,
-  dirname: __BROWSER__ ? dirnameBrowserify : dirnameNode,
-  isAbsolutePosix: __BROWSER__ ? isAbsoluteBrowserify : path.posix.isAbsolute,
-  joinPosix: __BROWSER__ ? joinBrowserify : path.posix.join,
+  resolve,
+  basename,
+  extname,
+  dirname,
+  isAbsolutePosix,
+  joinPosix,
 }
