@@ -35,11 +35,6 @@ export class ZipFile {
 
   private async readZip(file: string | File): Promise<JSZip> {
     return new Promise((resolve, reject) => {
-      // TODO: test readZip in browser environment
-      // Now I don't know how to test readZip in browser,
-      // because FileReader and File is not available in node.
-      // But it can work normally in browser, I have been tested
-      // it in browser environment
       if (__BROWSER__) {
         const reader = new FileReader()
         reader.onload = () => {

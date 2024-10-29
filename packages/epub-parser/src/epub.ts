@@ -31,7 +31,7 @@ import { parseChapter } from './parseChapter'
 */
 
 // wrapper for async constructor, because EpubFile constructor has async code
-export async function initEpubFile(epubPath: string, imageRoot?: string): Promise<EpubFile> {
+export async function initEpubFile(epubPath: string | File, imageRoot?: string): Promise<EpubFile> {
   const epub = new EpubFile(epubPath, imageRoot)
   await epub.loadEpub()
   await epub.parse()
@@ -39,10 +39,10 @@ export async function initEpubFile(epubPath: string, imageRoot?: string): Promis
 }
 
 /**
- * The class EpubFile is an
+ * The class EpubFile is an epub file parse manager,
  */
 export class EpubFile {
-  private fileNameWithoutExt: string
+  private fileNameWithoutExt: string = ''
   public getFileName() {
     return this.fileNameWithoutExt
   }
@@ -118,8 +118,10 @@ export class EpubFile {
     return this.navList
   }
 
-  constructor(private epubPath: string, imageRoot: string = './images') {
-    this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
+  constructor(private epubPath: string | File, imageRoot: string = './images') {
+    if (typeof epubPath === 'string') {
+      this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
+    }
     // imageSaveDir must be an absolute path
     this.imageSaveDir = path.resolve(process.cwd(), imageRoot)
     if (!existsSync(this.imageSaveDir)) {

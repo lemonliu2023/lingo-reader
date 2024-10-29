@@ -211,6 +211,8 @@ describe('parse epubFile in browser', async () => {
     // @ts-expect-error simulate FileReader in browser
     globalThis.FileReader = FileReader
 
+    // TODO: the parameter of initEpubFile should be a File object in browser env
+    //  but here we use a string path for test, it can process File when we use it in browser
     // alice.epub file path
     epub = await initEpubFile('./example/alice.epub')
   })
