@@ -11,6 +11,7 @@ import path from '@svg-ebook-reader/shared/path'
 import { imageExtensionToMimeType, parsexml } from './utils'
 import { readFileSync } from './fsImagePolyfill'
 
+// TODO: complete the process in one loop
 export function pureXmlContent(xmlContent: string) {
   // remove <span> b strong i em u s small mark
   // /<\/?b[^o][^>]*>/gi will remove <b> and its content, keep body, and <i>, <u> is
