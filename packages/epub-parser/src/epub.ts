@@ -27,23 +27,7 @@ import {
 } from './parseFiles'
 import { parseChapter } from './parseChapter'
 /*
-  zip file process
-  mimetype file
-
-  links
-
-  <meta name="1" content="34">
-
-  meta-inf/container.xml
-  opf file
-    - metadata
-    - manifest
-    - spine
-    - toc
-    - collections
-    - guide epub2: machine-processable navigation
-  read chapter through toc or manifest
-  save image file when parse manifest / imagedir
+  TODO: parse links in meta-inf/container.xml
 */
 
 // wrapper for async constructor, because EpubFile constructor has async code
@@ -54,6 +38,9 @@ export async function initEpubFile(epubPath: string, imageRoot?: string): Promis
   return epub
 }
 
+/**
+ * The class EpubFile is an
+ */
 export class EpubFile {
   private fileNameWithoutExt: string
   public getFileName() {

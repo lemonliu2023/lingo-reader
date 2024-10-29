@@ -228,6 +228,14 @@ class Chapter {
   private extractList(element: any, type: ContentType.UL | ContentType.OL) {
     const list: UlOrOlList = []
     for (const li of element.children) {
+      // <li>text</li>
+      if (!li.children && li._) {
+        list.push({
+          type: ContentType.PARAGRAPH,
+          text: this.extractTextWithNoReplace(li),
+        })
+        continue
+      }
       for (const ele of li.children) {
         // <li><p>text</p></li>
         // <li><p><img/>caption</p></li>
@@ -246,13 +254,6 @@ class Chapter {
             this.extractList(ele, ContentType.OL),
           )
         }
-      }
-      // <li>text</li>
-      if (!li.children && li._) {
-        list.push({
-          type: ContentType.PARAGRAPH,
-          text: this.extractTextWithNoReplace(li),
-        })
       }
     }
     return {

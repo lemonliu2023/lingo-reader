@@ -150,7 +150,7 @@ describe('parseChapter ulAndTable', async () => {
 
   it('ul extract', () => {
     const firstUl = ChapterContent[0] as ChapterUL
-    expect(firstUl.list.length).toBe(3)
+    expect(firstUl.list.length).toBe(4)
 
     const firstLi = firstUl.list[0] as ChapterImage
     expect(firstLi.type).toBe(ContentType.IMAGE)
@@ -158,6 +158,8 @@ describe('parseChapter ulAndTable', async () => {
     expect(firstLi.caption).toBe('Ask a question: https://forum.kirupa.com')
     expect(firstLi.width).toBe(25)
     expect(firstLi.height).toBe(40)
+    const lastLi = firstUl.list[3] as ChapterParagraph
+    expect(lastLi.text).toBe('ulli')
 
     const secondUl = ChapterContent[1] as ChapterUL
     expect(secondUl.list.length).toBe(3)
