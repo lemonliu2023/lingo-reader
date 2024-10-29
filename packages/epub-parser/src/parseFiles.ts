@@ -17,7 +17,7 @@ import type {
 } from './types'
 import { camelCase } from './utils'
 
-// mimetype
+// the content of mimetype myst be 'application/epub+zip'
 export function parseMimeType(file: string): string {
   const fileContent = file.trim().toLowerCase()
   if (fileContent !== 'application/epub+zip') {
