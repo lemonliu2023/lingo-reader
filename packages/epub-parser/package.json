@@ -28,7 +28,9 @@
   "module": "./src/index.node.mjs",
   "browser": "./dist/index.browser.mjs",
   "types": "./dist/index.d.ts",
-  "scripts": {},
+  "scripts": {
+    "build": "rollup -c"
+  },
   "dependencies": {
     "@svg-ebook-reader/shared": "workspace:^",
     "jszip": "^3.10.1",

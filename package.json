@@ -16,7 +16,7 @@
     "lint": "eslint . --cache",
     "tsc": "tsc --noEmit",
     "test": "vitest",
-    "build": "pnpm run -C packages/shared build",
+    "build": "pnpm run -C packages/shared build && pnpm run -C packages/epub-parser build",
     "prepare": "simple-git-hooks",
     "coverage": "vitest run --coverage"
   },
