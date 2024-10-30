@@ -13,6 +13,12 @@ export async function parsexml(str: string, optionsParserOptions: ParserOptions 
   }
 }
 
+export async function createZipFile(filePath: string | File) {
+  const zip = new ZipFile(filePath)
+  await zip.loadZip()
+  return zip
+}
+
 // wrap epub file into a class, epub file is a zip file
 //  expose file operation(readFile, readImage..) to process the file in .zip
 export class ZipFile {
@@ -82,12 +88,6 @@ export class ZipFile {
   private getFileName(name: string): string | undefined {
     return this.names.get(name.toLowerCase())
   }
-}
-
-export async function createZipFile(filePath: string | File) {
-  const zip = new ZipFile(filePath)
-  await zip.loadZip()
-  return zip
 }
 
 export function camelCase(str: string): string {

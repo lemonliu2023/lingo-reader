@@ -17,7 +17,7 @@ import type {
 } from './types'
 import { camelCase } from './utils'
 
-// the content of mimetype myst be 'application/epub+zip'
+// the content of mimetype must be 'application/epub+zip'
 export function parseMimeType(file: string): string {
   const fileContent = file.trim().toLowerCase()
   if (fileContent !== 'application/epub+zip') {
@@ -288,6 +288,12 @@ export function parseManifest(
   return manifest
 }
 
+/**
+ * Parse the spine element in the .opf file and read the toc file path in <spine> tag
+ * @param spineAST <spine> xml ast
+ * @param manifest manifest parsed from <manifest> tag
+ * @returns { { tocPath: string, spine: SpineItem[] } }
+ */
 export function parseSpine(
   spineAST: Record<string, any>,
   manifest: Record<string, ManifestItem>,
@@ -319,6 +325,12 @@ export function parseSpine(
   }
 }
 
+/**
+ * Parse the guide element in the .opf file, similiar to <manifest>, <spine>...
+ * @param guideAST <guide> xml ast
+ * @param baseDir base directory of the .opf file
+ * @returns { GuideReference[] } GuideReference[]
+ */
 export function parseGuide(guideAST: Record<string, any>, baseDir: string): GuideReference[] {
   const guide: GuideReference[] = []
   const references = guideAST.reference
@@ -335,6 +347,12 @@ export function parseGuide(guideAST: Record<string, any>, baseDir: string): Guid
   return guide
 }
 
+/**
+ * Parse the collection element in the .opf file, similiar to <guide>, <manifest>...
+ * @param collectionAST <collection> xml ast
+ * @param contentBaseDir base directory of the .opf file
+ * @returns { CollectionItem[] } CollectionItem[]
+ */
 export function parseCollection(collectionAST: any[], contentBaseDir: string): CollectionItem[] {
   const collections: CollectionItem[] = []
   for (const collection of collectionAST) {
@@ -351,7 +369,13 @@ export function parseCollection(collectionAST: any[], contentBaseDir: string): C
   return collections
 }
 
-// .ncx file
+/**
+ * Parse the navMap element in the .ncx file
+ * @param navMap navMap xml ast
+ * @param hrefToIdMap map of href to manifest item id
+ * @param ncxBaseDir base directory of the ncx file
+ * @returns { NavPoint[] } NavPoint[]
+ */
 export function parseNavMap(
   navMap: Record<string, any>,
   hrefToIdMap: Record<string, string>,
@@ -362,13 +386,21 @@ export function parseNavMap(
   return output
 }
 
+/**
+ * Walk the navMap element in the .ncx file
+ * @param output output array
+ * @param navPoints navPoint xml ast
+ * @param hrefToIdMap map of href to manifest item id
+ * @param ncxBaseDir base directory of the ncx file
+ * @param depth depth of the navPoint
+ */
 function walkNavMap(
   output: NavPoint[],
   navPoints: any[],
   hrefToIdMap: Record<string, string>,
   ncxBaseDir: string,
   depth: number = 0,
-) {
+): void {
   if (depth > 7) {
     return
   }
@@ -399,6 +431,13 @@ function walkNavMap(
   }
 }
 
+/**
+ * Parse the pageList element in the .ncx file
+ * @param pageList pageList xml ast
+ * @param hrefToIdMap map of href to manifest item id
+ * @param ncxBaseDir base directory of the ncx file
+ * @returns { PageList } PageList
+ */
 export function parsePageList(
   pageList: Record<string, any>,
   hrefToIdMap: Record<string, string>,
@@ -432,6 +471,13 @@ export function parsePageList(
   }
 }
 
+/**
+ * Parse the navList element in the .ncx file
+ * @param navList navList xml ast
+ * @param hrefToIdMap map of href to manifest item id
+ * @param ncxBaseDir base directory of the ncx file
+ * @returns { NavList } NavList
+ */
 export function parseNavList(
   navList: Record<string, any>,
   hrefToIdMap: Record<string, string>,

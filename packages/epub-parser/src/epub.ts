@@ -30,7 +30,7 @@ import { parseChapter } from './parseChapter'
   TODO: parse links in meta-inf/container.xml
 */
 
-// wrapper for async constructor, because EpubFile constructor has async code
+// wrapper for async constructor, because EpubFile class has async code
 export async function initEpubFile(epubPath: string | File, imageRoot?: string): Promise<EpubFile> {
   const epub = new EpubFile(epubPath, imageRoot)
   await epub.loadEpub()
@@ -39,82 +39,133 @@ export async function initEpubFile(epubPath: string | File, imageRoot?: string):
 }
 
 /**
- * The class EpubFile is an epub file parse manager,
+ * The class EpubFile is an epub file parse manager.
+ * It has a ZipFile instance used to read files in epub file. Its function
+ *  is to read and parse(xml) the content of epub file and then hand it
+ *  over to other functions for processing. Finally, the infomation extracted
+ *  from epub file is stored in the form of EpubFile class attributes.
  */
 export class EpubFile {
+  /**
+   * epub file name without extension
+   */
   private fileNameWithoutExt: string = ''
-  public getFileName() {
+  public getFileName(): string {
     return this.fileNameWithoutExt
   }
 
+  /**
+   * imageSaveDir is an absolute path in Node env, because it was obtained by path.resolve
+   *  and it is used to save images in epub file. In browser env, the __dirname is '/' and
+   *  the read/write of image file occurs in memory, so the imageSaveDir is not used. It also
+   *  an absolute path.
+   */
   private imageSaveDir: string
-  getImageSaveDir() {
+  getImageSaveDir(): string {
     return this.imageSaveDir
   }
 
+  /**
+   * mimetype through reading the file 'mimetype'
+   */
   private mimeType: string = ''
-  public getMimeType() {
+  public getMimeType(): string {
     return this.mimeType
   }
 
+  /**
+   * zip processing class
+   */
   private zip!: ZipFile
 
-  // meta-inf/container.xml full-path
+  /**
+   * meta-inf/container.xml full-path and .opf file path when reading zip
+   */
   private rootFilePath: string = ''
-  public getRootFilePath() {
+  public getRootFilePath(): string {
     return this.rootFilePath
   }
 
+  /**
+   * content base dir when reading files using ZipFile attribute,
+   */
   private contentBaseDir: string = ''
-  public getContentBaseDir() {
+  public getContentBaseDir(): string {
     return this.contentBaseDir
   }
 
+  /**
+   * <metadata> in .opf file
+   */
   private metadata?: Metadata
-  public getMetadata() {
+  public getMetadata(): Metadata {
     return this.metadata!
   }
 
+  /**
+   * <manifest> in .opf file
+   */
   private manifest: Record<string, ManifestItem> = {}
-  public getManifest() {
+  public getManifest(): Record<string, ManifestItem> {
     return this.manifest
   }
 
+  /**
+   * <spine> in .opf file
+   */
   private spine: SpineItem[] = []
-  public getSpine() {
+  public getSpine(): SpineItem[] {
     return this.spine
   }
 
+  /**
+   * <guide> in .opf file
+   */
   private guide: GuideReference[] = []
-  public getGuide() {
+  public getGuide(): GuideReference[] {
     return this.guide
   }
 
+  /**
+   * <collection> in .opf file
+   */
   private collections: CollectionItem[] = []
-  public getCollection() {
+  public getCollection(): CollectionItem[] {
     return this.collections
   }
 
+  /**
+   * <navMap> in .ncx file
+   *  which is default value if there is no <navMap> in epub file
+   */
   private navMap: NavPoint[] = []
-  public getNavMap() {
+  public getNavMap(): NavPoint[] {
     return this.navMap
   }
 
+  /**
+   * <pageList> in .ncx file
+   *  which is default value if there is no <pageList> in epub file
+   */
   private pageList: PageList = {
     label: '',
     pageTargets: [],
   }
 
-  public getPageList() {
+  public getPageList(): PageList {
     return this.pageList
   }
 
+  /**
+   * <navList> in .ncx file,
+   *  which is default value if there is no <navList> in epub file
+   */
   private navList: NavList = {
     label: '',
     navTargets: [],
   }
 
-  public getNavList() {
+  public getNavList(): NavList {
     return this.navList
   }
 
@@ -129,11 +180,11 @@ export class EpubFile {
     }
   }
 
-  async loadEpub() {
+  async loadEpub(): Promise<void> {
     this.zip = await createZipFile(this.epubPath)
   }
 
-  public async parse() {
+  public async parse(): Promise<void> {
     // mimetype
     const mimetype = await this.zip.readFile('mimetype')
     this.mimeType = parseMimeType(mimetype)
@@ -141,6 +192,7 @@ export class EpubFile {
     // meta-inf/container.xml
     const containerXml = await this.zip.readFile('meta-inf/container.xml')
     const containerAST = await parsexml(containerXml)
+    // full-path
     this.rootFilePath = parseContainer(containerAST)
     this.contentBaseDir = this.rootFilePath.split('/').slice(0, -1).join('/')
 
@@ -148,7 +200,10 @@ export class EpubFile {
     await this.parseRootFile()
   }
 
-  private async parseRootFile() {
+  /**
+   * parse .opf file
+   */
+  private async parseRootFile(): Promise<void> {
     const rootFileOPF = await this.zip.readFile(this.rootFilePath)
     const xml = await parsexml(rootFileOPF)
     const rootFile = xml.package
@@ -182,6 +237,7 @@ export class EpubFile {
         }
         case 'spine': {
           const res = parseSpine(rootFile[key][0], this.manifest)
+          // .ncx file path
           tocPath = res.tocPath
           this.spine = res.spine
           break
@@ -197,6 +253,7 @@ export class EpubFile {
       }
     }
 
+    // .ncx file
     if (tocPath.length > 0) {
       const tocDirPath = path.dirname(tocPath)
       // href to id
@@ -220,12 +277,22 @@ export class EpubFile {
     }
   }
 
-  async getChapter(id: string): Promise<ChapterOutput> {
+  /**
+   * Get chapter token array after processing with parseChapter func
+   * @param { string } id the manifest item id of the chapter
+   * @returns { Promise<ChapterOutput> } see shared/src/index.ts for details
+   */
+  public async getChapter(id: string): Promise<ChapterOutput> {
     const xmlHref = this.manifest[id].href
     return parseChapter(await this.zip.readFile(xmlHref), this.imageSaveDir)
   }
 
+  /**
+   *
+   * @returns { SpineItem[] } the table of contents of the epub file
+   */
   public getToc(): SpineItem[] {
+    // the priority is spine > manifest
     return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
   }
 }

@@ -41,6 +41,7 @@ describe('pureXmlContent', () => {
   })
 })
 
+// see /packages/epub-parser/test/html/normal.html
 describe('parseChapter normal', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false
@@ -117,6 +118,7 @@ describe('parseChapter normal', async () => {
   })
 })
 
+// see /packages/epub-parser/test/html/ulAndTable.html
 describe('parseChapter ulAndTable', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false

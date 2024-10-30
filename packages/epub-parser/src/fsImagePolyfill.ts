@@ -9,6 +9,13 @@ import type {
   WriteFileOptions,
 } from 'node:fs'
 
+/**
+ * This file provide a polyfill for fs module in browser environment.
+ * It use __BROWSER__ to distinguish browser and Node environment.
+ *  Because only image files need to read and write, so filesystem in browser
+ *  is simulated by a Record<string, Uint8Array> object.
+ *  In Node, it will use the native fs module.
+ */
 const imageRecord: Record<string, Uint8Array> = {}
 
 function writeFileSync(file: string, data: Uint8Array, options?: WriteFileOptions): void {

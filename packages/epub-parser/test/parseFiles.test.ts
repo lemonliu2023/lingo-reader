@@ -57,7 +57,7 @@ describe('parseContainer', () => {
     expect(
       async () => {
         const containerAST = await parsexml(containerXMLWithWrongMediaType)
-        await parseContainer(containerAST)
+        parseContainer(containerAST)
       },
     ).rejects.toThrowError('media-type of <rootfile/> application/oebps-package+xml')
   })
@@ -80,6 +80,9 @@ describe('parseContainer', () => {
   })
 })
 
+/**
+ * see /packages/epub-parser/test/fixtures/*
+ */
 describe('parseMetadata', async () => {
   const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
 
