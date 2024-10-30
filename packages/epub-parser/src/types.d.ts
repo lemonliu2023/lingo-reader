@@ -69,7 +69,7 @@ export interface ManifestItem {
 }
 
 // idref, linear, id, properties attributes when parsing spine>itemref
-type SpineItem = ManifestItem & { linear?: string }
+export type SpineItem = ManifestItem & { linear?: string }
 
 export interface GuideReference {
   title: string
