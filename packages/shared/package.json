@@ -14,7 +14,7 @@
       "require": "./dist/index.js"
     },
     "./path": {
-      "browser": "./dist/path/path.browser.mts",
+      "browser": "./dist/path/path.browser.mjs",
       "types": "./dist/path/path.d.ts",
       "import": "./dist/path/path.mjs",
       "require": "./dist/path/path.js"
