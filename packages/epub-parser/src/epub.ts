@@ -26,6 +26,7 @@ import {
   parseSpine,
 } from './parseFiles'
 import { parseChapter } from './parseChapter'
+import { transformHTML } from './transformHTML'
 /*
   TODO: parse links in meta-inf/container.xml
 */
@@ -278,6 +279,15 @@ export class EpubFile {
   }
 
   /**
+   *
+   * @returns { SpineItem[] } the table of contents of the epub file
+   */
+  public getToc(): SpineItem[] {
+    // the priority is spine > manifest
+    return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
+  }
+
+  /**
    * Get chapter token array after processing with parseChapter func
    * @param { string } id the manifest item id of the chapter
    * @returns { Promise<ChapterOutput> } see shared/src/index.ts for details
@@ -288,11 +298,12 @@ export class EpubFile {
   }
 
   /**
-   *
-   * @returns { SpineItem[] } the table of contents of the epub file
+   * replace <img> src absolute path or blob url
+   * @param id the manifest item id of the chapter
+   * @returns replaced html string
    */
-  public getToc(): SpineItem[] {
-    // the priority is spine > manifest
-    return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
+  public async getHTML(id: string): Promise<string> {
+    const xmlHref = this.manifest[id].href
+    return transformHTML(await this.zip.readFile(xmlHref), this.imageSaveDir)
   }
 }

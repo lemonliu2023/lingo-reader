@@ -1,7 +1,9 @@
 import fs from 'node:fs'
 import xml2js from 'xml2js'
 import JSZip from 'jszip'
+import path from '@svg-ebook-reader/shared/path'
 import type { ParserOptions } from 'xml2js'
+import { readFileSync } from './fsImagePolyfill'
 
 export async function parsexml(str: string, optionsParserOptions: ParserOptions = {}) {
   try {
@@ -107,4 +109,17 @@ export const imageExtensionToMimeType: Record<string, string> = {
   tif: 'image/tiff',
   heic: 'image/heic',
   avif: 'image/avif',
+}
+
+export function transformImageSrc(src: string, imageSaveDir: string): string {
+  const imageName = src.split('/').pop()!
+  let imageSrc = path.resolve(imageSaveDir, imageName)
+  if (__BROWSER__) {
+    const ext = imageName.split('.').pop()!
+    const blobType = imageExtensionToMimeType[ext]
+    const image = new Uint8Array(readFileSync(imageSrc))
+    const blob = new Blob([image], { type: blobType })
+    imageSrc = URL.createObjectURL(blob)
+  }
+  return imageSrc
 }

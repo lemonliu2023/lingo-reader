@@ -1,11 +1,12 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
-import { beforeAll, describe, expect, it } from 'vitest'
+import process from 'node:process'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { ChapterImage } from '@svg-ebook-reader/shared'
 import { ContentType } from '@svg-ebook-reader/shared'
-import type { EpubFile } from '../src/epub.ts'
-import { initEpubFile } from '../src/epub.ts'
+import type { EpubFile } from '../src'
+import { initEpubFile } from '../src'
 
 describe('parse epubFile', async () => {
   // @ts-expect-error __BROWSER__ is for build process
@@ -164,6 +165,11 @@ describe('parse epubFile', async () => {
     expect(navList.navTargets.length).toBe(0)
   })
 
+  it('getToc', () => {
+    const toc = epub.getToc()
+    expect(toc.length).toBe(1)
+  })
+
   it('getChapter', async () => {
     const chapterContents = await epub.getChapter('item32')
     expect(chapterContents.title).toBe('The Project Gutenberg eBook of Alice\'s Adventures in Wonderland, by Lewis Carroll')
@@ -179,9 +185,15 @@ describe('parse epubFile', async () => {
     expect(imgElement.src.startsWith(`${epub.getContentBaseDir()}/`)).toBe(false)
   })
 
-  it('getToc', () => {
-    const toc = epub.getToc()
-    expect(toc.length).toBe(1)
+  it('getHTML', async () => {
+    const replacedHTMLStr = await epub.getHTML('item32')
+    const imageTags = replacedHTMLStr.match(/<img[^>]*>/g)
+    const srcs = imageTags?.map((imgTag) => {
+      const src = imgTag.match(/src="([^"]*)"/)!
+      return src[1]
+    })
+    const cwd = process.cwd()
+    expect(srcs?.every(src => src.startsWith(cwd))).toBe(true)
   })
 })
 
@@ -217,12 +229,27 @@ describe('parse epubFile in browser', async () => {
     epub = await initEpubFile('./example/alice.epub')
   })
 
-  it('image src should be a blob url in browser env', async () => {
+  afterAll(() => {
+    // @ts-expect-error simulate FileReader in browser
+    delete globalThis.FileReader
+  })
+
+  it('image src should be a blob url in browser env when epub.getChapter()', async () => {
     const chapter = await epub.getChapter('item32')
     chapter.contents
       .filter(content => content.type === ContentType.IMAGE)
       .forEach((content) => {
         expect(content.src.startsWith('blob:')).toBe(true)
       })
+  })
+
+  it('image src should be a blob url in browser env when epub.getHTML()', async () => {
+    const replacedHTMLStr = await epub.getHTML('item32')
+    const imageTags = replacedHTMLStr.match(/<img[^>]*>/g)
+    const srcs = imageTags?.map((imgTag) => {
+      const src = imgTag.match(/src="([^"]*)"/)!
+      return src[1]
+    })
+    expect(srcs?.every(src => src.startsWith('blob:'))).toBe(true)
   })
 })

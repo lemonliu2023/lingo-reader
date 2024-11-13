@@ -7,9 +7,7 @@ import type {
   HEADING,
   UlOrOlList,
 } from '@svg-ebook-reader/shared'
-import path from '@svg-ebook-reader/shared/path'
-import { imageExtensionToMimeType, parsexml } from './utils'
-import { readFileSync } from './fsImagePolyfill'
+import { parsexml, transformImageSrc } from './utils'
 
 // TODO: complete the process in one loop
 export function pureXmlContent(xmlContent: string) {
@@ -70,15 +68,7 @@ class Chapter {
   private extractImg(element: any) {
     const attrs = element.$
 
-    const imageName = attrs.src.split('/').pop()
-    let imageSrc = path.resolve(this.imageSaveDir, imageName)
-    if (__BROWSER__) {
-      const ext = imageName.split('.').pop()
-      const blobType = imageExtensionToMimeType[ext]
-      const image = new Uint8Array(readFileSync(imageSrc))
-      const blob = new Blob([image], { type: blobType })
-      imageSrc = URL.createObjectURL(blob)
-    }
+    const imageSrc = transformImageSrc(attrs.src, this.imageSaveDir)
 
     const imageContent: ChapterImage = {
       type: ContentType.IMAGE,

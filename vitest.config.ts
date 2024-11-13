@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { coverageConfigDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
@@ -11,6 +11,7 @@ export default defineConfig({
     include: ['./packages/**/test/*.test.ts'],
     coverage: {
       provider: 'v8',
+      exclude: ['ui', ...coverageConfigDefaults.exclude],
     },
     testTimeout: 15_000,
   },
