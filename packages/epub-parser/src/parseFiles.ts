@@ -292,7 +292,7 @@ export function parseManifest(
  * Parse the spine element in the .opf file and read the toc file path in <spine> tag
  * @param spineAST <spine> xml ast
  * @param manifest manifest parsed from <manifest> tag
- * @returns { { tocPath: string, spine: SpineItem[] } }
+ * @returns { { tocPath: string, spine: SpineItem[] } } spine
  */
 export function parseSpine(
   spineAST: Record<string, any>,

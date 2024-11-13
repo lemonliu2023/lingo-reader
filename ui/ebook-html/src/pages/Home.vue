@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import FileSelect from '../components/FileSelect.vue'
 import { useRouter } from 'vue-router'
+import { useBookStore } from '../store'
 const router = useRouter()
-const processFile = (file: File) => {
+const bookStore = useBookStore()
+
+const processFile = async (file: File) => {
+  bookStore.setBook(file)
   router.push('/book')
-  console.log(file)
 }
 
 </script>
