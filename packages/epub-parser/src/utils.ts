@@ -111,6 +111,7 @@ export const imageExtensionToMimeType: Record<string, string> = {
   avif: 'image/avif',
 }
 
+// TODO: provide an api for revoking blob url
 export function transformImageSrc(src: string, imageSaveDir: string): string {
   const imageName = src.split('/').pop()!
   let imageSrc = path.resolve(imageSaveDir, imageName)

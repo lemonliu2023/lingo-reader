@@ -1,37 +1,48 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, onUpdated, ref } from "vue"
+import { onBeforeMount, nextTick, onUnmounted, onUpdated, ref, useTemplateRef } from "vue"
 import { useBookStore } from "../store"
-import { initEpubFile } from "@svg-ebook-reader/epub-parser"
-import { html } from "../assets/html"
+import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
 import { useRouter } from "vue-router"
+import { useDebounce } from "../utils"
 const router = useRouter()
-
-// load book
 const bookStore = useBookStore()
 
-onMounted(async () => {
-  const book = bookStore.book as File
-  const epubFile = await initEpubFile(book)
-  const toc = epubFile.getToc()
-  console.log(toc)
-})
+// load book
+let epubFile: EpubFile | null = null
+const chapterNums = ref<number>(0)
+const chapterIndex = ref<number>(0)
+let toc: SpineItem[] = []
+const currentChapterHTML = ref<string>()
 
+const getChapterHTML = async (chapterIndex: number) => {
+  return await epubFile!.getHTML(toc[chapterIndex].id)
+}
+
+onBeforeMount(async () => {
+  const book = bookStore.book as File
+  epubFile = await initEpubFile(book)
+  toc = epubFile.getToc()
+  chapterNums.value = toc.length
+  currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+})
 onUnmounted(() => {
   bookStore.reset()
 })
+
 const back = () => {
   bookStore.reset()
   router.push('/')
 }
 
 // page
-const containerRef = ref<HTMLElement | null>(null)
-const articleTextRef = ref<HTMLElement | null>(null)
-const pageCount = ref<number>(0)
+const containerRef = useTemplateRef<HTMLElement>('containerRef')
+const articleTextRef = useTemplateRef<HTMLElement>('articleTextRef')
+const pageNums = ref<number>(0)
+const index = ref<number>(0)
 const columns = ref<number>(3)
 
 const pageWidth = ref<number>(0)
-const recaculate = () => {
+const recaculatePage = () => {
   // the element width obtained from `ele.clientWidth` is an integer, 
   //  it is obtained by rounding down the actual width. In this,
   //  we use `window.getComputedStyle()` to get the more accurate width. And
@@ -39,52 +50,56 @@ const recaculate = () => {
   pageWidth.value = Number.parseFloat(
     window.getComputedStyle(articleTextRef.value!).width
   ) || 0
-  pageCount.value = Math.ceil(
+  pageNums.value = Math.floor(
     (articleTextRef.value?.clientHeight! / containerRef.value?.clientHeight!) / columns.value
   )
 }
-window.addEventListener('resize', () => {
-  recaculate()
-})
-onMounted(() => {
-  recaculate()
-})
-onUpdated(() => {
-  recaculate()
-})
+
+const recaculate = useDebounce(() => {
+  recaculatePage()
+  recaculateTranslateX()
+}, 200)
+window.addEventListener('resize', recaculate)
+
+onUpdated(recaculate)
 
 const articleTranslateX = ref<number>(0)
 const fontSize = ref<number>(20)
-
-
-let index = 0
-const nextPage = () => {
-  if (index === pageCount.value) {
-    return
-  }
-  index++
-  articleTranslateX.value = -(pageWidth.value + fontSize.value) * index * columns.value
+const recaculateTranslateX = () => {
+  articleTranslateX.value = -(pageWidth.value + fontSize.value) * index.value * columns.value
 }
 
-const prevPage = () => {
-  if (index === 0) {
-    return
-  }
-  index--
-  articleTranslateX.value = -(pageWidth.value + fontSize.value) * index * columns.value
-}
-
-const useDebounce = (fn: Function, delay: number) => {
-  let timer: any = null
-  return (...args: any[]) => {
-    if (timer) {
-      clearTimeout(timer)
+// page index
+const nextPage = async () => {
+  if (index.value === pageNums.value) {
+    if (chapterIndex.value + 1 < chapterNums.value) {
+      chapterIndex.value++
+      index.value = 0
+      currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+      articleTranslateX.value = 0
     }
-    timer = setTimeout(() => {
-      fn(...args)
-    }, delay)
+  } else {
+    index.value++
+    recaculateTranslateX()
   }
 }
+
+const prevPage = async () => {
+  if (index.value === 0) {
+    if (chapterIndex.value - 1 >= 0) {
+      chapterIndex.value--
+      currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+      nextTick(() => {
+        index.value = Math.max(0, pageNums.value - 1)
+        recaculateTranslateX()
+      })
+    }
+  } else {
+    index.value--
+    recaculateTranslateX()
+  }
+}
+
 const nextWhenWheel = useDebounce(nextPage, 200)
 const prevWhenWheel = useDebounce(prevPage, 200)
 document.addEventListener('wheel', (e) => {
@@ -135,7 +150,7 @@ const handleMouseDown = () => {
 </script>
 
 <template>
-  <div :class="{'top0': isInfoDown, 'topN80': !isInfoDown}" class="top-info-bar">
+  <div :class="{ 'top0': isInfoDown, 'topN80': !isInfoDown }" class="top-info-bar">
     <div class="top-info-bar-left">
       <!-- back button -->
       <span @click="back"><img src="/leftArrow.svg" alt="leftArrow">返回</span>
@@ -143,10 +158,11 @@ const handleMouseDown = () => {
     <div class="top-info-bar-middle"></div>
     <div class="top-info-bar-right"></div>
   </div>
-  <div @mousedown="handleMouseDown" @click="infoDown" :style="{ fontSize: fontSize + 'px', columns: columns }" class="article-container" ref='containerRef'>
+  <div @mousedown="handleMouseDown" @click="infoDown" :style="{ fontSize: fontSize + 'px', columns: columns }"
+    class="article-container" ref='containerRef'>
     <!-- book text -->
-    <article v-if="html" :style="{ 'transform': `translateX(${articleTranslateX}px)` }" class="article-text"
-      ref="articleTextRef" v-html="html">
+    <article v-if="currentChapterHTML" :style="{ 'transform': `translateX(${articleTranslateX}px)` }"
+      class="article-text" ref="articleTextRef" v-html="currentChapterHTML">
     </article>
     <button @click.stop="nextPage" class="next-page-button">next page</button>
     <button @click.stop="prevPage" class="prev-page-button">prev page</button>
@@ -158,9 +174,11 @@ const handleMouseDown = () => {
 .top0 {
   top: 0;
 }
+
 .topN80 {
   top: -80px;
 }
+
 .top-info-bar {
   position: fixed;
   width: 100%;
@@ -171,16 +189,19 @@ const handleMouseDown = () => {
   display: flex;
   transition: top 0.2s;
 }
+
 .top-info-bar div {
   flex: 1;
   background-color: #f0f0f0;
 }
+
 .top-info-bar-left {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   padding-left: 20px;
 }
+
 .top-info-bar-left span {
   margin: 0 10px;
   padding: 5px 10px;
@@ -189,6 +210,7 @@ const handleMouseDown = () => {
   color: #666;
   cursor: pointer;
 }
+
 .top-info-bar-left img {
   display: block;
   width: 25px;
