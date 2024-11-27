@@ -3,7 +3,7 @@ import { onBeforeMount, nextTick, onUnmounted, onUpdated, ref, useTemplateRef } 
 import { useBookStore } from "../store"
 import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
 import { useRouter } from "vue-router"
-import { useDebounce } from "../utils"
+import { useDebounce, withPx } from "../utils"
 const router = useRouter()
 const bookStore = useBookStore()
 
@@ -18,22 +18,22 @@ const currentChapterHTML = ref<string>()
 const getChapterHTML = async (chapterIndex: number) => {
   return await epubFile!.getHTML(toc[chapterIndex].id)
 }
-// page
-const columns = ref<number>(2)
+// page props
+const columns = ref<number>(3)
 const fontSize = ref<number>(20)
-const letterSpacing = ref<number>(0)
+const letterSpacing = ref<number>(1)
 const paddingLeft = ref<number>(10)
 const paddingRight = ref<number>(10)
 const paddingTop = ref<number>(10)
 const paddingBottom = ref<number>(10)
 const lineHeight = ref<number>(2)
-const columnGap = ref<number>(10)
+const columnGap = ref<number>(fontSize.value)
 
 const containerRef = useTemplateRef<HTMLElement>('containerRef')
 const articleTextRef = useTemplateRef<HTMLElement>('articleTextRef')
-const pageNums = ref<number>(0)
+const maxPageIndex = ref<number>(0)
 const index = ref<number>(0)
-const pageWidth = ref<number>(0)
+const oneColumnWidth = ref<number>(0)
 const articleTranslateX = ref<number>(0)
 
 // load book
@@ -56,15 +56,20 @@ const recaculatePage = () => {
   //  it is obtained by rounding down the actual width. In this,
   //  we use `window.getComputedStyle()` to get the more accurate width. And
   //  if pursuing more precise values, we could use `ele.getBoundingClientRect()`
-  pageWidth.value = Number.parseFloat(
+  oneColumnWidth.value = Number.parseFloat(
     window.getComputedStyle(articleTextRef.value!).width
   ) || 0
-  pageNums.value = Math.floor(
-    (articleTextRef.value?.clientHeight! / containerRef.value?.clientHeight!) / columns.value
+  maxPageIndex.value = Math.floor(
+    (
+      articleTextRef.value?.clientHeight!
+      /
+      (containerRef.value?.clientHeight! - paddingTop.value - paddingBottom.value)
+    )
+    / columns.value
   )
 }
 const recaculateTranslateX = () => {
-  articleTranslateX.value = -(pageWidth.value + fontSize.value) * index.value * columns.value
+  articleTranslateX.value = -(oneColumnWidth.value + columnGap.value) * index.value * columns.value
 }
 const recaculate = () => {
   recaculatePage()
@@ -74,7 +79,7 @@ onUpdated(recaculate)
 window.addEventListener('resize', useDebounce(recaculate, 200))
 
 const nextPage = async () => {
-  if (index.value === pageNums.value) {
+  if (index.value >= maxPageIndex.value) {
     if (chapterIndex.value + 1 < chapterNums.value) {
       chapterIndex.value++
       currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
@@ -88,13 +93,13 @@ const nextPage = async () => {
   }
 }
 const prevPage = async () => {
-  if (index.value === 0) {
+  if (index.value <= 0) {
     if (chapterIndex.value - 1 >= 0) {
       chapterIndex.value--
       currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
       nextTick(() => {
         recaculatePage()
-        index.value = Math.max(0, pageNums.value)
+        index.value = Math.max(0, maxPageIndex.value)
         recaculateTranslateX()
       })
     }
@@ -163,8 +168,12 @@ const handleMouseDown = () => {
     <div class="top-info-bar-middle"></div>
     <div class="top-info-bar-right"></div>
   </div>
-  <div @mousedown="handleMouseDown" @click="infoDown" :style="{ fontSize: fontSize + 'px', columns: columns }"
-    class="article-container" ref='containerRef'>
+  <div class="article-container" ref='containerRef' @mousedown="handleMouseDown" @click="infoDown" :style="{
+    columns, lineHeight, fontSize: withPx(fontSize), columnGap: withPx(columnGap),
+    paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight),
+    paddingTop: withPx(paddingTop), paddingBottom: withPx(paddingBottom),
+    letterSpacing: withPx(letterSpacing)
+  }">
     <!-- book text -->
     <article ref="articleTextRef" v-if="currentChapterHTML" v-html="currentChapterHTML"
       :style="{ 'transform': `translateX(${articleTranslateX}px)` }" class="article-text">
@@ -229,8 +238,7 @@ const handleMouseDown = () => {
   height: 100vh;
   width: 100vw;
   /* column-fill: auto; */
-  padding: 10px;
-  line-height: 2;
+  /* padding: 10px; */
   font-family: 'Lucida Console', Courier, monospace;
   background-color: #f0f0f0;
   overflow: hidden;
@@ -244,7 +252,7 @@ const handleMouseDown = () => {
 }
 
 .article-text :deep(p) {
-  text-indent: 2em;
+  text-indent: 2rem;
 }
 
 .article-text :deep(li p) {
@@ -284,11 +292,11 @@ const handleMouseDown = () => {
 
 .article-text :deep(a) {
   word-wrap: break-word;
-  /* 允许长单词换行 */
+  /* Allow long words to wrap */
   white-space: normal;
-  /* 确保文本可以换行 */
+  /* Ensure that the text can wrap */
   /* word-break: break-all; */
-  /* 强制在单词之间换行 */
+  /* Force line breaks in words */
 }
 
 

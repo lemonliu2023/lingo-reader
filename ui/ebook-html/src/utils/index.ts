@@ -9,3 +9,7 @@ export function useDebounce(fn: Function, delay: number) {
     }, delay)
   }
 }
+
+export function withPx(value: number) {
+  return `${value}px`
+}
