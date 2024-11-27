@@ -1,0 +1,10 @@
+/* for book typesetting */
+
+p {
+  margin: 0;
+}
+
+*::selection {
+  background-color: #b4d5ea;
+}
+

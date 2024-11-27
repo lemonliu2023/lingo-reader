@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import './assets/global.css'
 import './assets/normalize.css'
 // for xml2js
 // import 'events'

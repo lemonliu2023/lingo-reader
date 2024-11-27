@@ -7,17 +7,36 @@ import { useDebounce } from "../utils"
 const router = useRouter()
 const bookStore = useBookStore()
 
-// load book
+/**
+ * column layout
+ */
 let epubFile: EpubFile | null = null
 const chapterNums = ref<number>(0)
 const chapterIndex = ref<number>(0)
 let toc: SpineItem[] = []
 const currentChapterHTML = ref<string>()
-
 const getChapterHTML = async (chapterIndex: number) => {
   return await epubFile!.getHTML(toc[chapterIndex].id)
 }
+// page
+const columns = ref<number>(2)
+const fontSize = ref<number>(20)
+const letterSpacing = ref<number>(0)
+const paddingLeft = ref<number>(10)
+const paddingRight = ref<number>(10)
+const paddingTop = ref<number>(10)
+const paddingBottom = ref<number>(10)
+const lineHeight = ref<number>(2)
+const columnGap = ref<number>(10)
 
+const containerRef = useTemplateRef<HTMLElement>('containerRef')
+const articleTextRef = useTemplateRef<HTMLElement>('articleTextRef')
+const pageNums = ref<number>(0)
+const index = ref<number>(0)
+const pageWidth = ref<number>(0)
+const articleTranslateX = ref<number>(0)
+
+// load book
 onBeforeMount(async () => {
   const book = bookStore.book as File
   epubFile = await initEpubFile(book)
@@ -28,21 +47,11 @@ onBeforeMount(async () => {
 onUnmounted(() => {
   bookStore.reset()
 })
-
-const back = () => {
-  bookStore.reset()
-  router.push('/')
-}
-
-// page
-const containerRef = useTemplateRef<HTMLElement>('containerRef')
-const articleTextRef = useTemplateRef<HTMLElement>('articleTextRef')
-const pageNums = ref<number>(0)
-const index = ref<number>(0)
-const columns = ref<number>(3)
-
-const pageWidth = ref<number>(0)
+// recalculate page width and height, index ...
 const recaculatePage = () => {
+  if (!articleTextRef.value) {
+    return
+  }
   // the element width obtained from `ele.clientWidth` is an integer, 
   //  it is obtained by rounding down the actual width. In this,
   //  we use `window.getComputedStyle()` to get the more accurate width. And
@@ -54,28 +63,23 @@ const recaculatePage = () => {
     (articleTextRef.value?.clientHeight! / containerRef.value?.clientHeight!) / columns.value
   )
 }
-
-const recaculate = useDebounce(() => {
-  recaculatePage()
-  recaculateTranslateX()
-}, 200)
-window.addEventListener('resize', recaculate)
-
-onUpdated(recaculate)
-
-const articleTranslateX = ref<number>(0)
-const fontSize = ref<number>(20)
 const recaculateTranslateX = () => {
   articleTranslateX.value = -(pageWidth.value + fontSize.value) * index.value * columns.value
 }
+const recaculate = () => {
+  recaculatePage()
+  recaculateTranslateX()
+}
+onUpdated(recaculate)
+window.addEventListener('resize', useDebounce(recaculate, 200))
 
-// page index
 const nextPage = async () => {
   if (index.value === pageNums.value) {
     if (chapterIndex.value + 1 < chapterNums.value) {
       chapterIndex.value++
-      index.value = 0
       currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+      recaculatePage()
+      index.value = 0
       articleTranslateX.value = 0
     }
   } else {
@@ -83,14 +87,14 @@ const nextPage = async () => {
     recaculateTranslateX()
   }
 }
-
 const prevPage = async () => {
   if (index.value === 0) {
     if (chapterIndex.value - 1 >= 0) {
       chapterIndex.value--
       currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
       nextTick(() => {
-        index.value = Math.max(0, pageNums.value - 1)
+        recaculatePage()
+        index.value = Math.max(0, pageNums.value)
         recaculateTranslateX()
       })
     }
@@ -99,29 +103,31 @@ const prevPage = async () => {
     recaculateTranslateX()
   }
 }
-
-const nextWhenWheel = useDebounce(nextPage, 200)
-const prevWhenWheel = useDebounce(prevPage, 200)
-document.addEventListener('wheel', (e) => {
+document.addEventListener('wheel', useDebounce((e: WheelEvent) => {
   isInfoDown.value = false
   if (e.deltaY > 0) {
-    nextWhenWheel()
+    nextPage()
   } else {
-    prevWhenWheel()
+    prevPage()
   }
-}, { passive: false })
-
-document.addEventListener('keydown', (e) => {
+}, 150), { passive: false })
+document.addEventListener('keydown', useDebounce((e: KeyboardEvent) => {
   isInfoDown.value = false
   if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
     nextPage()
   } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
     prevPage()
   }
-})
+}, 150))
 
-// info bar show or hide
+/**
+ * info bar show or hide
+ */
 const isInfoDown = ref<boolean>(false)
+const back = () => {
+  bookStore.reset()
+  router.push('/')
+}
 // when mouse click outside the selection, the infor bar will be clicked.
 //  but we don't want it to be clicked, so we need to prevent it when cancel
 //  the selection.
@@ -139,7 +145,6 @@ const infoDown = (e: Event) => {
     isInfoDown.value = !isInfoDown.value
   }
 }
-
 const handleMouseDown = () => {
   const selection = window.getSelection()!
   if (selection.toString().length > 0) {
@@ -161,8 +166,8 @@ const handleMouseDown = () => {
   <div @mousedown="handleMouseDown" @click="infoDown" :style="{ fontSize: fontSize + 'px', columns: columns }"
     class="article-container" ref='containerRef'>
     <!-- book text -->
-    <article v-if="currentChapterHTML" :style="{ 'transform': `translateX(${articleTranslateX}px)` }"
-      class="article-text" ref="articleTextRef" v-html="currentChapterHTML">
+    <article ref="articleTextRef" v-if="currentChapterHTML" v-html="currentChapterHTML"
+      :style="{ 'transform': `translateX(${articleTranslateX}px)` }" class="article-text">
     </article>
     <button @click.stop="nextPage" class="next-page-button">next page</button>
     <button @click.stop="prevPage" class="prev-page-button">prev page</button>
@@ -223,13 +228,9 @@ const handleMouseDown = () => {
   box-sizing: border-box;
   height: 100vh;
   width: 100vw;
-  /* columns: 2; */
-  /* column-gap: 10%; */
+  /* column-fill: auto; */
   padding: 10px;
-  /* padding-bottom: 20px; */
-  /* font-size: 20px; */
   line-height: 2;
-  text-indent: 2em;
   font-family: 'Lucida Console', Courier, monospace;
   background-color: #f0f0f0;
   overflow: hidden;
@@ -239,7 +240,57 @@ const handleMouseDown = () => {
 .article-text {
   display: block;
   box-sizing: border-box;
+  letter-spacing: 1px;
 }
+
+.article-text :deep(p) {
+  text-indent: 2em;
+}
+
+.article-text :deep(li p) {
+  text-indent: 0;
+}
+
+.article-text :deep(figure p) {
+  text-indent: 0;
+}
+
+.article-text :deep(figure) {
+  text-align: center;
+}
+
+.article-text :deep(img) {
+  display: block;
+  margin: auto;
+  /* make img fit to its parent */
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.article-text :deep(pre) {
+  background-color: turquoise;
+}
+
+/* allow text in code to wrap */
+.article-text :deep(code) {
+  white-space: pre-wrap;
+  /* Keep whitespace, but allow auto wrap */
+  word-wrap: break-word;
+  /* Wrap lines at long words (old standard) */
+  word-break: break-word;
+  /* Handling line breaks for long words (better compatibility) */
+}
+
+.article-text :deep(a) {
+  word-wrap: break-word;
+  /* 允许长单词换行 */
+  white-space: normal;
+  /* 确保文本可以换行 */
+  /* word-break: break-all; */
+  /* 强制在单词之间换行 */
+}
+
 
 /* prev and next page button */
 .next-page-button,
