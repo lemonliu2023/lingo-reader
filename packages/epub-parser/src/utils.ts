@@ -57,7 +57,7 @@ export class ZipFile {
       }
       else {
         new JSZip()
-          .loadAsync(fs.readFileSync(file as string))
+          .loadAsync(new Uint8Array(fs.readFileSync(<string>file)))
           .then((zipFile) => {
             resolve(zipFile)
           })
