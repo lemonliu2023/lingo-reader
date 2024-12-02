@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import FileSelect from '../components/FileSelect/FileSelect.vue'
+import FileSelect from '../../components/FileSelect/FileSelect.vue'
 import { useRouter } from 'vue-router'
-import { useBookStore } from '../store'
+import { useBookStore } from '../../store'
 const router = useRouter()
 const bookStore = useBookStore()
 

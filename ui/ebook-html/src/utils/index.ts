@@ -18,7 +18,6 @@ export function useThrottle(fn: Function, delay: number) {
     if (!timer) {
       fn(...args)
       timer = setTimeout(() => {
-        fn(...args)
         timer = null
       }, delay)
     }

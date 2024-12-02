@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import { useBookStore } from "../store"
+import { ref, defineAsyncComponent } from "vue"
+import { useBookStore } from "../../store"
 import { useRouter } from "vue-router"
-import ColumnReader from "../components/Readers/ColumnReader/ColumnReader.vue"
-import ScrollReader from "../components/Readers/ScrollReader/ScrollReader.vue"
 import { ReaderType } from "./Book"
+
+const ColumnReader = defineAsyncComponent(
+  () => import('../../components/Readers/ColumnReader/ColumnReader.vue')
+)
+const ScrollReader = defineAsyncComponent(
+  () => import('../../components/Readers/ScrollReader/ScrollReader.vue')
+)
+const ScrollWithNote = defineAsyncComponent(
+  () => import('../../components/Readers/ScrollWithNote/ScrollWithNote.vue')
+)
+
 const router = useRouter()
 const bookStore = useBookStore()
 
@@ -46,7 +55,7 @@ const infoBarDown = () => {
 /**
  * reader switch
  */
-const showReader = ref<string>(ReaderType.SCROLL)
+const showReader = ref<string>(ReaderType.SCROLL_WITH_NOTE)
 const chapterIndex = ref<number>(4)
 
 </script>
@@ -64,6 +73,7 @@ const chapterIndex = ref<number>(4)
     <ColumnReader v-if="showReader === ReaderType.COLUMN" v-model:chapter-index="chapterIndex" @info-down="infoBarDown">
     </ColumnReader>
     <ScrollReader v-else-if="showReader === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
+    <ScrollWithNote v-else-if="showReader === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown"></ScrollWithNote>
   </div>
 </template>
 

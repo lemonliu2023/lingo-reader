@@ -77,11 +77,12 @@ const barDrag = (type: string, e: MouseEvent) => {
   originPaddingRight = paddingRight.value
   dragType = type
   shouldSelect.value = false
-  document.addEventListener('mousemove', leftOnMouseMove);
-  document.addEventListener('mouseup', leftOnMouseUp);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
 }
 
-const leftOnMouseMove = (e: MouseEvent) => {
+const onMouseMove = (e: MouseEvent) => {
+  if (!isDragging) return
   const delta = e.clientX - startX
   if (dragType === 'left') {
     paddingLeft.value = startX + delta
@@ -90,11 +91,11 @@ const leftOnMouseMove = (e: MouseEvent) => {
   }
 }
 
-const leftOnMouseUp = () => {
+const onMouseUp = () => {
   isDragging = false
   shouldSelect.value = true
-  document.removeEventListener('mousemove', leftOnMouseMove);
-  document.removeEventListener('mouseup', leftOnMouseUp);
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
 }
 
 
@@ -128,7 +129,6 @@ const leftOnMouseUp = () => {
   box-sizing: border-box;
   font-family: 'Lucida Console', Courier, monospace;
   background-color: #f0f0f0;
-  position: relative;
   padding-left: 300px;
   padding-right: 300px;
 }
