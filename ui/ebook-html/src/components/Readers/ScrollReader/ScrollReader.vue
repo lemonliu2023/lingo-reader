@@ -39,6 +39,22 @@ onBeforeMount(async () => {
   currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
 })
 
+/**
+ * chapter turning
+ */
+const prevChapter = async () => {
+  if (chapterIndex.value > 0) {
+    chapterIndex.value--
+    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  }
+}
+const nextChapter = async () => {
+  if (chapterIndex.value < chapterNums.value - 1) {
+    chapterIndex.value++
+    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  }
+}
+
 const containerRef = useTemplateRef('containerRef')
 const articleTextRef = useTemplateRef('articleTextRef')
 
@@ -87,6 +103,8 @@ const leftOnMouseUp = () => {
 <template>
   <div :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }" class="article-container"
     ref='containerRef'>
+    <button @click.stop="prevChapter" :style="{ left: withPx(paddingLeft + 10) }" class="button">prev chapter</button>
+    <button @click.stop="nextChapter" :style="{ right: withPx(paddingRight + 10) }" class="button">next chapter</button>
     <!-- book text -->
     <div @click.stop @mousedown="(e) => barDrag('left', e)" class="bar"></div>
     <article :style="{ lineHeight, fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
@@ -113,6 +131,21 @@ const leftOnMouseUp = () => {
   position: relative;
   padding-left: 300px;
   padding-right: 300px;
+}
+
+.article-container button {
+  position: fixed;
+  top: 10px;
+  margin: 5px;
+  padding: 5px;
+  background-color: #f0f0f0;
+  border: 1px solid #000;
+  border-radius: 5px;
+  opacity: 0;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .bar {
