@@ -285,16 +285,6 @@ export class EpubFile {
     return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
   }
 
-  // /**
-  //  * Get chapter token array after processing with parseChapter func
-  //  * @param { string } id the manifest item id of the chapter
-  //  * @returns { Promise<ChapterOutput> } see shared/src/index.ts for details
-  //  */
-  // public async getChapter(id: string): Promise<ChapterOutput> {
-  //   const xmlHref = this.manifest[id].href
-  //   return parseChapter(await this.zip.readFile(xmlHref), this.imageSaveDir)
-  // }
-
   /**
    * replace <img> src absolute path or blob url
    * @param id the manifest item id of the chapter
