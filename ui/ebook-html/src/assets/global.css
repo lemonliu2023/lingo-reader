@@ -8,3 +8,11 @@ p {
   background-color: #b4d5ea;
 }
 
+.button {
+  padding: 5px;
+  font: normal 16px Lucida Console;
+  background-color: #f0f0f0;
+  border: 1px solid #000;
+  border-radius: 5px;
+}
+

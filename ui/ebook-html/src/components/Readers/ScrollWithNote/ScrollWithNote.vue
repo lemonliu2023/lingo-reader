@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, defineEmits, onBeforeMount } from 'vue'
+import { ref, defineEmits, onBeforeMount } from 'vue'
 import { useBookStore } from '../../../store'
 import { initEpubFile, } from '@svg-ebook-reader/epub-parser'
 import type { EpubFile, SpineItem } from '@svg-ebook-reader/epub-parser'
@@ -41,6 +41,20 @@ onBeforeMount(async () => {
   chapterNums.value = toc.length
   currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
 })
+
+const prevChapter = async () => {
+  if (chapterIndex.value > 0) {
+    chapterIndex.value--
+    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  }
+}
+
+const nextChapter = async () => {
+  if (chapterIndex.value < chapterNums.value - 1) {
+    chapterIndex.value++
+    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  }
+}
 
 /**
  * textarea blur
@@ -94,7 +108,6 @@ const onMouseMove = (e: MouseEvent) => {
     noteBasis.value = orginNoteBasis + delta * 2
     articleBasis.value = originArticleBasis - delta * 2
   }
-  console.log(noteBasis.value, articleBasis.value)
 }
 const onMouseUp = () => {
   isDragging = false
@@ -107,17 +120,20 @@ const onMouseUp = () => {
 
 <template>
   <button @click.stop="swap" class="swap-button">swap</button>
-  <div :style="{ fontSize: withPx(fontSize), lineHeight: lineHeight, letterSpacing: withPx(letterSpacing) }"
+  <div :style="{ fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
     :class="{ 'flex-row-reverse': isReverse }" @click="(e) => containerClick(e)" class="article-container"
     ref='containerRef'>
     <div :style="{ flexBasis: withPx(noteBasis) }" class="note">
       <textarea @blur="noteBlur" @focus="noteFocus" @click.stop name="note"></textarea>
     </div>
     <div @click.stop @mousedown="(e) => resize(e)" class="resizer"></div>
-    <article :style="{ flexBasis: withPx(articleBasis), padding: withPx(textPadding) }"
-      :class="{ 'user-select-none': !shouldSelectText }" class="article-text" ref="articleTextRef"
-      v-html="currentChapterHTML">
-    </article>
+    <div :style="{ lineHeight, flexBasis: withPx(articleBasis), padding: withPx(textPadding) }"
+      :class="{ 'user-select-none': !shouldSelectText }" class="article-wrap">
+      <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
+      <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
+      <article class="article-text" ref="articleTextRef" v-html="currentChapterHTML">
+      </article>
+    </div>
   </div>
 </template>
 
@@ -138,7 +154,7 @@ const onMouseUp = () => {
   border: 1px solid #000;
   border-radius: 5px;
   opacity: 0.1;
-  top: 10px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
 
@@ -180,13 +196,32 @@ const onMouseUp = () => {
   cursor: e-resize;
 }
 
-.article-text {
+.article-wrap {
   display: block;
   box-sizing: border-box;
-  height: 100vh;
+  min-height: 100vh;
+  min-width: 140px;
   flex: 1 1;
   overflow-y: scroll;
-  min-width: 140px;
+}
+
+.prev-chapter {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  opacity: 0.1;
+}
+
+.next-chapter {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  opacity: 0.1;
+}
+
+.prev-chapter:hover,
+.next-chapter:hover {
+  opacity: 1;
 }
 
 .article-text :deep(img) {
