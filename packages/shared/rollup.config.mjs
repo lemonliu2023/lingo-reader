@@ -16,7 +16,7 @@ function replace(opts) {
   })
 }
 
-const external = ['path-browserify']
+const external = ['path-browserify', 'xml2js']
 
 function commonjsAndEsmConfig(input, output) {
   return {
@@ -92,12 +92,4 @@ export default [
   }),
   browserConfig('./src/index.ts', './dist/index.browser.mjs'),
   dtsConfig('./src/index.ts', './dist/index.d.ts'),
-
-  // path.ts
-  commonjsAndEsmConfig('./src/path.ts', {
-    cjs: './dist/path/path.js',
-    esm: './dist/path/path.mjs',
-  }),
-  browserConfig('./src/path.ts', './dist/path/path.browser.mjs'),
-  dtsConfig('./src/path.ts', './dist/path/path.d.ts'),
 ]

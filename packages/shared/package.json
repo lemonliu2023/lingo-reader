@@ -12,12 +12,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
-    },
-    "./path": {
-      "browser": "./dist/path/path.browser.mjs",
-      "types": "./dist/path/path.d.ts",
-      "import": "./dist/path/path.mjs",
-      "require": "./dist/path/path.js"
     }
   },
   "main": "./dist/index.js",
@@ -28,9 +22,11 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "path-browserify": "^1.0.1"
+    "path-browserify": "^1.0.1",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "@types/path-browserify": "^1.0.3"
+    "@types/path-browserify": "^1.0.3",
+    "@types/xml2js": "^0.4.14"
   }
 }

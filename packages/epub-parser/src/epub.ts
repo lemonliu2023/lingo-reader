@@ -1,8 +1,8 @@
 import process from 'node:process'
-import path from '@svg-ebook-reader/shared/path'
+import { parsexml, path } from '@svg-ebook-reader/shared'
 import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { existsSync, mkdirSync, writeFileSync } from './fsImagePolyfill'
-import { type ZipFile, createZipFile, parsexml } from './utils'
+import { type ZipFile, createZipFile } from './utils'
 import type {
   CollectionItem,
   GuideReference,

@@ -1,7 +1,7 @@
 import pathNode from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import pathBrowser from 'path-browserify'
-import path from '../src/path'
+import { path } from '../src'
 
 describe('path in browser', () => {
   beforeAll(() => {

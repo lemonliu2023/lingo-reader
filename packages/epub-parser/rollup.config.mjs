@@ -17,7 +17,7 @@ function replace(opts) {
   })
 }
 
-const external = ['@svg-ebook-reader/shared', 'jszip', 'xml2js', '@svg-ebook-reader/shared/path']
+const external = ['@svg-ebook-reader/shared', 'jszip', 'xml2js']
 
 function nodeConfig(input, output) {
   return {

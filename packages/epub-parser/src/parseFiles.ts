@@ -1,4 +1,4 @@
-import path from '@svg-ebook-reader/shared/path'
+import { path } from '@svg-ebook-reader/shared'
 import type {
   CollectionItem,
   Contributor,

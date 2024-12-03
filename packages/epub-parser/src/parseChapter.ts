@@ -1,4 +1,4 @@
-import { ContentType } from '@svg-ebook-reader/shared'
+import { ContentType, parsexml } from '@svg-ebook-reader/shared'
 import type {
   ChapterImage,
   ChapterOutput,
@@ -7,7 +7,7 @@ import type {
   HEADING,
   UlOrOlList,
 } from '@svg-ebook-reader/shared'
-import { parsexml, transformImageSrc } from './utils'
+import { transformImageSrc } from './utils'
 
 // TODO: complete the process in one loop
 export function pureXmlContent(xmlContent: string) {

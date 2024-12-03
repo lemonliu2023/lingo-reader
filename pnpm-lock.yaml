@@ -62,16 +62,10 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
-      xml2js:
-        specifier: ^0.6.2
-        version: 0.6.2
     devDependencies:
       '@types/node':
         specifier: ^20.14.8
         version: 20.14.8
-      '@types/xml2js':
-        specifier: ^0.4.14
-        version: 0.4.14
 
   packages/reader:
     dependencies:
@@ -97,10 +91,16 @@ importers:
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
+      xml2js:
+        specifier: ^0.6.2
+        version: 0.6.2
     devDependencies:
       '@types/path-browserify':
         specifier: ^1.0.3
         version: 1.0.3
+      '@types/xml2js':
+        specifier: ^0.4.14
+        version: 0.4.14
 
   packages/svg-render:
     dependencies:

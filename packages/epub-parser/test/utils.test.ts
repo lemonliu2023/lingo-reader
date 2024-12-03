@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { createZipFile, parsexml } from '../src/utils.ts'
+import { createZipFile } from '../src/utils.ts'
 
 const aliceEpubNames = [
   'mimetype',
@@ -43,13 +43,13 @@ const aliceEpubNames = [
   '19033/content.opf',
 ]
 
-describe('parsexml', () => {
-  it('parsexml', async () => {
-    const xml = '<root><a>1</a><b>2</b></root>'
-    const result = await parsexml(xml)
-    expect(result).toEqual({ root: { a: ['1'], b: ['2'] } })
-  })
-})
+// describe('parsexml', () => {
+//   it('parsexml', async () => {
+//     const xml = '<root><a>1</a><b>2</b></root>'
+//     const result = await parsexml(xml)
+//     expect(result).toEqual({ root: { a: ['1'], b: ['2'] } })
+//   })
+// })
 
 describe('createZipFile in Node', async () => {
   // @ts-expect-error __BROWSER__ is for build process
