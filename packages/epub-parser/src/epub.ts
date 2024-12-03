@@ -227,12 +227,10 @@ export class EpubFile {
             if (manifestItem.mediaType.startsWith('image')) {
               const imageName: string = manifestItem.href.split('/').pop()!
               const imagePath = path.resolve(this.imageSaveDir, imageName)
-              if (!existsSync(imagePath)) {
-                writeFileSync(
-                  imagePath,
-                  await this.zip.readImage(manifestItem.href),
-                )
-              }
+              writeFileSync(
+                imagePath,
+                await this.zip.readImage(manifestItem.href),
+              )
             }
           }
           break
