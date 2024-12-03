@@ -48,9 +48,9 @@ export class EpubFile {
   /**
    * epub file name without extension
    */
-  private fileNameWithoutExt: string = ''
+  private fileName: string = ''
   public getFileName(): string {
-    return this.fileNameWithoutExt
+    return this.fileName
   }
 
   /**
@@ -168,9 +168,12 @@ export class EpubFile {
     return this.navList
   }
 
-  constructor(private epubPath: string | File, imageRoot: string = './images') {
-    if (typeof epubPath === 'string') {
-      this.fileNameWithoutExt = path.basename(epubPath, path.extname(epubPath))
+  constructor(private epub: string | File, imageRoot: string = './images') {
+    if (typeof epub === 'string') {
+      this.fileName = path.basename(epub)
+    }
+    else {
+      this.fileName = epub.name
     }
     // imageSaveDir must be an absolute path
     this.imageSaveDir = path.resolve(process.cwd(), imageRoot)
@@ -180,7 +183,7 @@ export class EpubFile {
   }
 
   async loadEpub(): Promise<void> {
-    this.zip = await createZipFile(this.epubPath)
+    this.zip = await createZipFile(this.epub)
   }
 
   public async parse(): Promise<void> {
