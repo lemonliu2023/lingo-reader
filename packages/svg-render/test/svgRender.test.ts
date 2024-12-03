@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { ContentType } from '@svg-ebook-reader/shared'
+import { ContentType } from '../src'
 import { SvgRender } from '../src/svgRender'
 
 // @ts-expect-error __BROWSER__ is defined in rollup options

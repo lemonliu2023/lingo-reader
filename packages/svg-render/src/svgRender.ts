@@ -1,5 +1,5 @@
-import type { Content, UlOrOlList } from '@svg-ebook-reader/shared'
-import { ContentType } from '@svg-ebook-reader/shared'
+import type { Content, UlOrOlList } from './parser/parserTypes'
+import { ContentType } from './parser/parserTypes'
 import { measureFont } from './measureFont'
 import type { Page, ParagraphOptions, SvgRenderOptions } from './types'
 import {

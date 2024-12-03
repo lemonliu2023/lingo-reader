@@ -1,6 +1,5 @@
 import process from 'node:process'
 import { parsexml, path } from '@svg-ebook-reader/shared'
-import type { ChapterOutput } from '@svg-ebook-reader/shared'
 import { existsSync, mkdirSync, writeFileSync } from './fsImagePolyfill'
 import { type ZipFile, createZipFile } from './utils'
 import type {
@@ -25,7 +24,6 @@ import {
   parsePageList,
   parseSpine,
 } from './parseFiles'
-import { parseChapter } from './parseChapter'
 import { transformHTML } from './transformHTML'
 /*
   TODO: parse links in meta-inf/container.xml
@@ -287,15 +285,15 @@ export class EpubFile {
     return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
   }
 
-  /**
-   * Get chapter token array after processing with parseChapter func
-   * @param { string } id the manifest item id of the chapter
-   * @returns { Promise<ChapterOutput> } see shared/src/index.ts for details
-   */
-  public async getChapter(id: string): Promise<ChapterOutput> {
-    const xmlHref = this.manifest[id].href
-    return parseChapter(await this.zip.readFile(xmlHref), this.imageSaveDir)
-  }
+  // /**
+  //  * Get chapter token array after processing with parseChapter func
+  //  * @param { string } id the manifest item id of the chapter
+  //  * @returns { Promise<ChapterOutput> } see shared/src/index.ts for details
+  //  */
+  // public async getChapter(id: string): Promise<ChapterOutput> {
+  //   const xmlHref = this.manifest[id].href
+  //   return parseChapter(await this.zip.readFile(xmlHref), this.imageSaveDir)
+  // }
 
   /**
    * replace <img> src absolute path or blob url

@@ -1,4 +1,5 @@
-import { ContentType, parsexml } from '@svg-ebook-reader/shared'
+import { parsexml } from '@svg-ebook-reader/shared'
+import { ContentType } from './parserTypes'
 import type {
   ChapterImage,
   ChapterOutput,
@@ -6,8 +7,7 @@ import type {
   Content,
   HEADING,
   UlOrOlList,
-} from '@svg-ebook-reader/shared'
-import { transformImageSrc } from './utils'
+} from './parserTypes'
 
 // TODO: complete the process in one loop
 export function pureXmlContent(xmlContent: string) {
@@ -32,14 +32,14 @@ export function pureXmlContent(xmlContent: string) {
   return xmlContent
 }
 
-export async function parseChapter(xmlStr: string, imageSaveDir: string): Promise<ChapterOutput> {
+export async function parseChapter(xmlStr: string): Promise<ChapterOutput> {
   const xmlContent = pureXmlContent(xmlStr)
   const xmlTree = await parsexml(xmlContent, {
     preserveChildrenOrder: true,
     explicitChildren: true,
     childkey: 'children',
   })
-  const chapterContent = new Chapter(xmlTree, imageSaveDir)
+  const chapterContent = new Chapter(xmlTree)
   return chapterContent.getContents()
 }
 
@@ -51,7 +51,7 @@ export async function parseChapter(xmlStr: string, imageSaveDir: string): Promis
 class Chapter {
   private contents: Content[] = []
   private title: string = 'temp'
-  constructor(public xmlTree: any, public imageSaveDir: string) { }
+  constructor(public xmlTree: any) { }
 
   // export
   public getContents(): ChapterOutput {
@@ -68,11 +68,9 @@ class Chapter {
   private extractImg(element: any) {
     const attrs = element.$
 
-    const imageSrc = transformImageSrc(attrs.src, this.imageSaveDir)
-
     const imageContent: ChapterImage = {
       type: ContentType.IMAGE,
-      src: imageSrc,
+      src: attrs.src,
       alt: attrs.alt || '',
     }
     if (attrs.width) {

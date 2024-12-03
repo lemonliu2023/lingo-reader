@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineEmits, onBeforeMount } from 'vue'
+import { ref, onBeforeMount } from 'vue'
 import { useBookStore } from '../../../store'
 import { initEpubFile, } from '@svg-ebook-reader/epub-parser'
 import type { EpubFile, SpineItem } from '@svg-ebook-reader/epub-parser'

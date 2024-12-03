@@ -1,19 +1,7 @@
 import fs from 'node:fs'
-// import xml2js from 'xml2js'
 import JSZip from 'jszip'
 import { path } from '@svg-ebook-reader/shared'
-// import type { ParserOptions } from 'xml2js'
 import { readFileSync } from './fsImagePolyfill'
-
-// export async function parsexml(str: string, optionsParserOptions: ParserOptions = {}) {
-//   try {
-//     const result = await xml2js.parseStringPromise(str, optionsParserOptions)
-//     return result
-//   }
-//   catch (err) {
-//     console.error(err)
-//   }
-// }
 
 export async function createZipFile(filePath: string | File) {
   const zip = new ZipFile(filePath)

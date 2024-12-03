@@ -43,14 +43,6 @@ const aliceEpubNames = [
   '19033/content.opf',
 ]
 
-// describe('parsexml', () => {
-//   it('parsexml', async () => {
-//     const xml = '<root><a>1</a><b>2</b></root>'
-//     const result = await parsexml(xml)
-//     expect(result).toEqual({ root: { a: ['1'], b: ['2'] } })
-//   })
-// })
-
 describe('createZipFile in Node', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false

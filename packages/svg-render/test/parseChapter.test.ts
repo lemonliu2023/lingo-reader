@@ -1,9 +1,15 @@
 import { readFileSync } from 'node:fs'
-import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import type { ChapterCodeBlock, ChapterImage, ChapterOL, ChapterParagraph, ChapterTable, ChapterUL } from '@svg-ebook-reader/shared'
-import { ContentType } from '@svg-ebook-reader/shared'
-import { parseChapter, pureXmlContent } from '../src/parseChapter'
+import type {
+  ChapterCodeBlock,
+  ChapterImage,
+  ChapterOL,
+  ChapterParagraph,
+  ChapterTable,
+  ChapterUL,
+} from '../src'
+import { ContentType, parseChapter } from '../src'
+import { pureXmlContent } from '../src/parser/parseChapter'
 
 describe('pureXmlContent', () => {
   it('useless tag', () => {
@@ -48,8 +54,7 @@ describe('parseChapter normal', async () => {
 
   const normalPath = new URL('./html/normal.html', import.meta.url)
   const normalHtml = readFileSync(normalPath, 'utf-8')
-  const imageDir = path.resolve('./images')
-  const { title, contents } = await parseChapter(normalHtml, imageDir)
+  const { title, contents } = await parseChapter(normalHtml)
 
   it('normal.html', () => {
     expect(contents.length).toBe(19)
@@ -81,13 +86,13 @@ describe('parseChapter normal', async () => {
 
     expect(contents[8]).toEqual({
       type: ContentType.IMAGE,
-      src: path.resolve(imageDir, 'cover.jpg'),
+      src: '../images/cover.jpg',
       alt: 'Cover Image',
     })
 
     expect(contents[9]).toEqual({
       type: ContentType.IMAGE,
-      src: path.resolve(imageDir, 'f0058-01.jpg'),
+      src: 'graphics/f0058-01.jpg',
       alt: 'Images',
       width: 777,
       height: 48,
@@ -95,13 +100,13 @@ describe('parseChapter normal', async () => {
 
     expect(contents[10]).toEqual({
       type: ContentType.IMAGE,
-      src: path.resolve(imageDir, 'cover.jpg'),
+      src: '../images/cover.jpg',
       alt: 'Cover Image',
     })
 
     expect(contents[13]).toEqual({
       type: ContentType.IMAGE,
-      src: path.resolve(imageDir, 'pg400-01.jpg'),
+      src: 'graphics/pg400-01.jpg',
       alt: 'images',
       width: 1149,
       height: 1461,
@@ -125,8 +130,7 @@ describe('parseChapter ulAndTable', async () => {
 
   const ulPath = new URL('./html/ulAndTable.html', import.meta.url)
   const ulHtml = readFileSync(ulPath, 'utf-8')
-  const imageDir = path.resolve('./images')
-  const { contents: ChapterContent } = await parseChapter(ulHtml, imageDir)
+  const { contents: ChapterContent } = await parseChapter(ulHtml)
   it('table', () => {
     expect(ChapterContent.length).toBe(4)
     expect(ChapterContent[0].type).toBe(ContentType.UL)
@@ -156,7 +160,7 @@ describe('parseChapter ulAndTable', async () => {
 
     const firstLi = firstUl.list[0] as ChapterImage
     expect(firstLi.type).toBe(ContentType.IMAGE)
-    expect(firstLi.src).toBe(path.resolve(imageDir, 'ask_a_question.jpg'))
+    expect(firstLi.src).toBe('graphics/ask_a_question.jpg')
     expect(firstLi.caption).toBe('Ask a question: https://forum.kirupa.com')
     expect(firstLi.width).toBe(25)
     expect(firstLi.height).toBe(40)
