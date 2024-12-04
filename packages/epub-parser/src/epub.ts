@@ -24,7 +24,7 @@ import {
   parsePageList,
   parseSpine,
 } from './parseFiles'
-import { transformHTML } from './transformHTML'
+import { revokeImageUrls, transformHTML } from './transformHTML'
 /*
   TODO: parse links in meta-inf/container.xml
 */
@@ -294,5 +294,9 @@ export class EpubFile {
   public async getHTML(id: string): Promise<string> {
     const xmlHref = this.manifest[id].href
     return transformHTML(await this.zip.readFile(xmlHref), this.imageSaveDir)
+  }
+
+  public revokeImageUrls(): string[] {
+    return revokeImageUrls()
   }
 }

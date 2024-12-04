@@ -3,7 +3,8 @@ import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import process from 'node:process'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { EpubFile, initEpubFile } from '../src/epub'
+import { initEpubFile } from '../src'
+import { EpubFile } from '../src/epub'
 
 describe('parse epubFile', async () => {
   // @ts-expect-error __BROWSER__ is for build process
@@ -177,6 +178,11 @@ describe('parse epubFile', async () => {
     const cwd = process.cwd()
     expect(srcs?.every(src => src.startsWith(cwd))).toBe(true)
   })
+
+  it('revoke image urls', () => {
+    const urls = epub.revokeImageUrls()
+    expect(urls.length).toBe(28)
+  })
 })
 
 describe('parse epubFile in browser', async () => {
@@ -236,5 +242,10 @@ describe('parse epubFile in browser', async () => {
     const file = new FileSimulated(fileName)
     const epub = new EpubFile(file as unknown as File)
     expect(epub.getFileName()).toBe(fileName)
+  })
+
+  it('revoke image urls', () => {
+    const urls = epub.revokeImageUrls()
+    expect(urls.length).toBe(28)
   })
 })

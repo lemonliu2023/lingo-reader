@@ -1,7 +1,5 @@
 import fs from 'node:fs'
 import JSZip from 'jszip'
-import { path } from '@svg-ebook-reader/shared'
-import { readFileSync } from './fsImagePolyfill'
 
 export async function createZipFile(filePath: string | File) {
   const zip = new ZipFile(filePath)
@@ -82,33 +80,4 @@ export class ZipFile {
 
 export function camelCase(str: string): string {
   return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
-}
-
-export const imageExtensionToMimeType: Record<string, string> = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  gif: 'image/gif',
-  webp: 'image/webp',
-  svg: 'image/svg+xml',
-  bmp: 'image/bmp',
-  ico: 'image/x-icon',
-  tiff: 'image/tiff',
-  tif: 'image/tiff',
-  heic: 'image/heic',
-  avif: 'image/avif',
-}
-
-// TODO: provide an api for revoking blob url
-export function transformImageSrc(src: string, imageSaveDir: string): string {
-  const imageName = src.split('/').pop()!
-  let imageSrc = path.resolve(imageSaveDir, imageName)
-  if (__BROWSER__) {
-    const ext = imageName.split('.').pop()!
-    const blobType = imageExtensionToMimeType[ext]
-    const image = new Uint8Array(readFileSync(imageSrc))
-    const blob = new Blob([image], { type: blobType })
-    imageSrc = URL.createObjectURL(blob)
-  }
-  return imageSrc
 }
