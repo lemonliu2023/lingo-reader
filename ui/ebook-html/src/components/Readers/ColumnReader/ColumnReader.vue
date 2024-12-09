@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, nextTick, onUnmounted, onUpdated, ref, useTemplateRef, toRef, watch } from "vue"
+import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted } from "vue"
 import { useBookStore } from "../../../store"
 import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
 import { useDebounce, withPx } from "../../../utils"
@@ -17,10 +17,11 @@ const currentChapterHTML = ref<string>()
 const getChapterHTML = async (chapterIndex: number) => {
   return await epubFile!.getHTML(toc[chapterIndex].id)
 }
-const chapterIndex = defineModel('chapterIndex', {
-  default: 0,
-  type: Number
-})
+const chapterIndex = ref<number>(0)
+// const chapterIndex = defineModel('chapterIndex', {
+//   default: 0,
+//   type: Number
+// })
 // watch(chapterIndex, async (newIndex) => {
 //   currentChapterHTML.value = await getChapterHTML(newIndex)
 // })
@@ -49,7 +50,7 @@ const oneColumnWidth = ref<number>(0)
 const articleTranslateX = ref<number>(0)
 
 // load book
-onBeforeMount(async () => {
+onMounted(async () => {
   const book = bookStore.book as File
   epubFile = await initEpubFile(book)
   toc = epubFile.getToc()

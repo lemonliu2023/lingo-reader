@@ -1,9 +1,10 @@
 <script setup lang='ts'>
-import { onBeforeMount, ref, useTemplateRef } from "vue"
+import { onMounted, ref } from "vue"
 import { useBookStore } from "../../../store"
 import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
 import { withPx } from "../../../utils"
-import { Props } from "./ScollReader";
+import { Props } from "./ScollReader"
+import Resizer from "../../Resizer/Resizer.vue"
 
 withDefaults(defineProps<Partial<Props>>(), {
   fontSize: 16,
@@ -31,7 +32,7 @@ const chapterIndex = defineModel('chapterIndex', {
   type: Number
 })
 
-onBeforeMount(async () => {
+onMounted(async () => {
   const book = bookStore.book as File
   epubFile = await initEpubFile(book)
   toc = epubFile.getToc()
@@ -46,17 +47,17 @@ const prevChapter = async () => {
   if (chapterIndex.value > 0) {
     chapterIndex.value--
     currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+    window.scrollTo({ top: 0 })
   }
 }
+
 const nextChapter = async () => {
   if (chapterIndex.value < chapterNums.value - 1) {
     chapterIndex.value++
     currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+    window.scrollTo({ top: 0 })
   }
 }
-
-const containerRef = useTemplateRef('containerRef')
-const articleTextRef = useTemplateRef('articleTextRef')
 
 /**
  * move drag bar
@@ -64,25 +65,19 @@ const articleTextRef = useTemplateRef('articleTextRef')
 const paddingLeft = ref<number>(300)
 const paddingRight = ref<number>(300)
 const shouldSelect = ref<boolean>(true)
-const rightBar = useTemplateRef('rightBar')
 
-let isDragging = false
 let startX = 0
 let originPaddingRight = 0
 let dragType = ''
 const barDrag = (type: string, e: MouseEvent) => {
   emits('infoDown')
-  isDragging = true
   startX = e.clientX
   originPaddingRight = paddingRight.value
   dragType = type
   shouldSelect.value = false
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
 }
 
 const onMouseMove = (e: MouseEvent) => {
-  if (!isDragging) return
   const delta = e.clientX - startX
   if (dragType === 'left') {
     paddingLeft.value = startX + delta
@@ -92,27 +87,25 @@ const onMouseMove = (e: MouseEvent) => {
 }
 
 const onMouseUp = () => {
-  isDragging = false
   shouldSelect.value = true
-  document.removeEventListener('mousemove', onMouseMove);
-  document.removeEventListener('mouseup', onMouseUp);
 }
-
 
 </script>
 
 <template>
   <div :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }" class="article-container"
     ref='containerRef'>
-    <button @click.stop="prevChapter" :style="{ left: withPx(paddingLeft + 10) }" class="button">prev chapter</button>
-    <button @click.stop="nextChapter" :style="{ right: withPx(paddingRight + 10) }" class="button">next chapter</button>
+    <button @click.stop="prevChapter" :style="{ left: withPx(paddingLeft) }" class="button">previous chapter</button>
+    <button @click.stop="nextChapter" :style="{ right: withPx(paddingRight) }" class="button">next chapter</button>
     <!-- book text -->
-    <div @click.stop @mousedown="(e) => barDrag('left', e)" class="bar"></div>
+    <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
+
     <article :style="{ lineHeight, fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
       :class="{ 'user-select-none': !shouldSelect }" ref="articleTextRef" v-html="currentChapterHTML"
       class="article-text">
     </article>
-    <div ref="rightBar" @click.stop @mousedown="(e) => barDrag('right', e)" class="bar"></div>
+
+    <Resizer @mousedown="(e) => barDrag('right', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
   </div>
 </template>
 
@@ -141,25 +134,18 @@ const onMouseUp = () => {
   background-color: #f0f0f0;
   border: 1px solid #000;
   border-radius: 5px;
-  opacity: 0;
+  opacity: 0.2;
 
   &:hover {
     opacity: 1;
   }
 }
 
-.bar {
-  flex: 0 0 5px;
-  background-color: black;
-  cursor: w-resize;
-  /* opacity: 0; */
-}
-
-
 .article-text {
   flex: 1 0;
   box-sizing: border-box;
   min-width: 300px;
+  margin: 0 0 0 5px;
 }
 
 .article-text :deep(img) {
@@ -172,7 +158,7 @@ const onMouseUp = () => {
 }
 
 .article-text :deep(p) {
-  text-indent: 2em;
+  text-indent: 2rem;
   margin: 3px 0;
 }
 

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onBeforeMount } from 'vue'
+import { ref, useTemplateRef, onMounted } from 'vue'
 import { useBookStore } from '../../../store'
 import { initEpubFile, } from '@svg-ebook-reader/epub-parser'
 import type { EpubFile, SpineItem } from '@svg-ebook-reader/epub-parser'
-import { useThrottle, withPx } from '../../../utils';
+import { withPx } from '../../../utils';
 import { Props } from './ScrollWithNote'
+import Resizer from '../../Resizer/Resizer.vue'
 
 withDefaults(defineProps<Partial<Props>>(), {
   fontSize: 20,
@@ -16,6 +17,8 @@ withDefaults(defineProps<Partial<Props>>(), {
 const emits = defineEmits<{
   (e: 'info-down'): void
 }>()
+
+const articleWrapRef = useTemplateRef('articleWrapRef')
 
 /**
  * book
@@ -34,7 +37,7 @@ const chapterIndex = defineModel('chapterIndex', {
   type: Number
 })
 
-onBeforeMount(async () => {
+onMounted(async () => {
   const book = bookStore.book as File
   epubFile = await initEpubFile(book)
   toc = epubFile.getToc()
@@ -46,6 +49,7 @@ const prevChapter = async () => {
   if (chapterIndex.value > 0) {
     chapterIndex.value--
     currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+    articleWrapRef.value!.scrollTop = 0
   }
 }
 
@@ -53,6 +57,7 @@ const nextChapter = async () => {
   if (chapterIndex.value < chapterNums.value - 1) {
     chapterIndex.value++
     currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+    articleWrapRef.value!.scrollTop = 0
   }
 }
 
@@ -83,23 +88,15 @@ const swap = () => {
 }
 // resize
 let startX = 0
-let isDragging = false
+// ban select chapter content in <article>
 const shouldSelectText = ref<boolean>(true)
 const noteBasis = ref<number>(0)
 const articleBasis = ref<number>(0)
+// origin width in flex layout
 let orginNoteBasis = 0
 let originArticleBasis = 0
-const resize = (e: MouseEvent) => {
-  isDragging = true
-  startX = e.clientX
-  shouldSelectText.value = false
-  orginNoteBasis = noteBasis.value
-  originArticleBasis = articleBasis.value
-  document.addEventListener('mousemove', useThrottle(onMouseMove, 20))
-  document.addEventListener('mouseup', onMouseUp)
-}
+
 const onMouseMove = (e: MouseEvent) => {
-  if (!isDragging) return
   const delta = e.clientX - startX
   if (isReverse.value) {
     noteBasis.value = orginNoteBasis - delta * 2
@@ -110,10 +107,13 @@ const onMouseMove = (e: MouseEvent) => {
   }
 }
 const onMouseUp = () => {
-  isDragging = false
   shouldSelectText.value = true
-  document.removeEventListener('mousemove', onMouseMove)
-  document.removeEventListener('mouseup', onMouseUp)
+}
+const onMouseDown = (e: MouseEvent) => {
+  startX = e.clientX
+  shouldSelectText.value = false
+  orginNoteBasis = noteBasis.value
+  originArticleBasis = articleBasis.value
 }
 
 </script>
@@ -121,17 +121,16 @@ const onMouseUp = () => {
 <template>
   <button @click.stop="swap" class="swap-button">swap</button>
   <div :style="{ fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
-    :class="{ 'flex-row-reverse': isReverse }" @click="(e) => containerClick(e)" class="article-container"
-    ref='containerRef'>
+    :class="{ 'flex-row-reverse': isReverse }" @click="(e) => containerClick(e)" class="article-container">
     <div :style="{ flexBasis: withPx(noteBasis) }" class="note">
       <textarea @blur="noteBlur" @focus="noteFocus" @click.stop name="note"></textarea>
     </div>
-    <div @click.stop @mousedown="(e) => resize(e)" class="resizer"></div>
+    <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
     <div :style="{ lineHeight, flexBasis: withPx(articleBasis), padding: withPx(textPadding) }"
-      :class="{ 'user-select-none': !shouldSelectText }" class="article-wrap">
+      :class="{ 'user-select-none': !shouldSelectText }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
-      <article class="article-text" ref="articleTextRef" v-html="currentChapterHTML">
+      <article class="article-text" v-html="currentChapterHTML">
       </article>
     </div>
   </div>
@@ -153,7 +152,7 @@ const onMouseUp = () => {
   background-color: #f0f0f0;
   border: 1px solid #000;
   border-radius: 5px;
-  opacity: 0.1;
+  opacity: 0.2;
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
@@ -184,16 +183,9 @@ const onMouseUp = () => {
   height: 100vh;
   width: 100%;
   padding: 2em;
-  background-color: #fff;
   border: none;
   outline: none;
   resize: none;
-}
-
-.resizer {
-  flex: 0 0 0.3%;
-  background-color: black;
-  cursor: e-resize;
 }
 
 .article-wrap {
@@ -209,14 +201,14 @@ const onMouseUp = () => {
   position: fixed;
   top: 10px;
   right: 10px;
-  opacity: 0.1;
+  opacity: 0.2;
 }
 
 .next-chapter {
   position: fixed;
   bottom: 10px;
   right: 10px;
-  opacity: 0.1;
+  opacity: 0.2;
 }
 
 .prev-chapter:hover,
@@ -232,7 +224,7 @@ const onMouseUp = () => {
 }
 
 .article-text :deep(p) {
-  text-indent: 2em;
+  text-indent: 2rem;
   margin: 3px 0;
 }
 

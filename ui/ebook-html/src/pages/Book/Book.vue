@@ -55,8 +55,8 @@ const infoBarDown = () => {
 /**
  * reader switch
  */
-const showReader = ref<string>(ReaderType.SCROLL_WITH_NOTE)
-const chapterIndex = ref<number>(4)
+const showReader = ref<string>(ReaderType.SCROLL)
+// const chapterIndex = ref<number>(4)
 
 </script>
 
@@ -70,7 +70,7 @@ const chapterIndex = ref<number>(4)
     <div class="top-info-bar-right"></div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
-    <ColumnReader v-if="showReader === ReaderType.COLUMN" v-model:chapter-index="chapterIndex" @info-down="infoBarDown">
+    <ColumnReader v-if="showReader === ReaderType.COLUMN" @info-down="infoBarDown">
     </ColumnReader>
     <ScrollReader v-else-if="showReader === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
     <ScrollWithNote v-else-if="showReader === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown"></ScrollWithNote>
