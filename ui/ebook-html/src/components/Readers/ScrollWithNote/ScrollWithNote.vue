@@ -92,19 +92,18 @@ let startX = 0
 const shouldSelectText = ref<boolean>(true)
 const noteBasis = ref<number>(0)
 const articleBasis = ref<number>(0)
-// origin width in flex layout
-let orginNoteBasis = 0
-let originArticleBasis = 0
 
 const onMouseMove = (e: MouseEvent) => {
   const delta = e.clientX - startX
   if (isReverse.value) {
-    noteBasis.value = orginNoteBasis - delta * 2
-    articleBasis.value = originArticleBasis + delta * 2
+    noteBasis.value -= delta * 2
+    articleBasis.value += delta * 2
   } else {
-    noteBasis.value = orginNoteBasis + delta * 2
-    articleBasis.value = originArticleBasis - delta * 2
+    noteBasis.value += delta * 2
+    articleBasis.value -= delta * 2
   }
+
+  startX = e.clientX
 }
 const onMouseUp = () => {
   shouldSelectText.value = true
@@ -112,8 +111,6 @@ const onMouseUp = () => {
 const onMouseDown = (e: MouseEvent) => {
   startX = e.clientX
   shouldSelectText.value = false
-  orginNoteBasis = noteBasis.value
-  originArticleBasis = articleBasis.value
 }
 
 </script>

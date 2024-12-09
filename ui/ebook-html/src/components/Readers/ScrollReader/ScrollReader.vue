@@ -1,8 +1,8 @@
 <script setup lang='ts'>
-import { onMounted, ref } from "vue"
+import { onMounted, ref, useTemplateRef } from "vue"
 import { useBookStore } from "../../../store"
 import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
-import { withPx } from "../../../utils"
+import { useDomSize, withPx } from "../../../utils"
 import { Props } from "./ScollReader"
 import Resizer from "../../Resizer/Resizer.vue"
 
@@ -60,6 +60,12 @@ const nextChapter = async () => {
 }
 
 /**
+ * button positioning
+ */
+const containerRef = useTemplateRef('containerRef')
+const { width: containerWidth } = useDomSize(containerRef)
+
+/**
  * move drag bar
  */
 const paddingLeft = ref<number>(300)
@@ -67,25 +73,31 @@ const paddingRight = ref<number>(300)
 const shouldSelect = ref<boolean>(true)
 
 let startX = 0
-let originPaddingRight = 0
 let dragType = ''
 const barDrag = (type: string, e: MouseEvent) => {
   emits('infoDown')
   startX = e.clientX
-  originPaddingRight = paddingRight.value
   dragType = type
   shouldSelect.value = false
 }
-
 const onMouseMove = (e: MouseEvent) => {
   const delta = e.clientX - startX
-  if (dragType === 'left') {
-    paddingLeft.value = startX + delta
-  } else {
-    paddingRight.value = originPaddingRight - delta
-  }
-}
+  const maxPadding = containerWidth.value - 400
 
+  if (dragType === 'left') {
+    paddingLeft.value = Math.min(
+      Math.max(0, paddingLeft.value + delta),
+      maxPadding - paddingRight.value
+    );
+  } else {
+    paddingRight.value = Math.min(
+      Math.max(0, paddingRight.value - delta),
+      maxPadding - paddingLeft.value
+    );
+  }
+
+  startX = e.clientX;
+}
 const onMouseUp = () => {
   shouldSelect.value = true
 }
@@ -93,16 +105,19 @@ const onMouseUp = () => {
 </script>
 
 <template>
-  <div :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }" class="article-container"
-    ref='containerRef'>
-    <button @click.stop="prevChapter" :style="{ left: withPx(paddingLeft) }" class="button">previous chapter</button>
-    <button @click.stop="nextChapter" :style="{ right: withPx(paddingRight) }" class="button">next chapter</button>
+  <div :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
+    :class="{ 'user-select-none': !shouldSelect }" class="article-container" ref='containerRef'>
+    <button @click.stop="prevChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
+      next chapter
+    </button>
+    <button @click.stop="nextChapter" :style="{ right: withPx(containerWidth - paddingLeft) }" class="button">
+      previous chapter
+    </button>
     <!-- book text -->
     <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
 
     <article :style="{ lineHeight, fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
-      :class="{ 'user-select-none': !shouldSelect }" ref="articleTextRef" v-html="currentChapterHTML"
-      class="article-text">
+      v-html="currentChapterHTML" class="article-text">
     </article>
 
     <Resizer @mousedown="(e) => barDrag('right', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>

@@ -55,7 +55,7 @@ const infoBarDown = () => {
 /**
  * reader switch
  */
-const showReader = ref<string>(ReaderType.SCROLL)
+const showReader = ref<string>(ReaderType.SCROLL_WITH_NOTE)
 // const chapterIndex = ref<number>(4)
 
 </script>
