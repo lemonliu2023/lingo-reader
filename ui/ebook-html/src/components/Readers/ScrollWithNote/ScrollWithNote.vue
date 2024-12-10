@@ -72,8 +72,10 @@ const noteFocus = () => {
   emits('info-down')
 }
 const containerClick = (e: MouseEvent) => {
-  if (isBlur) {
+  if (isDragging.value || isBlur) {
     e.stopPropagation()
+  }
+  if (isBlur) {
     isBlur = false
   }
 }
@@ -89,7 +91,7 @@ const swap = () => {
 // resize
 let startX = 0
 // ban select chapter content in <article>
-const shouldSelectText = ref<boolean>(true)
+const isDragging = ref<boolean>(false)
 const noteBasis = ref<number>(0)
 const articleBasis = ref<number>(0)
 
@@ -106,11 +108,13 @@ const onMouseMove = (e: MouseEvent) => {
   startX = e.clientX
 }
 const onMouseUp = () => {
-  shouldSelectText.value = true
+  setTimeout(() => {
+    isDragging.value = false
+  }, 0)
 }
 const onMouseDown = (e: MouseEvent) => {
   startX = e.clientX
-  shouldSelectText.value = false
+  isDragging.value = true
 }
 
 </script>
@@ -124,7 +128,7 @@ const onMouseDown = (e: MouseEvent) => {
     </div>
     <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
     <div :style="{ lineHeight, flexBasis: withPx(articleBasis), padding: withPx(textPadding) }"
-      :class="{ 'user-select-none': !shouldSelectText }" class="article-wrap" ref="articleWrapRef">
+      :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
       <article class="article-text" v-html="currentChapterHTML">

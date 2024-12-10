@@ -70,7 +70,7 @@ const { width: containerWidth } = useDomSize(containerRef)
  */
 const paddingLeft = ref<number>(300)
 const paddingRight = ref<number>(300)
-const shouldSelect = ref<boolean>(true)
+const isDragging = ref<boolean>(false)
 
 let startX = 0
 let dragType = ''
@@ -78,7 +78,7 @@ const barDrag = (type: string, e: MouseEvent) => {
   emits('infoDown')
   startX = e.clientX
   dragType = type
-  shouldSelect.value = false
+  isDragging.value = true
 }
 const onMouseMove = (e: MouseEvent) => {
   const delta = e.clientX - startX
@@ -99,14 +99,22 @@ const onMouseMove = (e: MouseEvent) => {
   startX = e.clientX;
 }
 const onMouseUp = () => {
-  shouldSelect.value = true
+  setTimeout(() => {
+    isDragging.value = false
+  }, 0)
 }
-
+// mouseevent will trigger other's element click event, 
+//  so we need to stop it in this event loop.
+const containerClick = (e: MouseEvent) => {
+  if (isDragging.value) {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
-  <div :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
-    :class="{ 'user-select-none': !shouldSelect }" class="article-container" ref='containerRef'>
+  <div @click="containerClick" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
+    :class="{ 'user-select-none': isDragging }" class="article-container" ref='containerRef'>
     <button @click.stop="prevChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
       next chapter
     </button>
