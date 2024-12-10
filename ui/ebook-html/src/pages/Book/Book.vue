@@ -136,7 +136,7 @@ const modeIndex = ref<number>(0)
 .top-info-bar-middle {
   text-align: center;
   padding-top: 21px;
-  font-weight: 100;
+  font-weight: 400;
 }
 
 </style>

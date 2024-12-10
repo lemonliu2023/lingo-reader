@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted } from "vue"
 import { useBookStore } from "../../../store"
-import { useDebounce, withPx } from "../../../utils"
+import { useDebounce, useThrottle, withPx } from "../../../utils"
 import { Props } from "./ColumnReader.ts"
 
 const bookStore = useBookStore()
@@ -106,7 +106,7 @@ const prevPage = async () => {
     recaculateTranslateX()
   }
 }
-const wheelEvent = useDebounce((e: WheelEvent) => {
+const wheelEvent = useThrottle((e: WheelEvent) => {
   e.preventDefault()
   emits('infoDown')
   if (e.deltaY > 0) {
@@ -114,15 +114,17 @@ const wheelEvent = useDebounce((e: WheelEvent) => {
   } else {
     prevPage()
   }
-}, 150)
+}, 400)
 const keyDownEvent = useDebounce((e: KeyboardEvent) => {
   e.preventDefault()
-  emits('infoDown')
   if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
     nextPage()
   } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
     prevPage()
+  } else {
+    return
   }
+  emits('infoDown')
 }, 150)
 document.addEventListener('wheel', wheelEvent)
 document.addEventListener('keydown', keyDownEvent)
