@@ -72,7 +72,9 @@ const modeIndex = ref<number>(0)
       <span @click="back"><img src="/leftArrow.svg" alt="leftArrow">Back</span>
       <DropDown :reader-modes="readerModes" v-model:current-mode-index="modeIndex"></DropDown>
     </div>
-    <div class="top-info-bar-middle"></div>
+    <div class="top-info-bar-middle">
+      {{ bookStore.getFileName() }}
+    </div>
     <div class="top-info-bar-right"></div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
@@ -130,4 +132,11 @@ const modeIndex = ref<number>(0)
   width: 25px;
   height: 25px;
 }
+
+.top-info-bar-middle {
+  text-align: center;
+  padding-top: 21px;
+  font-weight: 100;
+}
+
 </style>
