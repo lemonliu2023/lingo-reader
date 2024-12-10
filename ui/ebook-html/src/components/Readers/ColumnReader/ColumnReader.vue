@@ -126,7 +126,7 @@ const keyDownEvent = useDebounce((e: KeyboardEvent) => {
   }
   emits('infoDown')
 }, 150)
-document.addEventListener('wheel', wheelEvent)
+document.addEventListener('wheel', wheelEvent, { passive: false })
 document.addEventListener('keydown', keyDownEvent)
 
 </script>
@@ -185,9 +185,8 @@ document.addEventListener('keydown', keyDownEvent)
 .article-text :deep(img) {
   display: block;
   margin: auto;
-  /* make img fit to its parent */
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(100vh - 30px);
   object-fit: contain;
 }
 

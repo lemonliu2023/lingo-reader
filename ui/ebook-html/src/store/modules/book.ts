@@ -5,7 +5,7 @@ import { ref } from 'vue'
 
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | undefined
-  let toc: SpineItem[]
+  let toc: SpineItem[] = []
   const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
 
@@ -31,6 +31,9 @@ const useBookStore = defineStore('ebook', () => {
 
   const reset = () => {
     book = undefined
+    toc = []
+    chapterIndex.value = 0
+    chapterNums.value = 0
   }
 
   const existBook = (): boolean => {

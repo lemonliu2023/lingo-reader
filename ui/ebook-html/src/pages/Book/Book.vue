@@ -4,6 +4,7 @@ import { useBookStore } from "../../store"
 import { useRouter } from "vue-router"
 import { ReaderType } from "./Book"
 import DropDown from "../../components/DropDown/DropDown.vue"
+import ValueAdjuster from "../../components/ValueAdjuster/ValueAdjuster.vue"
 
 const ColumnReader = defineAsyncComponent(
   () => import('../../components/Readers/ColumnReader/ColumnReader.vue')
@@ -75,7 +76,9 @@ const modeIndex = ref<number>(0)
     <div class="top-info-bar-middle">
       {{ bookStore.getFileName() }}
     </div>
-    <div class="top-info-bar-right"></div>
+    <div class="top-info-bar-right">
+      <ValueAdjuster :max="21"></ValueAdjuster>
+    </div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
     <ColumnReader v-if="readerModes[modeIndex].name === ReaderType.COLUMN" @info-down="infoBarDown">
