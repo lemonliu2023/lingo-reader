@@ -58,7 +58,6 @@ onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
 })
 onUnmounted(() => {
-  bookStore.reset()
   window.removeEventListener('resize', recaculateWithDebounce)
   document.removeEventListener('wheel', wheelEvent)
   document.removeEventListener('keydown', keyDownEvent)

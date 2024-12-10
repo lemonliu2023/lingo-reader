@@ -3,6 +3,7 @@ import { ref, defineAsyncComponent } from "vue"
 import { useBookStore } from "../../store"
 import { useRouter } from "vue-router"
 import { ReaderType } from "./Book"
+import DropDown from "../../components/DropDown/DropDown.vue"
 
 const ColumnReader = defineAsyncComponent(
   () => import('../../components/Readers/ColumnReader/ColumnReader.vue')
@@ -55,8 +56,12 @@ const infoBarDown = () => {
 /**
  * reader switch
  */
-const showReader = ref<string>(ReaderType.SCROLL_WITH_NOTE)
-// const chapterIndex = ref<number>(4)
+const readerModes = ref([
+  { name: ReaderType.COLUMN, logo: "column.svg" },
+  { name: ReaderType.SCROLL, logo: "scroll.svg" },
+  { name: ReaderType.SCROLL_WITH_NOTE, logo: "scrollWithNote.svg" },
+])
+const modeIndex = ref<number>(0)
 
 </script>
 
@@ -64,16 +69,17 @@ const showReader = ref<string>(ReaderType.SCROLL_WITH_NOTE)
   <div :class="{ 'top0': isInfoDown, 'topN80': !isInfoDown }" class="top-info-bar">
     <div class="top-info-bar-left">
       <!-- back button -->
-      <span @click="back"><img src="/leftArrow.svg" alt="leftArrow">返回</span>
+      <span @click="back"><img src="/leftArrow.svg" alt="leftArrow">Back</span>
+      <DropDown :reader-modes="readerModes" v-model:current-mode-index="modeIndex"></DropDown>
     </div>
     <div class="top-info-bar-middle"></div>
     <div class="top-info-bar-right"></div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
-    <ColumnReader v-if="showReader === ReaderType.COLUMN" @info-down="infoBarDown">
+    <ColumnReader v-if="readerModes[modeIndex].name === ReaderType.COLUMN" @info-down="infoBarDown">
     </ColumnReader>
-    <ScrollReader v-else-if="showReader === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
-    <ScrollWithNote v-else-if="showReader === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown"></ScrollWithNote>
+    <ScrollReader v-else-if="readerModes[modeIndex].name === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
+    <ScrollWithNote v-else-if="readerModes[modeIndex].name === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown"></ScrollWithNote>
   </div>
 </template>
 

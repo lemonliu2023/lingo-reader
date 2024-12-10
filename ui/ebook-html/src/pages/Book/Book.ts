@@ -1,5 +1,5 @@
 export enum ReaderType {
-  COLUMN = 'column',
-  SCROLL = 'scroll',
-  SCROLL_WITH_NOTE = 'scrollWithNote',
+  COLUMN = 'Column',
+  SCROLL = 'Scroll',
+  SCROLL_WITH_NOTE = 'ScrollWithNote',
 }

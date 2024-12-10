@@ -104,7 +104,6 @@ const onMouseMove = (e: MouseEvent) => {
     noteBasis.value += delta * 2
     articleBasis.value -= delta * 2
   }
-
   startX = e.clientX
 }
 const onMouseUp = () => {
@@ -183,7 +182,7 @@ const onMouseDown = (e: MouseEvent) => {
   box-sizing: border-box;
   height: 100vh;
   width: 100%;
-  padding: 2em;
+  padding: 2rem;
   border: none;
   outline: none;
   resize: none;
