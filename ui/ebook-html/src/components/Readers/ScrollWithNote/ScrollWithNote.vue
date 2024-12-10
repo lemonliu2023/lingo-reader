@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref, useTemplateRef, onMounted } from 'vue'
 import { useBookStore } from '../../../store'
-import { initEpubFile, } from '@svg-ebook-reader/epub-parser'
-import type { EpubFile, SpineItem } from '@svg-ebook-reader/epub-parser'
-import { withPx } from '../../../utils';
+import { withPx } from '../../../utils'
 import { Props } from './ScrollWithNote'
 import Resizer from '../../Resizer/Resizer.vue'
 
@@ -24,39 +22,24 @@ const articleWrapRef = useTemplateRef('articleWrapRef')
  * book
  */
 const bookStore = useBookStore()
+let { chapterNums, getChapterHTML } = useBookStore()
 
-let epubFile: EpubFile | null = null
-const chapterNums = ref<number>(0)
-let toc: SpineItem[] = []
 const currentChapterHTML = ref<string>()
-const getChapterHTML = async (chapterIndex: number) => {
-  return await epubFile!.getHTML(toc[chapterIndex].id)
-}
-const chapterIndex = defineModel('chapterIndex', {
-  default: 4,
-  type: Number
-})
 
 onMounted(async () => {
-  const book = bookStore.book as File
-  epubFile = await initEpubFile(book)
-  toc = epubFile.getToc()
-  chapterNums.value = toc.length
-  currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  currentChapterHTML.value = await getChapterHTML()
 })
-
 const prevChapter = async () => {
-  if (chapterIndex.value > 0) {
-    chapterIndex.value--
-    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  if (bookStore.chapterIndex > 0) {
+    bookStore.chapterIndex--
+    currentChapterHTML.value = await getChapterHTML()
     articleWrapRef.value!.scrollTop = 0
   }
 }
-
 const nextChapter = async () => {
-  if (chapterIndex.value < chapterNums.value - 1) {
-    chapterIndex.value++
-    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  if (bookStore.chapterIndex < chapterNums - 1) {
+    bookStore.chapterIndex++
+    currentChapterHTML.value = await getChapterHTML()
     articleWrapRef.value!.scrollTop = 0
   }
 }

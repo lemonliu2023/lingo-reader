@@ -6,7 +6,7 @@ const router = useRouter()
 const bookStore = useBookStore()
 
 const processFile = async (file: File) => {
-  bookStore.setBook(file)
+  await bookStore.initBook(file)
   router.push('/book')
 }
 

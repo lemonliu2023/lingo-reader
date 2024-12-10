@@ -1,7 +1,6 @@
 <script setup lang='ts'>
 import { onMounted, ref, useTemplateRef } from "vue"
 import { useBookStore } from "../../../store"
-import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
 import { useDomSize, withPx } from "../../../utils"
 import { Props } from "./ScollReader"
 import Resizer from "../../Resizer/Resizer.vue"
@@ -19,42 +18,26 @@ const emits = defineEmits<{
  * book
  */
 const bookStore = useBookStore()
-
-let epubFile: EpubFile | null = null
-const chapterNums = ref<number>(0)
-let toc: SpineItem[] = []
+let { chapterNums, getChapterHTML } = useBookStore()
 const currentChapterHTML = ref<string>()
-const getChapterHTML = async (chapterIndex: number) => {
-  return await epubFile!.getHTML(toc[chapterIndex].id)
-}
-const chapterIndex = defineModel('chapterIndex', {
-  default: 14,
-  type: Number
-})
-
 onMounted(async () => {
-  const book = bookStore.book as File
-  epubFile = await initEpubFile(book)
-  toc = epubFile.getToc()
-  chapterNums.value = toc.length
-  currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  currentChapterHTML.value = await getChapterHTML()
 })
 
 /**
  * chapter turning
  */
 const prevChapter = async () => {
-  if (chapterIndex.value > 0) {
-    chapterIndex.value--
-    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  if (bookStore.chapterIndex > 0) {
+    bookStore.chapterIndex--
+    currentChapterHTML.value = await getChapterHTML()
     window.scrollTo({ top: 0 })
   }
 }
-
 const nextChapter = async () => {
-  if (chapterIndex.value < chapterNums.value - 1) {
-    chapterIndex.value++
-    currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  if (bookStore.chapterIndex < chapterNums - 1) {
+    bookStore.chapterIndex++
+    currentChapterHTML.value = await getChapterHTML()
     window.scrollTo({ top: 0 })
   }
 }
@@ -115,10 +98,10 @@ const containerClick = (e: MouseEvent) => {
 <template>
   <div @click="containerClick" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
     :class="{ 'user-select-none': isDragging }" class="article-container" ref='containerRef'>
-    <button @click.stop="prevChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
+    <button @click.stop="nextChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
       next chapter
     </button>
-    <button @click.stop="nextChapter" :style="{ right: withPx(containerWidth - paddingLeft) }" class="button">
+    <button @click.stop="prevChapter" :style="{ right: withPx(containerWidth - paddingLeft) }" class="button">
       previous chapter
     </button>
     <!-- book text -->

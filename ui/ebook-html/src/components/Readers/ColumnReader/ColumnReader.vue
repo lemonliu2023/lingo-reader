@@ -1,30 +1,14 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted } from "vue"
 import { useBookStore } from "../../../store"
-import { EpubFile, initEpubFile, SpineItem } from "@svg-ebook-reader/epub-parser"
 import { useDebounce, withPx } from "../../../utils"
 import { Props } from "./ColumnReader.ts"
-const bookStore = useBookStore()
 
-/**
- * column layout
- */
-let epubFile: EpubFile | null = null
-const chapterNums = ref<number>(0)
-// const chapterIndex = ref<number>(0)
-let toc: SpineItem[] = []
+const bookStore = useBookStore()
+let { chapterNums, getChapterHTML } = useBookStore()
+
 const currentChapterHTML = ref<string>()
-const getChapterHTML = async (chapterIndex: number) => {
-  return await epubFile!.getHTML(toc[chapterIndex].id)
-}
-const chapterIndex = ref<number>(0)
-// const chapterIndex = defineModel('chapterIndex', {
-//   default: 0,
-//   type: Number
-// })
-// watch(chapterIndex, async (newIndex) => {
-//   currentChapterHTML.value = await getChapterHTML(newIndex)
-// })
+
 // page props
 const props = withDefaults(defineProps<Partial<Props>>(), {
   columns: 2,
@@ -51,11 +35,7 @@ const articleTranslateX = ref<number>(0)
 
 // load book
 onMounted(async () => {
-  const book = bookStore.book as File
-  epubFile = await initEpubFile(book)
-  toc = epubFile.getToc()
-  chapterNums.value = toc.length
-  currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+  currentChapterHTML.value = await getChapterHTML()
 })
 onUnmounted(() => {
   window.removeEventListener('resize', recaculateWithDebounce)
@@ -98,9 +78,9 @@ window.addEventListener('resize', recaculateWithDebounce)
 // page turning
 const nextPage = async () => {
   if (index.value >= maxPageIndex.value) {
-    if (chapterIndex.value + 1 < chapterNums.value) {
-      chapterIndex.value++
-      currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+    if (bookStore.chapterIndex + 1 < chapterNums) {
+      bookStore.chapterIndex++
+      currentChapterHTML.value = await getChapterHTML()
       recaculatePage()
       index.value = 0
       articleTranslateX.value = 0
@@ -112,9 +92,9 @@ const nextPage = async () => {
 }
 const prevPage = async () => {
   if (index.value <= 0) {
-    if (chapterIndex.value - 1 >= 0) {
-      chapterIndex.value--
-      currentChapterHTML.value = await getChapterHTML(chapterIndex.value)
+    if (bookStore.chapterIndex - 1 >= 0) {
+      bookStore.chapterIndex--
+      currentChapterHTML.value = await getChapterHTML()
       nextTick(() => {
         recaculatePage()
         index.value = Math.max(0, maxPageIndex.value)
@@ -127,6 +107,7 @@ const prevPage = async () => {
   }
 }
 const wheelEvent = useDebounce((e: WheelEvent) => {
+  e.preventDefault()
   emits('infoDown')
   if (e.deltaY > 0) {
     nextPage()
@@ -135,6 +116,7 @@ const wheelEvent = useDebounce((e: WheelEvent) => {
   }
 }, 150)
 const keyDownEvent = useDebounce((e: KeyboardEvent) => {
+  e.preventDefault()
   emits('infoDown')
   if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
     nextPage()
@@ -142,7 +124,7 @@ const keyDownEvent = useDebounce((e: KeyboardEvent) => {
     prevPage()
   }
 }, 150)
-document.addEventListener('wheel', wheelEvent, { passive: false })
+document.addEventListener('wheel', wheelEvent)
 document.addEventListener('keydown', keyDownEvent)
 
 </script>

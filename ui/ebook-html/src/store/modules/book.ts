@@ -1,24 +1,49 @@
+import type { EpubFile, SpineItem } from '@svg-ebook-reader/epub-parser'
+import { initEpubFile } from '@svg-ebook-reader/epub-parser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 const useBookStore = defineStore('ebook', () => {
-  const book = ref<File | undefined>(undefined)
+  let book: EpubFile | undefined
+  let toc: SpineItem[]
+  const chapterIndex = ref<number>(0)
+  const chapterNums = ref<number>(0)
 
-  const setBook = (file: File): void => {
-    book.value = file
+  const initBook = async (file: File) => {
+    if (file.name.endsWith('epub')) {
+      book = await initEpubFile(file)
+      toc = book.getToc()
+      chapterNums.value = toc.length
+    }
   }
 
-  const reset = (): void => {
-    book.value = undefined
+  const getChapterHTML = async () => {
+    return await book!.getHTML(toc[chapterIndex.value].id)
+  }
+
+  const getNavMap = () => {
+    return book!.getNavMap()
+  }
+
+  const getFileName = () => {
+    return book!.getFileName()
+  }
+
+  const reset = () => {
+    book = undefined
   }
 
   const existBook = (): boolean => {
-    return book.value !== undefined
+    return book !== undefined
   }
 
   return {
-    book,
-    setBook,
+    chapterIndex,
+    chapterNums,
+    initBook,
+    getChapterHTML,
+    getNavMap,
+    getFileName,
     reset,
     existBook,
   }
