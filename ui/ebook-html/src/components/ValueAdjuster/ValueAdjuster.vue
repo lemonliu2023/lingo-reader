@@ -1,76 +1,67 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
 import { Props } from './ValueAdjuster'
+import { toFixedOne } from '../../utils'
+import { ref, watch } from 'vue';
 
 const props = withDefaults(defineProps<Partial<Props>>(), {
   delta: 1,
   min: 0,
-  max: Infinity
+  max: Infinity,
+  modelValue: 0,
 })
 
-const modelValue = defineModel('modelValue', {
-  type: Number,
-  default: 0
+const emits = defineEmits<{
+  (event: 'update:modelValue', value: number): void
+}>()
+
+watch(() => props.modelValue, (newVal) => {
+  inputValue.value = newVal
 })
+
+const inputValue = ref<number>(0)
+
 const increase = () => {
-  if (modelValue.value <= props.max - props.delta) {
-    modelValue.value += props.delta
+  if (inputValue.value <= props.max - props.delta) {
+    inputValue.value = toFixedOne(inputValue.value + props.delta)
+    emits('update:modelValue', inputValue.value)
   }
 }
 const decrease = () => {
-  if (modelValue.value >= props.min + props.delta) {
-    modelValue.value -= props.delta
+  if (inputValue.value >= props.min + props.delta) {
+    inputValue.value = toFixedOne(inputValue.value - props.delta)
+    emits('update:modelValue', inputValue.value)
   }
 }
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
-    if ((e.target as HTMLInputElement).value.length === 0) {
-      modelValue.value = props.min;
-      (e.target as HTMLInputElement).value = props.min.toString()
-    }
     (e.target as HTMLInputElement).blur()
-    isFocus.value = false
   } else {
     return
   }
 }
-const handleInput = (e: Event) => {
+const handleChange = (e: Event) => {
   const valueStr = (e.target as HTMLInputElement).value
   if (valueStr.length === 0) {
-    modelValue.value = 0
-    nextTick(() => {
-      (e.target as HTMLInputElement).value = ''
-    })
+    // when value in <input> is 0, then press Backspace key and Enter key, 
+    //  the content in <input> is '', but not '0'. So we could first 
+    //  change inputValue to 1 and afterwards change inputValue to 0 to 
+    //  trigger a view update.
+    inputValue.value = 1
+    inputValue.value = 0
     return
   }
-
-  const value = valueStr.length ? parseInt(valueStr) : 0
-  if (value < props.min) {
-    modelValue.value = props.min
-  } else if (value > props.max) {
-    modelValue.value = Math.floor(value / 10);
-    (e.target as HTMLInputElement).value = modelValue.value.toString()
-  } else {
-    modelValue.value = value
-  }
-}
-const isFocus = ref<boolean>(false)
-const handleFocus = () => {
-  isFocus.value = true
-}
-const onOk = () => {
-  isFocus.value = false
+  const value = toFixedOne(Number.parseFloat(valueStr))
+  inputValue.value = Math.max(props.min, Math.min(props.max, value))
+  emits('update:modelValue', inputValue.value)
 }
 </script>
 
 <template>
   <div class="value-adjuster">
-    <button v-show="isFocus" class="adjust-btn" @click.stop="onOk">Yes</button>
-    <button v-show="!isFocus" class="adjust-btn" @click.stop="decrease">-</button>
-    <input @blur="onOk" @focus="handleFocus" v-model="modelValue" @input="handleInput" @keydown.stop @keydown="handleKeyDown" type="number"
+    <button class="adjust-btn" @click.stop="decrease">-</button>
+    <input :value="inputValue" @change="handleChange" @keydown.stop="handleKeyDown" type="number"
       class="value-display" />
-    <button v-show="isFocus" class="adjust-btn" @click.stop="onOk">Yes</button>
-    <button v-show="!isFocus" class="adjust-btn" @click.stop="increase">+</button>
+    <button class="adjust-btn" @click.stop="increase">+</button>
   </div>
 </template>
 

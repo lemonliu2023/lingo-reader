@@ -48,3 +48,7 @@ export function useDomSize(domRef: Readonly<ShallowRef<HTMLElement | null>>) {
 
   return { width, height }
 }
+
+export function toFixedOne(val: number): number {
+  return Number.parseFloat(val.toFixed(1))
+}
