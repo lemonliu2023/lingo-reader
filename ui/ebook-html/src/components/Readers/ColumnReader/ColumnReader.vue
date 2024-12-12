@@ -2,30 +2,56 @@
 import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted } from "vue"
 import { useBookStore } from "../../../store"
 import { useDebounce, useThrottle, withPx } from "../../../utils"
-import { Props } from "./ColumnReader.ts"
-
-const bookStore = useBookStore()
-let { chapterNums, getChapterHTML } = useBookStore()
-
-const currentChapterHTML = ref<string>()
-
-// page props
-const props = withDefaults(defineProps<Partial<Props>>(), {
-  columns: 2,
-  fontSize: 20,
-  letterSpacing: 1,
-  paddingLeft: 10,
-  paddingRight: 10,
-  paddingTop: 10,
-  paddingBottom: 10,
-  lineHeight: 2,
-  columnGap: 20
-})
+import { Config, generateAdjusterConfig, generateSelectionConfig } from "../sharedLogic"
 
 const emits = defineEmits<{
   (event: 'infoDown'): void
+  (event: 'receiveConfig', configList: Config[]): void
 }>()
 
+/**
+ * configs
+ */
+const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
+const columns = ref<number>(2)
+const fontSize = ref<number>(20)
+const letterSpacing = ref<number>(0)
+const paddingLeft = ref<number>(10)
+const paddingRight = ref<number>(10)
+const paddingTop = ref<number>(10)
+const paddingBottom = ref<number>(10)
+const lineHeight = ref<number>(2)
+const columnGap = ref<number>(20)
+const configList: Config[] = [
+  generateSelectionConfig(
+    'fontFamily',
+    [
+      { name: `'Lucida Console', Courier, monospace` }
+    ],
+    { name: `'Lucida Console', Courier, monospace` },
+    fontFamily
+  ),
+  generateAdjusterConfig('columns', 4, 1, 1, columns),
+  generateAdjusterConfig('fontSize', 50, 5, 1, fontSize),
+  generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing),
+  generateAdjusterConfig('paddingLeft', Infinity, -Infinity, 2, paddingLeft),
+  generateAdjusterConfig('paddingRight', Infinity, -Infinity, 2, paddingRight),
+  generateAdjusterConfig('paddingTop', Infinity, -Infinity, 2, paddingTop),
+  generateAdjusterConfig('paddingBottom', Infinity, -Infinity, 2, paddingBottom),
+  generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight),
+  generateAdjusterConfig('columnGap', Infinity, 0, 2, columnGap),
+]
+onMounted(() => {
+  emits('receiveConfig', configList)
+})
+/**
+ * book
+ */
+const bookStore = useBookStore()
+let { chapterNums, getChapterHTML } = useBookStore()
+const currentChapterHTML = ref<string>()
+
+// refs for layout
 const containerRef = useTemplateRef<HTMLElement>('containerRef')
 const articleTextRef = useTemplateRef<HTMLElement>('articleTextRef')
 const maxPageIndex = ref<number>(0)
@@ -59,13 +85,13 @@ const recaculatePage = () => {
     (
       articleTextRef.value?.clientHeight!
       /
-      (containerRef.value?.clientHeight! - props.paddingTop - props.paddingBottom)
+      (containerRef.value?.clientHeight! - paddingTop.value - paddingBottom.value)
     )
-    / props.columns
+    / columns.value
   )
 }
 const recaculateTranslateX = () => {
-  articleTranslateX.value = -(oneColumnWidth.value + props.columnGap) * index.value * props.columns
+  articleTranslateX.value = -(oneColumnWidth.value + columnGap.value) * index.value * columns.value
 }
 const recaculate = () => {
   recaculatePage()

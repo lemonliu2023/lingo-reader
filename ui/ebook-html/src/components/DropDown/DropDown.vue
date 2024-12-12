@@ -1,27 +1,27 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue"
+import { withPx } from "../../utils"
 
 // Reading mode interface
-interface ReadingMode {
+export interface Mode {
   name: string
-  logo: string
+  logo?: string
 }
 
-const props = defineProps<{
-  readerModes: ReadingMode[]
+defineProps<{
+  modes: Mode[]
+  currentMode: Mode
+  label?: string
+  labelWidth?: number
 }>()
 
-const modeIndex = defineModel('currentModeIndex', {
-  type: Number,
-  default: 0
-})
-
-const currentMode = ref<ReadingMode>(props.readerModes[modeIndex.value])
+const emits = defineEmits<{
+  (e: 'update:currentMode', val: Mode): void
+}>()
 
 // Select the mode and close the menu
-const selectMode = (mode: ReadingMode) => {
-  currentMode.value = mode
-  modeIndex.value = props.readerModes.indexOf(currentMode.value)
+const selectMode = (mode: Mode) => {
+  emits('update:currentMode', mode)
   isDropdownOpen.value = false
 }
 
@@ -48,18 +48,17 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="reading-mode-selector" ref="dropdownRef">
+    <span v-if="label" :style="{width: labelWidth && withPx(labelWidth)}" class="label">{{ label + ':' }}</span>
     <!-- The current mode display area -->
     <div class="dropdown" @click="toggleDropdown">
-      <div class="current-mode">
-        <img :src="currentMode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
-        <span>{{ currentMode.name }}</span>
-        <i class="arrow" :class="{ open: isDropdownOpen }"></i>
-      </div>
+      <img v-if="currentMode.logo" :src="currentMode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
+      <span>{{ currentMode.name }}</span>
+      <i class="arrow" :class="{ open: isDropdownOpen }"></i>
     </div>
     <!-- drop down menu -->
     <ul v-show="isDropdownOpen" class="dropdown-menu">
-      <li v-for="mode in readerModes" :key="mode.name" class="dropdown-item" @click="selectMode(mode)">
-        <img :src="mode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
+      <li v-for="mode in modes" :key="mode.name" class="dropdown-item" @click="selectMode(mode)">
+        <img v-if="mode.logo" :src="mode.logo" :alt="mode.name + ' Mode'" class="mode-logo" />
         <span>{{ mode.name }}</span>
       </li>
     </ul>
@@ -69,6 +68,16 @@ onBeforeUnmount(() => {
 <style scoped>
 .reading-mode-selector {
   position: relative;
+  display: flex;
+  align-items: center;
+  height: 37px;
+}
+
+.label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-family: sans-serif;
+  margin-right: 5px;
 }
 
 .dropdown {
@@ -76,17 +85,25 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   padding: 8px;
   background: #fefefe;
-}
-
-.current-mode {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
+  
 }
 
 .mode-logo {
   width: 20px;
   height: 20px;
+}
+
+.dropdown span {
+  flex: 1;
+  /* if not set width to 0, the ellipsis will invalidated */
+  width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* arrow */
@@ -95,7 +112,7 @@ onBeforeUnmount(() => {
   border-width: 0 2px 2px 0;
   display: inline-block;
   padding: 3px;
-  transform: rotate(45deg);
+  transform: translateX(-3px) rotate(45deg);
   transition: transform 0.2s ease;
 }
 
@@ -103,6 +120,7 @@ onBeforeUnmount(() => {
   transform: rotate(-135deg) translate(-3px, -3px);
 }
 
+/* menu */
 .dropdown-menu {
   position: absolute;
   top: 100%;

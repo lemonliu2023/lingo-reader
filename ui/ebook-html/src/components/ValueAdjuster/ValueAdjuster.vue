@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Props } from './ValueAdjuster'
-import { toFixedOne } from '../../utils'
-import { ref, watch } from 'vue';
+import { toFixedOne, withPx } from '../../utils'
+import { ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<Partial<Props>>(), {
   delta: 1,
@@ -18,7 +18,7 @@ watch(() => props.modelValue, (newVal) => {
   inputValue.value = newVal
 })
 
-const inputValue = ref<number>(0)
+const inputValue = ref<number>(props.modelValue)
 
 const increase = () => {
   if (inputValue.value <= props.max - props.delta) {
@@ -58,6 +58,7 @@ const handleChange = (e: Event) => {
 
 <template>
   <div class="value-adjuster">
+    <span v-if="label" :style="{width: labelWidth && withPx(labelWidth)}" class="label">{{ label + ':' }}</span>
     <button class="adjust-btn" @click.stop="decrease">-</button>
     <input :value="inputValue" @change="handleChange" @keydown.stop="handleKeyDown" type="number"
       class="value-display" />
@@ -69,15 +70,20 @@ const handleChange = (e: Event) => {
 .value-adjuster {
   display: flex;
   align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
+  /* border-radius: 5px; */
+}
+
+.label {
+  font-size: 12px;
+  font-family: sans-serif;
+  margin-right: 5px;
+  /* width: 100px; */
 }
 
 .adjust-btn {
   width: 40px;
-  height: 40px;
-  background-color: #f5f5f5;
+  height: 37px;
+  background-color: #fefefe;
   border: none;
   outline: none;
   font-size: 1rem;
@@ -91,11 +97,12 @@ const handleChange = (e: Event) => {
 
 .value-display {
   flex: 1;
-  height: 40px;
+  /* if not set width to 0, the content html will exceed its parent element area 
+  when the element width is large enough */
+  width: 0;
+  height: 35px;
   border: none;
   outline: none;
   text-align: center;
-  font-size: 1rem;
-  padding: 0 5px;
 }
 </style>

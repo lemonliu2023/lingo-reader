@@ -139,6 +139,7 @@ const onMouseDown = (e: MouseEvent) => {
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 1;
 
   &:hover {
     opacity: 1;
@@ -177,7 +178,7 @@ const onMouseDown = (e: MouseEvent) => {
   min-height: 100vh;
   min-width: 140px;
   flex: 1 1;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .prev-chapter {
