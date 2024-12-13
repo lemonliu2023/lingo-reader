@@ -8,20 +8,25 @@ export interface Mode {
   logo?: string
 }
 
-defineProps<{
+const props = defineProps<{
   modes: Mode[]
-  currentMode: Mode
+  currentModeName: string
   label?: string
   labelWidth?: number
 }>()
+const currentMode = ref<Mode>(
+  props.modes.find(val => val.name === props.currentModeName)
+  ?? props.modes[0]
+)
 
 const emits = defineEmits<{
-  (e: 'update:currentMode', val: Mode): void
+  (e: 'update:currentModeName', val: string): void
 }>()
 
 // Select the mode and close the menu
 const selectMode = (mode: Mode) => {
-  emits('update:currentMode', mode)
+  emits('update:currentModeName', mode.name)
+  currentMode.value = mode
   isDropdownOpen.value = false
 }
 
@@ -48,7 +53,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="reading-mode-selector" ref="dropdownRef">
-    <span v-if="label" :style="{width: labelWidth && withPx(labelWidth)}" class="label">{{ label + ':' }}</span>
+    <span v-if="label" :style="{ width: labelWidth && withPx(labelWidth) }" class="label">{{ label + ':' }}</span>
     <!-- The current mode display area -->
     <div class="dropdown" @click="toggleDropdown">
       <img v-if="currentMode.logo" :src="currentMode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
@@ -89,7 +94,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  
+
 }
 
 .mode-logo {

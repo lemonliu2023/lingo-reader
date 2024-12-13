@@ -32,8 +32,9 @@ onBeforeUnmount(() => {
     <span class="tag"><img src="/config.svg" alt="config tag"></span>
     <div v-show="showConfigPannel" class="config-pannel">
       <div @click.stop v-for="item in config" class="pannel-item">
+        <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
         <DropDown v-if="item.type === 'selection'" :key="item.name + '-selection'" :label="item.name"
-          :modes="item.selectOptions" v-model:current-mode="item.selected" :label-width="120"></DropDown>
+          :modes="item.selectOptions" v-model:current-mode-name="item.value" :label-width="120"></DropDown>
         <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
         <ValueAdjuster v-else-if="item.type === 'adjuster'" :key="item.name + '-adjuster'" :label="item.name"
           :max="item.max" :min="item.min" :delta="item.delta" v-model="item.value" :label-width="120">

@@ -63,7 +63,7 @@ const readerModes = [
   { name: ReaderType.SCROLL, logo: "scroll.svg" },
   { name: ReaderType.SCROLL_WITH_NOTE, logo: "scrollWithNote.svg" },
 ]
-const currentMode = ref(readerModes[0])
+const modeName = ref<string>(ReaderType.COLUMN)
 
 /**
  * receive config
@@ -78,8 +78,11 @@ const currentConfig = ref<Config[]>([])
   <div :class="{ 'top0': isInfoDown, 'topN80': !isInfoDown }" class="top-info-bar">
     <div class="top-info-bar-left">
       <!-- back button -->
-      <span class="back" @click="back"><img src="/leftArrow.svg" alt="leftArrow">Back</span>
-      <DropDown class="bar-left-dropdown" :modes="readerModes" v-model:current-mode="currentMode"></DropDown>
+      <div class="back" @click="back">
+        <img src="/leftArrow.svg" alt="leftArrow">
+        <span>Back</span>
+      </div>
+      <DropDown class="bar-left-dropdown" :modes="readerModes" v-model:current-mode-name="modeName"></DropDown>
       <!-- configPanel -->
       <ConfigPannel :config="currentConfig"></ConfigPannel>
     </div>
@@ -90,11 +93,11 @@ const currentConfig = ref<Config[]>([])
     </div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
-    <ColumnReader v-if="currentMode.name === ReaderType.COLUMN" @receive-config="receiveConfig"
+    <ColumnReader v-if="modeName === ReaderType.COLUMN" @receive-config="receiveConfig"
       @info-down="infoBarDown">
     </ColumnReader>
-    <ScrollReader v-else-if="currentMode.name === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
-    <ScrollWithNote v-else-if="currentMode.name === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown">
+    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
+    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown">
     </ScrollWithNote>
   </div>
 </template>
@@ -133,17 +136,15 @@ const currentConfig = ref<Config[]>([])
 
 .top-info-bar-left .back {
   margin: 0 10px;
-  padding: 5px 10px;
+  padding: 5px 10px 10px;
   font-size: 10px;
   text-align: center;
   color: #666;
   cursor: pointer;
   width: 25px;
-  height: 25px;
 }
 
 .top-info-bar-left .back img {
-  display: block;
   width: 25px;
   height: 25px;
 }

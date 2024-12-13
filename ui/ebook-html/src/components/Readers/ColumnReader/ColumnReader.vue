@@ -26,9 +26,9 @@ const configList: Config[] = [
   generateSelectionConfig(
     'fontFamily',
     [
-      { name: `'Lucida Console', Courier, monospace` }
+      { name: `'Lucida Console', Courier, monospace` },
+      { name: `'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif` },
     ],
-    { name: `'Lucida Console', Courier, monospace` },
     fontFamily
   ),
   generateAdjusterConfig('columns', 4, 1, 1, columns),
@@ -159,10 +159,11 @@ document.addEventListener('keydown', keyDownEvent)
 
 <template>
   <div class="article-container" ref='containerRef' :style="{
-    columns, lineHeight, fontSize: withPx(fontSize), columnGap: withPx(columnGap),
+    columns, lineHeight, fontFamily,
+    fontSize: withPx(fontSize), columnGap: withPx(columnGap),
     paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight),
     paddingTop: withPx(paddingTop), paddingBottom: withPx(paddingBottom),
-    letterSpacing: withPx(letterSpacing)
+    letterSpacing: withPx(letterSpacing),
   }">
     <!-- book text -->
     <article ref="articleTextRef" v-if="currentChapterHTML" v-html="currentChapterHTML"
@@ -181,7 +182,6 @@ document.addEventListener('keydown', keyDownEvent)
   height: 100vh;
   width: 100vw;
   /* column-fill: auto; */
-  font-family: 'Lucida Console', Courier, monospace;
   background-color: #f0f0f0;
   overflow: hidden;
   position: relative;
@@ -212,7 +212,7 @@ document.addEventListener('keydown', keyDownEvent)
   display: block;
   margin: auto;
   max-width: 100%;
-  max-height: calc(100vh - 30px);
+  max-height: 97vh;
   object-fit: contain;
 }
 

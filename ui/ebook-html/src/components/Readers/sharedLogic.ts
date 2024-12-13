@@ -10,15 +10,14 @@ interface AdjusterConfig {
   value: Ref
 }
 
-interface SelectionConfig<T extends Mode> {
+interface SelectionConfig {
   type: 'selection'
   name: string
-  selectOptions: T[]
-  selected: T
+  selectOptions: Mode[]
   value: Ref
 }
 
-export type Config = AdjusterConfig | SelectionConfig<Mode>
+export type Config = AdjusterConfig | SelectionConfig
 
 export function generateAdjusterConfig(
   name: string,
@@ -43,14 +42,12 @@ export function generateAdjusterConfig(
 export function generateSelectionConfig(
   name: string,
   selectOptions: Mode[],
-  selected: Mode,
   value: Ref,
-): SelectionConfig<Mode> {
+): SelectionConfig {
   return {
     type: 'selection',
     name,
     selectOptions,
-    selected,
     value,
   }
 }
