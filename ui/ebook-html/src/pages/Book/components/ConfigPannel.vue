@@ -30,7 +30,10 @@ onBeforeUnmount(() => {
 <template>
   <div @click.stop="tooglePannelShow" class="config" ref="configArea">
     <span class="tag"><img src="/config.svg" alt="config tag"></span>
-    <div v-show="showConfigPannel" class="config-pannel">
+    <div @wheel.stop v-show="showConfigPannel" class="config-pannel">
+      <div @click.stop v-if="!config.length" class="pannel-item">
+        There is no configuration items provided by this reading mode.
+      </div>
       <div @click.stop v-for="item in config" class="pannel-item">
         <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
         <DropDown v-if="item.type === 'selection'" :key="item.name + '-selection'" :label="item.name"
@@ -65,6 +68,8 @@ onBeforeUnmount(() => {
   top: 100%;
   left: 0;
   width: 400px;
+  height: 60vh;
+  overflow-y: auto;
   background-color: #fefefe;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted } from "vue"
+import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBeforeUnmount } from "vue"
 import { useBookStore } from "../../../store"
 import { useDebounce, useThrottle, withPx } from "../../../utils"
 import { Config, generateAdjusterConfig, generateSelectionConfig } from "../sharedLogic"
@@ -43,6 +43,9 @@ const configList: Config[] = [
 ]
 onMounted(() => {
   emits('receiveConfig', configList)
+})
+onBeforeUnmount(() => {
+  emits('receiveConfig', [])
 })
 /**
  * book
