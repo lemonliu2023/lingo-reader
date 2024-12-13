@@ -37,13 +37,14 @@ export function useDomSize(domRef: Readonly<ShallowRef<HTMLElement | null>>) {
     width.value = domRef.value!.clientWidth
     height.value = domRef.value!.clientHeight
   }
+
   onMounted(() => {
     getRect()
-    domRef.value!.addEventListener('resize', getRect)
+    window.addEventListener('resize', getRect)
   })
 
   onBeforeUnmount(() => {
-    domRef.value!.removeEventListener('resize', getRect)
+    window.removeEventListener('resize', getRect)
   })
 
   return { width, height }

@@ -3,7 +3,14 @@ import { onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue"
 import { useBookStore } from "../../../store"
 import { useDomSize, withPx } from "../../../utils"
 import Resizer from "../../Resizer/Resizer.vue"
-import { Config, generateAdjusterConfig, generateSelectionConfig } from "../sharedLogic"
+import {
+  type Config,
+  generateFontFamilyConfig,
+  generateFontSizeConfig,
+  generateLetterSpacingConfig,
+  generateLineHeightConfig,
+  generatePaddingConfig
+} from "../sharedLogic"
 
 const emits = defineEmits<{
   (e: 'infoDown'): void
@@ -13,18 +20,19 @@ const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const fontSize = ref<number>(16)
 const letterSpacing = ref<number>(0)
 const lineHeight = ref<number>(2)
+const textPaddingLeft = ref<number>(2)
+const textPaddingRight = ref<number>(2)
+const textPaddingTop = ref<number>(0)
+const textPaddingBottom = ref<number>(300)
 const configList: Config[] = [
-  generateSelectionConfig(
-    'fontFamily',
-    [
-      { name: `'Lucida Console', Courier, monospace` },
-      { name: `'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif` },
-    ],
-    fontFamily
-  ),
-  generateAdjusterConfig('fontSize', 50, 5, 1, fontSize),
-  generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing),
-  generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight),
+  generateFontFamilyConfig(fontFamily),
+  generateFontSizeConfig(fontSize),
+  generateLetterSpacingConfig(letterSpacing),
+  generateLineHeightConfig(lineHeight),
+  generatePaddingConfig('textPaddingLeft', textPaddingLeft),
+  generatePaddingConfig('textPaddingRight', textPaddingRight),
+  generatePaddingConfig('textPaddingTop', textPaddingTop),
+  generatePaddingConfig('textPaddingBottom', textPaddingBottom),
 ]
 onMounted(() => {
   emits('receiveConfig', configList)
@@ -65,7 +73,6 @@ const nextChapter = async () => {
  */
 const containerRef = useTemplateRef('containerRef')
 const { width: containerWidth } = useDomSize(containerRef)
-
 /**
  * move drag bar
  */
@@ -114,8 +121,7 @@ const containerClick = (e: MouseEvent) => {
 </script>
 
 <template>
-  <div @click="containerClick"
-    :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
+  <div @click="containerClick" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
     :class="{ 'user-select-none': isDragging }" class="article-container" ref='containerRef'>
     <button @click.stop="nextChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
       next chapter
@@ -126,8 +132,12 @@ const containerClick = (e: MouseEvent) => {
     <!-- book text -->
     <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
 
-    <article :style="{ fontFamily, lineHeight, fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
-      v-html="currentChapterHTML" class="article-text">
+    <article :style="{
+      fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft),
+      paddingRight: withPx(textPaddingRight), paddingTop: withPx(textPaddingTop),
+      paddingBottom: withPx(textPaddingBottom), fontSize: withPx(fontSize),
+      letterSpacing: withPx(letterSpacing)
+    }" v-html="currentChapterHTML" class="article-text">
     </article>
 
     <Resizer @mousedown="(e) => barDrag('right', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>

@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, onMounted, onBeforeUnmount, onUnmounted } from 'vue'
+import { ref, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
 import { useBookStore } from '../../../store'
 import { withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
-import { Config, generateAdjusterConfig } from '../sharedLogic'
+import {
+  type Config,
+  generateFontSizeConfig,
+  generateLetterSpacingConfig,
+  generateLineHeightConfig,
+  generatePaddingConfig
+} from '../sharedLogic'
 
 const emits = defineEmits<{
   (e: 'info-down'): void
@@ -12,10 +18,18 @@ const emits = defineEmits<{
 const fontSize = ref<number>(20)
 const letterSpacing = ref<number>(0)
 const lineHeight = ref<number>(2)
+const textPaddingLeft = ref<number>(5)
+const textPaddingRight = ref<number>(1)
+const textPaddingTop = ref<number>(0)
+const textPaddingBottom = ref<number>(300)
 const configList: Config[] = [
-  generateAdjusterConfig('fontSize', 50, 5, 1, fontSize),
-  generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing),
-  generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight),
+  generateFontSizeConfig(fontSize),
+  generateLetterSpacingConfig(letterSpacing),
+  generateLineHeightConfig(lineHeight),
+  generatePaddingConfig('textPaddingLeft', textPaddingLeft),
+  generatePaddingConfig('textPaddingRight', textPaddingRight),
+  generatePaddingConfig('textPaddingTop', textPaddingTop),
+  generatePaddingConfig('textPaddingBottom', textPaddingBottom),
 ]
 onMounted(() => {
   emits('receiveConfig', configList)
@@ -117,8 +131,11 @@ const onMouseDown = (e: MouseEvent) => {
     </div>
     <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
     <!-- this -->
-    <div :style="{ lineHeight, flexBasis: withPx(articleBasis) }"
-      :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
+    <div :style="{
+      lineHeight, paddingLeft: withPx(textPaddingLeft), paddingRight: withPx(textPaddingRight),
+      paddingTop: withPx(textPaddingTop), paddingBottom: withPx(textPaddingBottom),
+      flexBasis: withPx(articleBasis)
+    }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
       <article class="article-text" v-html="currentChapterHTML">

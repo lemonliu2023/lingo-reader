@@ -30,6 +30,7 @@ const useBookStore = defineStore('ebook', () => {
   }
 
   const reset = () => {
+    book!.revokeImageUrls()
     book = undefined
     toc = []
     chapterIndex.value = 0

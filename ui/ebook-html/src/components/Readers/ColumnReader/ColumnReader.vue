@@ -2,7 +2,15 @@
 import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBeforeUnmount } from "vue"
 import { useBookStore } from "../../../store"
 import { useDebounce, useThrottle, withPx } from "../../../utils"
-import { Config, generateAdjusterConfig, generateSelectionConfig } from "../sharedLogic"
+import {
+  type Config,
+  generateAdjusterConfig,
+  generateFontFamilyConfig,
+  generateFontSizeConfig,
+  generateLetterSpacingConfig,
+  generateLineHeightConfig,
+  generatePaddingConfig
+} from "../sharedLogic"
 
 const emits = defineEmits<{
   (event: 'infoDown'): void
@@ -23,23 +31,16 @@ const paddingBottom = ref<number>(10)
 const lineHeight = ref<number>(2)
 const columnGap = ref<number>(20)
 const configList: Config[] = [
-  generateSelectionConfig(
-    'fontFamily',
-    [
-      { name: `'Lucida Console', Courier, monospace` },
-      { name: `'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif` },
-    ],
-    fontFamily
-  ),
+  generateFontFamilyConfig(fontFamily),
   generateAdjusterConfig('columns', 4, 1, 1, columns),
-  generateAdjusterConfig('fontSize', 50, 5, 1, fontSize),
-  generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing),
-  generateAdjusterConfig('paddingLeft', Infinity, -Infinity, 2, paddingLeft),
-  generateAdjusterConfig('paddingRight', Infinity, -Infinity, 2, paddingRight),
-  generateAdjusterConfig('paddingTop', Infinity, -Infinity, 2, paddingTop),
-  generateAdjusterConfig('paddingBottom', Infinity, -Infinity, 2, paddingBottom),
-  generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight),
   generateAdjusterConfig('columnGap', Infinity, 0, 2, columnGap),
+  generateFontSizeConfig(fontSize),
+  generateLetterSpacingConfig(letterSpacing),
+  generatePaddingConfig('paddingLeft', paddingLeft),
+  generatePaddingConfig('paddingRight', paddingRight),
+  generatePaddingConfig('paddingTop', paddingTop),
+  generatePaddingConfig('paddingBottom', paddingBottom),
+  generateLineHeightConfig(lineHeight),
 ]
 onMounted(() => {
   emits('receiveConfig', configList)

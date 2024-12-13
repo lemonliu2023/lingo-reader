@@ -51,3 +51,31 @@ export function generateSelectionConfig(
     value,
   }
 }
+
+const fontFamilyList: string[] = [
+  `'Lucida Console', Courier, monospace`,
+  `'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif`,
+]
+export function generateFontFamilyConfig(fontFamily: Ref<string, string>) {
+  return generateSelectionConfig(
+    'fontFamily',
+    fontFamilyList.map(val => ({ name: val })),
+    fontFamily,
+  )
+}
+
+export function generateFontSizeConfig(fontSize: Ref<number, number>) {
+  return generateAdjusterConfig('fontSize', 50, 5, 1, fontSize)
+}
+
+export function generateLetterSpacingConfig(letterSpacing: Ref<number, number>) {
+  return generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing)
+}
+
+export function generateLineHeightConfig(lineHeight: Ref<number, number>) {
+  return generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight)
+}
+
+export function generatePaddingConfig(name: string, paddingOneDirection: Ref<number, number>) {
+  return generateAdjusterConfig(name, Infinity, -Infinity, 2, paddingOneDirection)
+}
