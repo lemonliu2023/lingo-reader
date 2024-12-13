@@ -29,7 +29,7 @@ const resize = (e: MouseEvent) => {
 </script>
 
 <template>
-  <div @dragstart.prevent @click.stop @mousedown="(e) => resize(e)" class="resizer-container">
+  <div @dragstart.prevent @mousedown="(e) => resize(e)" class="resizer-container">
     <div @dragstart.prevent class="resizer"></div>
   </div>
 </template>

@@ -103,6 +103,7 @@ const noteBasis = ref<number>(0)
 const articleBasis = ref<number>(0)
 
 const onMouseMove = (e: MouseEvent) => {
+  isDragging.value = true
   const delta = e.clientX - startX
   if (isReverse.value) {
     noteBasis.value -= delta * 2
@@ -120,7 +121,6 @@ const onMouseUp = () => {
 }
 const onMouseDown = (e: MouseEvent) => {
   startX = e.clientX
-  isDragging.value = true
 }
 
 </script>

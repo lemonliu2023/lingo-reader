@@ -87,14 +87,14 @@ const isDragging = ref<boolean>(false)
 let startX = 0
 let dragType = ''
 const barDrag = (type: string, e: MouseEvent) => {
-  emits('infoDown')
   startX = e.clientX
   dragType = type
-  isDragging.value = true
 }
 const onMouseMove = (e: MouseEvent) => {
   const delta = e.clientX - startX
   const maxPadding = containerWidth.value - 400
+  isDragging.value = true
+  emits('infoDown')
 
   if (dragType === 'left') {
     paddingLeft.value = Math.min(
