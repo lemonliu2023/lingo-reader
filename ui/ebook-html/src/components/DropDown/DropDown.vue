@@ -36,6 +36,7 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
 }
 
+// TODO: extract logic that closing card when click outside to a hook
 // close drop-down menu when clicking outside
 const dropdownRef = useTemplateRef('dropdownRef')
 const handleClickOutside = (event: MouseEvent) => {
@@ -57,7 +58,7 @@ onBeforeUnmount(() => {
     <!-- The current mode display area -->
     <div class="dropdown" @click="toggleDropdown">
       <img v-if="currentMode.logo" :src="currentMode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
-      <span>{{ currentMode.name }}</span>
+      <span class="text-ellipses">{{ currentMode.name }}</span>
       <i class="arrow" :class="{ open: isDropdownOpen }"></i>
     </div>
     <!-- drop down menu -->
@@ -106,9 +107,6 @@ onBeforeUnmount(() => {
   flex: 1;
   /* if not set width to 0, the ellipsis will invalidated */
   width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* arrow */
@@ -117,12 +115,13 @@ onBeforeUnmount(() => {
   border-width: 0 2px 2px 0;
   display: inline-block;
   padding: 3px;
-  transform: translateX(-3px) rotate(45deg);
-  transition: transform 0.2s ease;
+  margin-right: 5px;
+  transform: rotate(45deg);
+  transition: transform 0.1s ease;
 }
 
 .arrow.open {
-  transform: rotate(-135deg) translate(-3px, -3px);
+  transform: rotate(-135deg) ;
 }
 
 /* menu */

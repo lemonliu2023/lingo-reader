@@ -17,6 +17,7 @@ const useBookStore = defineStore('ebook', () => {
     }
   }
 
+  // TODO: add cache
   const getChapterHTML = async () => {
     return await book!.getHTML(toc[chapterIndex.value].id)
   }

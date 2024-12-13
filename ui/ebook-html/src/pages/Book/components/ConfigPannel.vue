@@ -11,9 +11,9 @@ const showConfigPannel = ref<boolean>(false)
 const tooglePannelShow = () => {
   showConfigPannel.value = !showConfigPannel.value
 }
+// TODO: extract logic that closing card when click outside to a hook
 const configArea = useTemplateRef('configArea')
 const hiddenIfClickOutside = (e: MouseEvent) => {
-  e.stopPropagation()
   if (!configArea.value!.contains(e.target as Node)) {
     showConfigPannel.value = false
   }
@@ -30,7 +30,7 @@ onBeforeUnmount(() => {
 <template>
   <div @click.stop="tooglePannelShow" class="config" ref="configArea">
     <span class="tag"><img src="/config.svg" alt="config tag"></span>
-    <div @wheel.stop.passive v-show="showConfigPannel" class="config-pannel">
+    <div @wheel.stop.passive.prevent v-show="showConfigPannel" class="config-pannel">
       <div @click.stop v-if="!config.length" class="pannel-item">
         There is no configuration items provided by this reading mode.
       </div>

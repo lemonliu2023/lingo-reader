@@ -28,3 +28,10 @@ input[type="number"]{
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* show ellipses when the element content exceed its parent */
+.text-ellipses {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

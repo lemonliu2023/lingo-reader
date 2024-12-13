@@ -86,7 +86,7 @@ const currentConfig = ref<Config[]>([])
       <!-- configPanel -->
       <ConfigPannel :config="currentConfig"></ConfigPannel>
     </div>
-    <div class="top-info-bar-middle">
+    <div :title="bookStore.getFileName()" class="top-info-bar-middle text-ellipses">
       {{ bookStore.getFileName() }}
     </div>
     <div class="top-info-bar-right">
@@ -157,7 +157,7 @@ const currentConfig = ref<Config[]>([])
 .top-info-bar-middle {
   flex: 1;
   text-align: center;
-  padding-top: 21px;
+  padding: 30px;
   font-weight: 400;
 }
 
