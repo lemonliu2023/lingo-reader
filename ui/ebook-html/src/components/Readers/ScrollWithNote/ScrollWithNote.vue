@@ -8,7 +8,8 @@ import {
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
-  generatePaddingConfig
+  generatePaddingConfig,
+  generateParaSpacingConfig
 } from '../sharedLogic'
 
 const emits = defineEmits<{
@@ -18,6 +19,7 @@ const emits = defineEmits<{
 const fontSize = ref<number>(20)
 const letterSpacing = ref<number>(0)
 const lineHeight = ref<number>(2)
+const pSpacing = ref<number>(5)
 const textPaddingLeft = ref<number>(5)
 const textPaddingRight = ref<number>(1)
 const textPaddingTop = ref<number>(0)
@@ -26,6 +28,7 @@ const configList: Config[] = [
   generateFontSizeConfig(fontSize),
   generateLetterSpacingConfig(letterSpacing),
   generateLineHeightConfig(lineHeight),
+  generateParaSpacingConfig(pSpacing),
   generatePaddingConfig('textPaddingLeft', textPaddingLeft),
   generatePaddingConfig('textPaddingRight', textPaddingRight),
   generatePaddingConfig('textPaddingTop', textPaddingTop),
@@ -134,7 +137,7 @@ const onMouseDown = (e: MouseEvent) => {
     <div :style="{
       lineHeight, paddingLeft: withPx(textPaddingLeft), paddingRight: withPx(textPaddingRight),
       paddingTop: withPx(textPaddingTop), paddingBottom: withPx(textPaddingBottom),
-      flexBasis: withPx(articleBasis)
+      flexBasis: withPx(articleBasis), '--p-spacing': withPx(pSpacing)
     }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
@@ -234,7 +237,7 @@ const onMouseDown = (e: MouseEvent) => {
 
 .article-text :deep(p) {
   text-indent: 2rem;
-  margin: 3px 0;
+  margin-bottom: var(--p-spacing, 5px);
 }
 
 .article-text :deep(li p) {

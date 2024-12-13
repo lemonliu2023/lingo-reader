@@ -79,3 +79,7 @@ export function generateLineHeightConfig(lineHeight: Ref<number, number>) {
 export function generatePaddingConfig(name: string, paddingOneDirection: Ref<number, number>) {
   return generateAdjusterConfig(name, Infinity, -Infinity, 2, paddingOneDirection)
 }
+
+export function generateParaSpacingConfig(pSpacing: Ref<number, number>) {
+  return generateAdjusterConfig('pSpacing', Infinity, 0, 1, pSpacing)
+}

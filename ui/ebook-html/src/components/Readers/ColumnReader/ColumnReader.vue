@@ -22,14 +22,15 @@ const emits = defineEmits<{
  */
 const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const columns = ref<number>(2)
+const columnGap = ref<number>(20)
 const fontSize = ref<number>(20)
 const letterSpacing = ref<number>(0)
+const pSpacing = ref<number>(5)
 const paddingLeft = ref<number>(10)
 const paddingRight = ref<number>(10)
 const paddingTop = ref<number>(10)
 const paddingBottom = ref<number>(10)
 const lineHeight = ref<number>(2)
-const columnGap = ref<number>(20)
 const configList: Config[] = [
   generateFontFamilyConfig(fontFamily),
   generateAdjusterConfig('columns', 4, 1, 1, columns),
@@ -167,7 +168,7 @@ document.addEventListener('keydown', keyDownEvent)
     fontSize: withPx(fontSize), columnGap: withPx(columnGap),
     paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight),
     paddingTop: withPx(paddingTop), paddingBottom: withPx(paddingBottom),
-    letterSpacing: withPx(letterSpacing),
+    letterSpacing: withPx(letterSpacing), '--p-spacing': withPx(pSpacing),
   }">
     <!-- book text -->
     <article ref="articleTextRef" v-if="currentChapterHTML" v-html="currentChapterHTML"
@@ -198,6 +199,7 @@ document.addEventListener('keydown', keyDownEvent)
 
 .article-text :deep(p) {
   text-indent: 2rem;
+  margin-bottom: var(--p-spacing, 0);
 }
 
 .article-text :deep(li p) {

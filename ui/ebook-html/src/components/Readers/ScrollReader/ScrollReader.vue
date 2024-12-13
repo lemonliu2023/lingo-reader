@@ -9,7 +9,8 @@ import {
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
-  generatePaddingConfig
+  generatePaddingConfig,
+  generateParaSpacingConfig
 } from "../sharedLogic"
 
 const emits = defineEmits<{
@@ -24,11 +25,14 @@ const textPaddingLeft = ref<number>(2)
 const textPaddingRight = ref<number>(2)
 const textPaddingTop = ref<number>(0)
 const textPaddingBottom = ref<number>(300)
+// Another way to implement dynamic paragraph spacing is to use dynamic injection of <style>
+const pSpacing = ref<number>(5)
 const configList: Config[] = [
   generateFontFamilyConfig(fontFamily),
   generateFontSizeConfig(fontSize),
   generateLetterSpacingConfig(letterSpacing),
   generateLineHeightConfig(lineHeight),
+  generateParaSpacingConfig(pSpacing),
   generatePaddingConfig('textPaddingLeft', textPaddingLeft),
   generatePaddingConfig('textPaddingRight', textPaddingRight),
   generatePaddingConfig('textPaddingTop', textPaddingTop),
@@ -136,7 +140,7 @@ const containerClick = (e: MouseEvent) => {
       fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft),
       paddingRight: withPx(textPaddingRight), paddingTop: withPx(textPaddingTop),
       paddingBottom: withPx(textPaddingBottom), fontSize: withPx(fontSize),
-      letterSpacing: withPx(letterSpacing)
+      letterSpacing: withPx(letterSpacing), '--p-spacing': withPx(pSpacing)
     }" v-html="currentChapterHTML" class="article-text">
     </article>
 
@@ -194,7 +198,7 @@ const containerClick = (e: MouseEvent) => {
 
 .article-text :deep(p) {
   text-indent: 2rem;
-  margin: 3px 0;
+  margin-bottom: var(--p-spacing, 0);
 }
 
 .article-text :deep(li p) {
