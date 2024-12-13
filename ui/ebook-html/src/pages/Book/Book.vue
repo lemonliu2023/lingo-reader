@@ -93,11 +93,12 @@ const currentConfig = ref<Config[]>([])
     </div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
-    <ColumnReader v-if="modeName === ReaderType.COLUMN" @receive-config="receiveConfig"
-      @info-down="infoBarDown">
+    <ColumnReader v-if="modeName === ReaderType.COLUMN" @receive-config="receiveConfig" @info-down="infoBarDown">
     </ColumnReader>
-    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" @info-down="infoBarDown"></ScrollReader>
-    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" @info-down="infoBarDown">
+    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" @receive-config="receiveConfig" @info-down="infoBarDown">
+    </ScrollReader>
+    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" @receive-config="receiveConfig"
+      @info-down="infoBarDown">
     </ScrollWithNote>
   </div>
 </template>
@@ -122,7 +123,7 @@ const currentConfig = ref<Config[]>([])
   transition: top 0.2s;
 }
 
-.top-info-bar > div {
+.top-info-bar>div {
   background-color: #f0f0f0;
 }
 

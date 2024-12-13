@@ -1,19 +1,37 @@
 <script setup lang='ts'>
-import { onMounted, ref, useTemplateRef } from "vue"
+import { onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue"
 import { useBookStore } from "../../../store"
 import { useDomSize, withPx } from "../../../utils"
-import { Props } from "./ScollReader"
 import Resizer from "../../Resizer/Resizer.vue"
+import { Config, generateAdjusterConfig, generateSelectionConfig } from "../sharedLogic"
 
-withDefaults(defineProps<Partial<Props>>(), {
-  fontSize: 16,
-  letterSpacing: 1,
-  lineHeight: 2
-})
 const emits = defineEmits<{
   (e: 'infoDown'): void
+  (event: 'receiveConfig', configList: Config[]): void
 }>()
-
+const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
+const fontSize = ref<number>(16)
+const letterSpacing = ref<number>(0)
+const lineHeight = ref<number>(2)
+const configList: Config[] = [
+  generateSelectionConfig(
+    'fontFamily',
+    [
+      { name: `'Lucida Console', Courier, monospace` },
+      { name: `'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif` },
+    ],
+    fontFamily
+  ),
+  generateAdjusterConfig('fontSize', 50, 5, 1, fontSize),
+  generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing),
+  generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight),
+]
+onMounted(() => {
+  emits('receiveConfig', configList)
+})
+onBeforeUnmount(() => {
+  emits('receiveConfig', [])
+})
 /**
  * book
  */
@@ -96,7 +114,8 @@ const containerClick = (e: MouseEvent) => {
 </script>
 
 <template>
-  <div @click="containerClick" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
+  <div @click="containerClick"
+    :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
     :class="{ 'user-select-none': isDragging }" class="article-container" ref='containerRef'>
     <button @click.stop="nextChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
       next chapter
@@ -107,7 +126,7 @@ const containerClick = (e: MouseEvent) => {
     <!-- book text -->
     <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
 
-    <article :style="{ lineHeight, fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
+    <article :style="{ fontFamily, lineHeight, fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
       v-html="currentChapterHTML" class="article-text">
     </article>
 

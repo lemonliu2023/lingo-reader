@@ -1,21 +1,28 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, onMounted } from 'vue'
+import { ref, useTemplateRef, onMounted, onBeforeUnmount, onUnmounted } from 'vue'
 import { useBookStore } from '../../../store'
 import { withPx } from '../../../utils'
-import { Props } from './ScrollWithNote'
 import Resizer from '../../Resizer/Resizer.vue'
-
-withDefaults(defineProps<Partial<Props>>(), {
-  fontSize: 20,
-  letterSpacing: 0,
-  lineHeight: 2,
-  textPadding: 3
-})
+import { Config, generateAdjusterConfig } from '../sharedLogic'
 
 const emits = defineEmits<{
   (e: 'info-down'): void
+  (event: 'receiveConfig', configList: Config[]): void
 }>()
-
+const fontSize = ref<number>(20)
+const letterSpacing = ref<number>(0)
+const lineHeight = ref<number>(2)
+const configList: Config[] = [
+  generateAdjusterConfig('fontSize', 50, 5, 1, fontSize),
+  generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing),
+  generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight),
+]
+onMounted(() => {
+  emits('receiveConfig', configList)
+})
+onBeforeUnmount(() => {
+  emits('receiveConfig', [])
+})
 const articleWrapRef = useTemplateRef('articleWrapRef')
 
 /**
@@ -109,7 +116,8 @@ const onMouseDown = (e: MouseEvent) => {
       <textarea @blur="noteBlur" @focus="noteFocus" @click.stop name="note"></textarea>
     </div>
     <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
-    <div :style="{ lineHeight, flexBasis: withPx(articleBasis), padding: withPx(textPadding) }"
+    <!-- this -->
+    <div :style="{ lineHeight, flexBasis: withPx(articleBasis) }"
       :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
