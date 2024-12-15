@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parsexml } from '@svg-ebook-reader/shared'
+import { parsexml } from '@blingo-reader/shared'
 import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseNavList, parseNavMap, parsePageList, parseSpine } from '../src/parseFiles'
 
 describe('parseFiles', () => {

@@ -1,5 +1,5 @@
 {
-  "name": "@svg-ebook-reader/shared",
+  "name": "@blingo-reader/shared",
   "type": "module",
   "version": "0.1.0",
   "description": "shared module of svg ebook reader",

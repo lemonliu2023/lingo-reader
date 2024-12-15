@@ -7,9 +7,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "paths": {
-      "@svg-ebook-reader/epub-parser/*": ["packages/epub-parser/src/*"],
-      "@svg-ebook-reader/svg-render/*": ["packages/svg-render/src/*"],
-      "@svg-ebook-reader/shared/*": ["packages/shared/src/*"]
+      "@blingo-reader/epub-parser/*": ["packages/epub-parser/src/*"],
+      "@blingo-reader/svg-render/*": ["packages/svg-render/src/*"],
+      "@blingo-reader/shared/*": ["packages/shared/src/*"]
     },
     "resolveJsonModule": true,
     "types": ["node"],

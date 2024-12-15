@@ -1,5 +1,5 @@
 import process from 'node:process'
-import { parsexml, path } from '@svg-ebook-reader/shared'
+import { parsexml, path } from '@blingo-reader/shared'
 import { existsSync, mkdirSync, writeFileSync } from './fsImagePolyfill'
 import { type ZipFile, createZipFile } from './utils'
 import type {

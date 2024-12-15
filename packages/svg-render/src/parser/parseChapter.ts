@@ -1,4 +1,4 @@
-import { parsexml } from '@svg-ebook-reader/shared'
+import { parsexml } from '@blingo-reader/shared'
 import { ContentType } from './parserTypes'
 import type {
   ChapterImage,

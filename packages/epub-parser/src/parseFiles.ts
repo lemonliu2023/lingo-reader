@@ -1,4 +1,4 @@
-import { path } from '@svg-ebook-reader/shared'
+import { path } from '@blingo-reader/shared'
 import type {
   CollectionItem,
   Contributor,

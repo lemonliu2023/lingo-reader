@@ -1,5 +1,5 @@
-import type { EpubFile, SpineItem } from '@svg-ebook-reader/epub-parser'
-import { initEpubFile } from '@svg-ebook-reader/epub-parser'
+import type { EpubFile, SpineItem } from '@blingo-reader/epub-parser'
+import { initEpubFile } from '@blingo-reader/epub-parser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
