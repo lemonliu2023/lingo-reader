@@ -30,7 +30,7 @@ function measureStr(paras: MeasureStrParas): Measurement {
   }
 }
 
-let browser: Browser
+let browser: Browser | undefined
 let page: Page
 async function measurePlaywright(paras: MeasureStrParas) {
   if (!browser) {
@@ -40,20 +40,21 @@ async function measurePlaywright(paras: MeasureStrParas) {
     const cleanup = async () => {
       if (browser) {
         await browser.close()
+        browser = undefined
       }
     }
-    const handleExit = async (signal: string) => {
+    const handleExit = async () => {
       await cleanup()
-      process.exit(signal === 'exit' ? 0 : 1)
+      process.exit(0)
     }
     ['exit', 'SIGINT', 'SIGTERM'].forEach((event) => {
-      process.on(event, async () => await handleExit(event))
+      process.on(event, async () => await handleExit())
     })
     process.on('uncaughtException', async () => {
       await cleanup()
     })
     process.on('unhandledRejection', async () => {
-      await handleExit('unhandledRejection')
+      await handleExit()
     })
   }
   if (paras.remoteFontCSSURL?.length > 1) {

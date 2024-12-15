@@ -14,7 +14,7 @@ const processFile = async (file: File) => {
 
 <template>
   <header class="header">
-    <span class="logo">BlingGo Reader</span>
+    <span class="logo">BlinGo Reader</span>
   </header>
   <section class="section">
     <FileSelect @file-change="processFile"></FileSelect>
