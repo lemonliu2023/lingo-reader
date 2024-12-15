@@ -1,10 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useBookStore } from '../store'
 import routes from './routes'
 
 const router = createRouter({
   routes,
-  history: createWebHistory(),
+  // Now /blingo-reader/ is same to base option in vite.config.ts
+  history: createWebHashHistory('/blingo-reader/'),
 })
 
 // redirect to home if no book
