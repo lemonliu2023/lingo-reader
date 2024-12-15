@@ -54,19 +54,20 @@ const handleDrop = (e: DragEvent) => {
 <template>
   <div @dragenter.prevent="handleDragEnter" @dragover.prevent="handleDragOver" @dragleave.prevent="handleDragLeave"
     @drop.prevent="handleDrop" :style="{ width: width + 'rem', height: height + 'rem' }" class="file-upload-container">
-    <!-- 拖拽图层 -->
+    <!-- drag overlay -->
     <div v-show="isDragging" class="drag-overlay">
-      <p>释放文件以进行上传</p>
+      <p>Release the file for parsing</p>
     </div>
-    <!-- 文件选择按钮 -->
-    <label v-show="showSelectFileButton" for="fileInput" class="file-input-label">选择文件</label>
-    <!-- 隐藏的文件输入 -->
+    <!-- file select button -->
+    <label v-show="showSelectFileButton" for="fileInput" class="file-input-label">Select File</label>
+    <!-- hidden file input -->
     <input @change="handleFileChange" type="file" id="fileInput" class="file-input" accept=".epub">
+    <span class="info"><b>.epub</b> file are supported</span>
   </div>
 </template>
 
 <style scoped>
-/* 主容器样式 */
+/* main container */
 .file-upload-container {
   position: relative;
   display: flex;
@@ -80,7 +81,7 @@ const handleDrop = (e: DragEvent) => {
   height: 32rem;
 }
 
-/* 文件选择按钮样式 */
+/* file select button css */
 .file-input-label {
   padding: 10px 20px;
   background-color: #4caf4f;
@@ -89,13 +90,17 @@ const handleDrop = (e: DragEvent) => {
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
-/* 隐藏实际文件输入 */
 .file-input {
   display: none;
   pointer-events: none;
+}
+
+.info {
+  font-size: 12px;
+  color: #aaa;
 }
 
 .drag-overlay {

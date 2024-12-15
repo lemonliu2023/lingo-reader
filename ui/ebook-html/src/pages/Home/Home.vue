@@ -33,9 +33,9 @@ const processFile = async (file: File) => {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: 2rem;
   font-weight: 600;
-  color: #4CAF4F;
+  color: #666;
   letter-spacing: 0.05em;
-  text-shadow: 1px -2px 2px rgba(0, 0, 0, 0.1);
+  /* text-shadow: 1px -2px 2px rgba(0, 0, 0, 0.3); */
 }
 
 .section {

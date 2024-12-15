@@ -90,6 +90,7 @@ const currentConfig = ref<Config[]>([])
       {{ bookStore.getFileName() }}
     </div>
     <div class="top-info-bar-right">
+      <!-- TODO: add navMap -->
     </div>
   </div>
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
