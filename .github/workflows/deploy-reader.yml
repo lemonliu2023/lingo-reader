@@ -1,4 +1,4 @@
-name: Deploy reader-html site to pages
+name: deploy reader-html
 
 on:
   workflow_dispatch: # manually

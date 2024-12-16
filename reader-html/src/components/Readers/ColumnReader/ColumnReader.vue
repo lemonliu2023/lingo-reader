@@ -23,7 +23,7 @@ const emits = defineEmits<{
 const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const columns = ref<number>(2)
 const columnGap = ref<number>(20)
-const fontSize = ref<number>(20)
+const fontSize = ref<number>(16)
 const letterSpacing = ref<number>(0)
 const pSpacing = ref<number>(5)
 const paddingLeft = ref<number>(10)
@@ -199,7 +199,7 @@ document.addEventListener('keydown', keyDownEvent)
 
 .article-text :deep(p) {
   text-indent: 2rem;
-  margin-bottom: var(--p-spacing, 0);
+  padding-bottom: var(--p-spacing, 0);
 }
 
 .article-text :deep(li p) {
@@ -223,7 +223,7 @@ document.addEventListener('keydown', keyDownEvent)
 }
 
 .article-text :deep(pre) {
-  background-color: turquoise;
+  background-color: rgba(204, 201, 194, 0.3);
 }
 
 /* allow text in code to wrap */

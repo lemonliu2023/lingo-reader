@@ -196,6 +196,10 @@ const containerClick = (e: MouseEvent) => {
   object-fit: contain;
 }
 
+.article-text :deep(pre) {
+  background-color: rgba(204, 201, 194, 0.3);
+}
+
 .article-text :deep(p) {
   text-indent: 2rem;
   margin-bottom: var(--p-spacing, 0);

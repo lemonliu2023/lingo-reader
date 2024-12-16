@@ -16,7 +16,7 @@ const emits = defineEmits<{
   (e: 'info-down'): void
   (event: 'receiveConfig', configList: Config[]): void
 }>()
-const fontSize = ref<number>(20)
+const fontSize = ref<number>(16)
 const letterSpacing = ref<number>(0)
 const lineHeight = ref<number>(2)
 const pSpacing = ref<number>(5)
@@ -233,6 +233,10 @@ const onMouseDown = (e: MouseEvent) => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+.article-text :deep(pre) {
+  background-color: rgba(204, 201, 194, 0.3);
 }
 
 .article-text :deep(p) {
