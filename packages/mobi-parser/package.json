@@ -1,13 +1,13 @@
 {
-  "name": "@blingo-reader/epub-parser",
+  "name": "@blingo-reader/mobi-parser",
   "type": "module",
-  "version": "0.1.1",
-  "description": "An epub parser which generates multiple chapter contents from an epub file",
-  "author": "hhk-png <fangfangluo@qq.com>",
+  "version": "0.0.1",
+  "description": "A mobi parser",
+  "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
   "keywords": [
-    "epub",
-    "epub-parser"
+    "mobi",
+    "mobi-parser"
   ],
   "exports": {
     ".": {
@@ -32,8 +32,7 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "@blingo-reader/shared": "workspace:^",
-    "jszip": "^3.10.1"
+    "@blingo-reader/shared": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^20.14.8"

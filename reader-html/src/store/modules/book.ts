@@ -2,6 +2,7 @@ import type { EpubFile, SpineItem } from '@blingo-reader/epub-parser'
 import { initEpubFile } from '@blingo-reader/epub-parser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import DOMPurify from 'dompurify'
 
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | undefined
@@ -19,7 +20,10 @@ const useBookStore = defineStore('ebook', () => {
 
   // TODO: add cache
   const getChapterHTML = async () => {
-    return await book!.getHTML(toc[chapterIndex.value].id)
+    // for security
+    return DOMPurify.sanitize(await book!.getHTML(toc[chapterIndex.value].id), {
+      ALLOWED_URI_REGEXP: /^(blob|https)/gi,
+    })
   }
 
   const getNavMap = () => {

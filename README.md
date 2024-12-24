@@ -15,4 +15,4 @@ The next step is to complete the parser of unencrypted .mobi, azw, azw3, etc. fi
 7. adjust ui in book page.
 8. exploring a unified api for different ebook file parser.
 9. picture preview
-10. reverse selection problem when selecting text
+10. use scroll api to finish column reader
