@@ -6,7 +6,7 @@ The next step is to complete the parser of unencrypted .mobi, azw, azw3, etc. fi
 
 ## TODO：
 
-1. the UI of the homepage is ugly and needs to be adjested.
+1. the UI of the homepage is ugly and needs to be adjusted.
 2. add a link to blingo-reader github on the homepage.
 3. add a new way to open files. Enable users to open file via urls.
 4. add navMap in Book page.
@@ -16,3 +16,4 @@ The next step is to complete the parser of unencrypted .mobi, azw, azw3, etc. fi
 8. exploring a unified api for different ebook file parser.
 9. picture preview
 10. use scroll api to finish column reader
+11. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. So it could be better to convert the way to ondemand loading.

@@ -1,28 +1,32 @@
-import type { Header } from './types'
+import type {
+  CdicHeader,
+  ExthHeader,
+  FdstHeader,
+  FontHeader,
+  HuffHeader,
+  IndxHeader,
+  Kf8Header,
+  MobiHeader,
+  PalmdocHeader,
+  PdbHeader,
+  TagxHeader,
+} from './types'
 
-export const MIME = {
-  XML: 'application/xml',
-  XHTML: 'application/xhtml+xml',
-  HTML: 'text/html',
-  CSS: 'text/css',
-  SVG: 'image/svg+xml',
-}
-
-export const PDB_HEADER: Header = {
+export const pdbHeader: PdbHeader = {
   name: [0, 32, 'string'],
   type: [60, 4, 'string'],
   creator: [64, 4, 'string'],
   numRecords: [76, 2, 'uint'],
 }
 
-export const PALMDOC_HEADER: Header = {
+export const palmdocHeader: PalmdocHeader = {
   compression: [0, 2, 'uint'],
   numTextRecords: [8, 2, 'uint'],
   recordSize: [10, 2, 'uint'],
   encryption: [12, 2, 'uint'],
 }
 
-export const MOBI_HEADER: Header = {
+export const mobiHeader: MobiHeader = {
   magic: [16, 4, 'string'],
   length: [20, 4, 'uint'],
   type: [24, 4, 'uint'],
@@ -41,7 +45,7 @@ export const MOBI_HEADER: Header = {
   indx: [244, 4, 'uint'],
 }
 
-export const KF8_HEADER: Header = {
+export const kf8Header: Kf8Header = {
   resourceStart: [108, 4, 'uint'],
   fdst: [192, 4, 'uint'],
   numFdst: [196, 4, 'uint'],
@@ -50,13 +54,13 @@ export const KF8_HEADER: Header = {
   guide: [260, 4, 'uint'],
 }
 
-export const EXTH_HEADER: Header = {
+export const exthHeader: ExthHeader = {
   magic: [0, 4, 'string'],
   length: [4, 4, 'uint'],
   count: [8, 4, 'uint'],
 }
 
-export const INDX_HEADER: Header = {
+export const indxHeader: IndxHeader = {
   magic: [0, 4, 'string'],
   length: [4, 4, 'uint'],
   type: [8, 4, 'uint'],
@@ -71,70 +75,78 @@ export const INDX_HEADER: Header = {
   numCncx: [52, 4, 'uint'],
 }
 
-export const TAGX_HEADER: Header = {
+export const tagxHeader: TagxHeader = {
   magic: [0, 4, 'string'],
   length: [4, 4, 'uint'],
   numControlBytes: [8, 4, 'uint'],
 }
 
-export const HUFF_HEADER: Header = {
+export const huffHeader: HuffHeader = {
   magic: [0, 4, 'string'],
   offset1: [8, 4, 'uint'],
   offset2: [12, 4, 'uint'],
 }
 
-export const CDIC_HEADER: Header = {
+export const cdicHeader: CdicHeader = {
   magic: [0, 4, 'string'],
   length: [4, 4, 'uint'],
   numEntries: [8, 4, 'uint'],
   codeLength: [12, 4, 'uint'],
 }
 
-export const FDST_HEADER: Header = {
+export const fdstHeader: FdstHeader = {
   magic: [0, 4, 'string'],
   numEntries: [8, 4, 'uint'],
 }
 
-export const FONT_HEADER: Header = {
+export const fontHeader: FontHeader = {
   flags: [8, 4, 'uint'],
   dataStart: [12, 4, 'uint'],
   keyLength: [16, 4, 'uint'],
   keyStart: [20, 4, 'uint'],
 }
 
-export const MOBI_ENCODING = {
+export const mime = {
+  XML: 'application/xml',
+  XHTML: 'application/xhtml+xml',
+  HTML: 'text/html',
+  CSS: 'text/css',
+  SVG: 'image/svg+xml',
+}
+
+export const mobiEncoding: Record<string, string> = {
   1252: 'windows-1252',
   65001: 'utf-8',
 }
 
-export const EXTH_RECORD_TYPE = {
-  100: ['creator', 'string', true],
-  101: ['publisher'],
-  103: ['description'],
-  104: ['isbn'],
-  105: ['subject', 'string', true],
-  106: ['date'],
-  108: ['contributor', 'string', true],
-  109: ['rights'],
-  110: ['subjectCode', 'string', true],
-  112: ['source', 'string', true],
-  113: ['asin'],
+export const exthRecordType: Record<string, [string, string]> = {
+  100: ['creator', 'string'],
+  101: ['publisher', 'string'],
+  103: ['description', 'string'],
+  104: ['isbn', 'string'],
+  105: ['subject', 'string'],
+  106: ['date', 'string'],
+  108: ['contributor', 'string'],
+  109: ['rights', 'string'],
+  110: ['subjectCode', 'string'],
+  112: ['source', 'string'],
+  113: ['asin', 'string'],
   121: ['boundary', 'uint'],
-  122: ['fixedLayout'],
+  122: ['fixedLayout', 'string'],
   125: ['numResources', 'uint'],
-  126: ['originalResolution'],
-  127: ['zeroGutter'],
-  128: ['zeroMargin'],
-  129: ['coverURI'],
-  132: ['regionMagnification'],
+  126: ['originalResolution', 'string'],
+  127: ['zeroGutter', 'string'],
+  128: ['zeroMargin', 'string'],
+  129: ['coverURI', 'string'],
+  132: ['regionMagnification', 'string'],
   201: ['coverOffset', 'uint'],
   202: ['thumbnailOffset', 'uint'],
-  503: ['title'],
-  524: ['language', 'string', true],
-  527: ['pageProgressionDirection'],
+  503: ['title', 'string'],
+  524: ['language', 'string'],
+  527: ['pageProgressionDirection', 'string'],
 }
 
-export const MOBI_LANG = {
+export const mobiLang: Record<string, (string | null)[]> = {
   1: ['ar', 'ar-SA', 'ar-IQ', 'ar-EG', 'ar-LY', 'ar-DZ', 'ar-MA', 'ar-TN', 'ar-OM', 'ar-YE', 'ar-SY', 'ar-JO', 'ar-LB', 'ar-KW', 'ar-AE', 'ar-BH', 'ar-QA'],
   2: ['bg'],
   3: ['ca'],

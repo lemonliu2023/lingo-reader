@@ -1,6 +1,6 @@
 import type { Buffer } from 'node:buffer'
-import { MOBI_ENCODING } from './headers'
-import type { Header } from './types'
+import { exthHeader, exthRecordType, mobiEncoding } from './headers'
+import type { Exth, GetStruct, Header } from './types'
 
 const htmlEntityMap: Record<string, string> = {
   '&lt;': '<',
@@ -40,24 +40,23 @@ export async function toArrayBuffer(file: File | Buffer): Promise<ArrayBuffer> {
 }
 
 const decoder = new TextDecoder()
-const getString = (buffer: ArrayBuffer): string => decoder.decode(buffer)
-function getUint(buffer: ArrayBuffer): number {
+export const getString = (buffer: ArrayBuffer): string => decoder.decode(buffer)
+export function getUint(buffer: ArrayBuffer): number {
   const l = buffer.byteLength
   const func = l === 4 ? 'getUint32' : l === 2 ? 'getUint16' : 'getUint8'
   return new DataView(buffer)[func](0)
 }
 
-interface Struct {
-  [key: string]: string | number
-}
-export function getStruct(def: Header, buffer: ArrayBuffer): Struct {
-  return Object.fromEntries(
-    Array.from(Object.entries(def))
-      .map(([key, [start, len, type]]) => [
-        key,
-        (type === 'string' ? getString : getUint)(buffer.slice(start, start + len)),
-      ]),
-  )
+export function getStruct<T extends Header>(def: T, buffer: ArrayBuffer): GetStruct<T> {
+  const res = {} as GetStruct<T>
+  for (const key in def) {
+    const [start, len, type] = def[key] as [number, number, string]
+    res[key] = (type === 'string'
+      ? getString(buffer.slice(start, start + len))
+      : getUint(buffer.slice(start, start + len))
+    ) as GetStruct<T>[typeof key]
+  }
+  return res
 }
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
@@ -74,7 +73,7 @@ export function concatTypedArrays<T extends TypedArray>(...arrays: T[]): T {
   return result
 }
 
-export const getDecoder = (x: keyof typeof MOBI_ENCODING) => new TextDecoder(MOBI_ENCODING[x])
+export const getDecoder = (x: string) => new TextDecoder(mobiEncoding[x])
 
 export function getVarLen(byteArray: Uint8Array, i = 0) {
   let value = 0
@@ -169,4 +168,34 @@ export function read32Bits(byteArray: Uint8Array, from: number): bigint {
 export function isMOBI(file: ArrayBuffer) {
   const magic = getString(file.slice(60, 68))
   return magic === 'BOOKMOBI'// || magic === 'TEXtREAd'
+}
+
+// also known as metadata
+export function getExth(buf: ArrayBuffer, encoding: number): Exth {
+  const { magic, count } = getStruct(exthHeader, buf)
+  if (magic !== 'EXTH') {
+    throw new Error('Invalid EXTH header')
+  }
+
+  const decoder = getDecoder(encoding.toString())
+  const results: Record<string, (string | number)[]> = {}
+  // exthHeader length is 12
+  let offset = 12
+  for (let i = 0; i < count; i++) {
+    const type = getUint(buf.slice(offset, offset + 4)).toString()
+    // header value: type, length, data
+    // exth record length, include data.
+    const length = getUint(buf.slice(offset + 4, offset + 8))
+    if (type in exthRecordType) {
+      const [name, typ] = exthRecordType[type]
+      const data = buf.slice(offset + 8, offset + length)
+      const value = typ === 'uint' ? getUint(data) : decoder.decode(data)
+
+      results[name] ??= []
+      results[name].push(value)
+    }
+    offset += length
+  }
+
+  return results
 }
