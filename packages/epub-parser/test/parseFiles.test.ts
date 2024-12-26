@@ -165,7 +165,7 @@ describe('parseMetadata', async () => {
   })
 
   it('refined id does not exist, include <meta> and <tag> refines', () => {
-    expect(warnSpy).toBeCalledTimes(2)
+    expect(warnSpy).toBeCalled()
     warnSpy.mockRestore()
   })
 

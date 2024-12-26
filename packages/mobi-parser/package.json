@@ -33,8 +33,5 @@
   },
   "dependencies": {
     "@blingo-reader/shared": "workspace:^"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.2"
   }
 }

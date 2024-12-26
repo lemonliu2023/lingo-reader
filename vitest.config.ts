@@ -11,7 +11,7 @@ export default defineConfig({
     include: ['./packages/**/test/*.test.ts'],
     coverage: {
       provider: 'v8',
-      exclude: ['ui', ...coverageConfigDefaults.exclude],
+      exclude: [...coverageConfigDefaults.exclude, 'reader-html', 'ui', '**/dist/**'],
     },
     testTimeout: 15_000,
   },
