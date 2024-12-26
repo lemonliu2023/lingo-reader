@@ -30,12 +30,15 @@ export function unescapeHTML(str: string): string {
   })
 }
 
-export async function toArrayBuffer(file: File | Buffer): Promise<ArrayBuffer> {
-  if (file instanceof File) {
-    return file.arrayBuffer()
+function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
+}
+export async function toArrayBuffer<T extends File | Buffer>(file: T): Promise<ArrayBuffer> {
+  if (__BROWSER__) {
+    return (file as File).arrayBuffer()
   }
   else {
-    return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer
+    return bufferToArrayBuffer(file as Buffer)
   }
 }
 
