@@ -113,3 +113,7 @@ export type GetStruct<T extends Header> = {
 export type Offset = [number, number][]
 
 export type Exth = Record<string, (string | number)[]>
+
+export type DecompressFunc = (data: Uint8Array) => Uint8Array
+
+export type LoadRecordFunc = (index: number) => ArrayBuffer

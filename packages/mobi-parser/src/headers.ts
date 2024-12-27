@@ -120,16 +120,16 @@ export const mobiEncoding: Record<string, string> = {
 }
 
 export const exthRecordType: Record<string, [string, string]> = {
-  100: ['creator', 'string'],
+  100: ['creator', 'string'], // many
   101: ['publisher', 'string'],
   103: ['description', 'string'],
   104: ['isbn', 'string'],
-  105: ['subject', 'string'],
+  105: ['subject', 'string'], // many
   106: ['date', 'string'],
-  108: ['contributor', 'string'],
+  108: ['contributor', 'string'], // many
   109: ['rights', 'string'],
-  110: ['subjectCode', 'string'],
-  112: ['source', 'string'],
+  110: ['subjectCode', 'string'], // many
+  112: ['source', 'string'], // many
   113: ['asin', 'string'],
   121: ['boundary', 'uint'],
   122: ['fixedLayout', 'string'],
@@ -142,7 +142,7 @@ export const exthRecordType: Record<string, [string, string]> = {
   201: ['coverOffset', 'uint'],
   202: ['thumbnailOffset', 'uint'],
   503: ['title', 'string'],
-  524: ['language', 'string'],
+  524: ['language', 'string'], // many
   527: ['pageProgressionDirection', 'string'],
 }
 

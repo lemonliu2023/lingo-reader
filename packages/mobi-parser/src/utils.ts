@@ -1,6 +1,7 @@
 import type { Buffer } from 'node:buffer'
-import { exthHeader, exthRecordType, mobiEncoding } from './headers'
-import type { Exth, GetStruct, Header } from './types'
+import { unzlibSync } from 'fflate'
+import { cdicHeader, exthHeader, exthRecordType, fontHeader, huffHeader, indxHeader, mobiEncoding, tagxHeader } from './headers'
+import type { Exth, GetStruct, Header, LoadRecordFunc, MobiHeader } from './types'
 
 const htmlEntityMap: Record<string, string> = {
   '&lt;': '<',
@@ -157,6 +158,83 @@ export function decompressPalmDOC(array: Uint8Array): Uint8Array {
   return Uint8Array.from(output)
 }
 
+export function huffcdic(mobi: GetStruct<MobiHeader>, loadRecord: (index: number) => ArrayBuffer) {
+  const huffRecord = loadRecord(mobi.huffcdic)
+  const { magic, offset1, offset2 } = getStruct(huffHeader, huffRecord)
+  if (magic !== 'HUFF') {
+    throw new Error('Invalid HUFF record')
+  }
+
+  // table1 is indexed by byte value
+  const table1 = Array.from(
+    { length: 256 },
+    (_, i) => offset1 + i * 4,
+  )
+    .map(offset => getUint(huffRecord.slice(offset, offset + 4)))
+    .map(x => [x & 0b1000_0000, x & 0b1_1111, x >>> 8])
+
+  // table2 is indexed by code length
+  const table2 = [[0, 0], ...Array.from(
+    { length: 32 },
+    (_, i) => offset2 + i * 8,
+  )
+    .map(offset => [
+      getUint(huffRecord.slice(offset, offset + 4)),
+      getUint(huffRecord.slice(offset + 4, offset + 8)),
+    ])]
+
+  const dictionary: [Uint8Array, number | boolean][] = []
+  for (let i = 1; i < mobi.numHuffcdic; i++) {
+    const record = loadRecord(mobi.huffcdic + i)
+    const cdic = getStruct(cdicHeader, record)
+    if (cdic.magic !== 'CDIC') {
+      throw new Error('Invalid CDIC record')
+    }
+    // `numEntries` is the total number of dictionary data across CDIC records
+    // so `n` here is the number of entries in *this* record
+    const n = Math.min(1 << cdic.codeLength, cdic.numEntries - dictionary.length)
+    const buffer = record.slice(cdic.length)
+    for (let i = 0; i < n; i++) {
+      const offset = getUint(buffer.slice(i * 2, i * 2 + 2))
+      const x = getUint(buffer.slice(offset, offset + 2))
+      const length = x & 0x7FFF
+      const decompressed = x & 0x8000
+      const value = new Uint8Array(buffer.slice(offset + 2, offset + 2 + length))
+      dictionary.push([value, decompressed])
+    }
+  }
+
+  const decompress = (byteArray: Uint8Array): Uint8Array => {
+    let output = new Uint8Array()
+    const bitLength = byteArray.byteLength * 8
+    for (let i = 0; i < bitLength;) {
+      const bits = Number(read32Bits(byteArray, i))
+      let [found, codeLength, value] = table1[bits >>> 24]
+      if (!found) {
+        while (bits >>> (32 - codeLength) < table2[codeLength][0])
+          codeLength += 1
+        value = table2[codeLength][1]
+      }
+      i += codeLength
+      if (i > bitLength) {
+        break
+      }
+
+      const code = value - (bits >>> (32 - codeLength))
+      let [result, decompressed] = dictionary[code]
+      if (!decompressed) {
+        // the result is itself compressed
+        result = decompress(result)
+        // cache the result for next time
+        dictionary[code] = [result, true]
+      }
+      output = concatTypedArrays(output, result) as Uint8Array<ArrayBuffer>
+    }
+    return output
+  }
+  return decompress
+}
+
 export function read32Bits(byteArray: Uint8Array, from: number): bigint {
   const startByte = from >> 3
   const end = from + 32
@@ -201,4 +279,167 @@ export function getExth(buf: ArrayBuffer, encoding: number): Exth {
   }
 
   return results
+}
+
+export function getRemoveTrailingEntries(trailingFlags: number) {
+  const multibyte = trailingFlags & 1
+  const numTrailingEntries = countBitsSet(trailingFlags >>> 1)
+
+  return (array: Uint8Array): Uint8Array => {
+    for (let i = 0; i < numTrailingEntries; i++) {
+      const length = getVarLenFromEnd(array)
+      array = array.subarray(0, -length)
+    }
+    if (multibyte) {
+      const length = (array[array.length - 1] & 0b11) + 1
+      array = array.subarray(0, -length)
+    }
+    return array
+  }
+}
+
+export function getFont(buf: ArrayBuffer): Uint8Array {
+  const { flags, dataStart, keyLength, keyStart } = getStruct(fontHeader, buf)
+  const array = new Uint8Array(buf.slice(dataStart))
+  // deobfuscate font
+  if (flags & 0b10) {
+    const bytes = keyLength === 16 ? 1024 : 1040
+    const key = new Uint8Array(buf.slice(keyStart, keyStart + keyLength))
+    const length = Math.min(bytes, array.length)
+    for (let i = 0; i < length; i++) array[i] = array[i] ^ key[i % key.length]
+  }
+  // decompress font
+  if (flags & 1) {
+    try {
+      return unzlibSync(array)
+    }
+    catch (e) {
+      console.warn(e)
+      console.warn('Failed to decompress font')
+    }
+  }
+  return array
+}
+
+function getIndexData(indxIndex: number, loadRecord: LoadRecordFunc) {
+  const indxRecord = loadRecord(indxIndex)
+  const indx = getStruct(indxHeader, indxRecord)
+  if (indx.magic !== 'INDX')
+    throw new Error('Invalid INDX record')
+  const decoder = getDecoder(indx.encoding.toString())
+
+  const tagxBuffer = indxRecord.slice(indx.length)
+  const tagx = getStruct(tagxHeader, tagxBuffer)
+  if (tagx.magic !== 'TAGX')
+    throw new Error('Invalid TAGX section')
+  const numTags = (tagx.length - 12) / 4
+  const tagTable = Array.from(
+    { length: numTags },
+    (_, i) => new Uint8Array(tagxBuffer.slice(12 + i * 4, 12 + i * 4 + 4)),
+  )
+
+  const cncx: Record<string, string> = {}
+  let cncxRecordOffset = 0
+  for (let i = 0; i < indx.numCncx; i++) {
+    const record = loadRecord(indxIndex + indx.numRecords + i + 1)
+    const array = new Uint8Array(record)
+    for (let pos = 0; pos < array.byteLength;) {
+      const index = pos
+      const { value, length } = getVarLen(array, pos)
+      pos += length
+      const result = record.slice(pos, pos + value)
+      pos += value
+      cncx[cncxRecordOffset + index] = decoder.decode(result)
+    }
+    cncxRecordOffset += 0x10000
+  }
+
+  const table = []
+  for (let i = 0; i < indx.numRecords; i++) {
+    const record = loadRecord(indxIndex + 1 + i)
+    const array = new Uint8Array(record)
+    const indx = getStruct(indxHeader, record)
+    if (indx.magic !== 'INDX') {
+      throw new Error('Invalid INDX record')
+    }
+    for (let j = 0; j < indx.numRecords; j++) {
+      const offsetOffset = indx.idxt + 4 + 2 * j
+      const offset = getUint(record.slice(offsetOffset, offsetOffset + 2))
+
+      const length = getUint(record.slice(offset, offset + 1))
+      const name = getString(record.slice(offset + 1, offset + 1 + length))
+
+      const tags: number[][] = []
+      const startPos = offset + 1 + length
+      let controlByteIndex = 0
+      let pos = startPos + tagx.numControlBytes
+      for (const [tag, numValues, mask, end] of tagTable) {
+        if (end & 1) {
+          controlByteIndex++
+          continue
+        }
+        const offset = startPos + controlByteIndex
+        const value = getUint(record.slice(offset, offset + 1)) & mask
+        if (value === mask) {
+          if (countBitsSet(mask) > 1) {
+            const { value, length } = getVarLen(array, pos)
+            tags.push([tag, 0, value, numValues])
+            pos += length
+          }
+          else {
+            tags.push([tag, 1, 0, numValues])
+          }
+        }
+        else {
+          tags.push([tag, value >> countUnsetEnd(mask), 0, numValues])
+        }
+      }
+
+      const tagMap: Record<string, number[]> = {}
+      for (const [tag, valueCount, valueBytes, numValues] of tags) {
+        const values = []
+        if (valueCount !== 0) {
+          for (let i = 0; i < valueCount * numValues; i++) {
+            const { value, length } = getVarLen(array, pos)
+            values.push(value)
+            pos += length
+          }
+        }
+        else {
+          let count = 0
+          while (count < valueBytes) {
+            const { value, length } = getVarLen(array, pos)
+            values.push(value)
+            pos += length
+            count += length
+          }
+        }
+        tagMap[tag] = values
+      }
+      table.push({ name, tagMap })
+    }
+  }
+  return { table, cncx }
+}
+
+export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBuffer) {
+  const { table, cncx } = getIndexData(indxIndex, loadRecord)
+  const items = table.map(({ tagMap }, index) => ({
+    index,
+    offset: tagMap[1]?.[0],
+    size: tagMap[2]?.[0],
+    label: cncx[tagMap[3]?.[0]] ?? '',
+    headingLevel: tagMap[4]?.[0],
+    pos: tagMap[6],
+    parent: tagMap[21]?.[0],
+    firstChild: tagMap[22]?.[0],
+    lastChild: tagMap[23]?.[0],
+  }))
+  const getChildren = (item: any) => {
+    if (item.firstChild == null)
+      return item
+    item.children = items.filter(x => x.parent === item.index).map(getChildren)
+    return item
+  }
+  return items.filter(item => item.headingLevel === 0).map(getChildren)
 }
