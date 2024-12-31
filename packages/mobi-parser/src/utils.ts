@@ -228,7 +228,7 @@ export function huffcdic(mobi: GetStruct<MobiHeader>, loadRecord: (index: number
         // cache the result for next time
         dictionary[code] = [result, true]
       }
-      output = concatTypedArrays([output, result]) as Uint8Array<ArrayBuffer>
+      output = concatTypedArrays([output, result]) as any
     }
     return output
   }

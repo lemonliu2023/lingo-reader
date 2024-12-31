@@ -11,7 +11,6 @@ import type {
   MobiHeaderExtends,
   Offset,
   PalmdocHeader,
-  PdbHeader,
   TocItem,
 } from './types'
 import {
@@ -42,7 +41,6 @@ export async function initMobiFile(file: string | File) {
 export class Mobi {
   private fileArrayBuffer!: ArrayBuffer
   // extract from pdb header
-  private pdbHeader!: GetStruct<PdbHeader>
   private recordsOffset!: Offset
   private recordsMagic!: string[]
 
@@ -192,7 +190,6 @@ export class Mobi {
   private parsePdbHeader() {
     const pdb = getStruct(pdbHeader, this.fileArrayBuffer.slice(0, 78))
     pdb.name = pdb.name.replace(/\0.*$/, '')
-    this.pdbHeader = pdb
     const recordsBuffer = this.fileArrayBuffer.slice(78, 78 + pdb.numRecords * 8)
 
     const recordsStart = Array.from(
