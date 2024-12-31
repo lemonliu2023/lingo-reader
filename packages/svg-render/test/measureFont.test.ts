@@ -18,7 +18,7 @@ describe('measureFont', () => {
   })
 
   it('measure empty char', async () => {
-    expect(async () => {
+    await expect(async () => {
       await measureFont('', {
         fontSize: 20,
       })

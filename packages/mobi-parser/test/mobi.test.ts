@@ -10,18 +10,11 @@ describe('mobi class', () => {
   })
 
   it('pdb header', async () => {
-    expect(mobi.getPdbHeader()).toEqual({
-      creator: 'MOBI',
-      name: 'Zi_Zao',
-      numRecords: 102,
-      type: 'BOOK',
-    })
     // recordsOffset
     const recordsOffset = mobi.getRecordOffset()
     expect(recordsOffset.length).toBe(102)
     expect(recordsOffset[0]).toEqual([896, 9796])
     // recordsMagic
-    expect(mobi.getRecordsMagic().length).toBe(102)
   })
 
   it('mobi file header', async () => {

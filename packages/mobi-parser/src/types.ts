@@ -117,3 +117,17 @@ export type Exth = Record<string, (string | number)[]>
 export type DecompressFunc = (data: Uint8Array) => Uint8Array
 
 export type LoadRecordFunc = (index: number) => ArrayBuffer
+
+export interface Chapter {
+  id: number
+  text: string
+  start: number
+  end: number
+  size: number
+}
+
+export interface TocItem {
+  title: string
+  id: number
+  children?: TocItem[]
+}

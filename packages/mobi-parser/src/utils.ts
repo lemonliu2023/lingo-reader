@@ -64,7 +64,7 @@ export function getStruct<T extends Header>(def: T, buffer: ArrayBuffer): GetStr
 }
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
-export function concatTypedArrays<T extends TypedArray>(...arrays: T[]): T {
+export function concatTypedArrays<T extends TypedArray>(arrays: T[]): T {
   const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0)
   const result = new (arrays[0].constructor as any)(totalLength)
 
@@ -228,7 +228,7 @@ export function huffcdic(mobi: GetStruct<MobiHeader>, loadRecord: (index: number
         // cache the result for next time
         dictionary[code] = [result, true]
       }
-      output = concatTypedArrays(output, result) as Uint8Array<ArrayBuffer>
+      output = concatTypedArrays([output, result]) as Uint8Array<ArrayBuffer>
     }
     return output
   }
@@ -443,3 +443,5 @@ export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBu
   }
   return items.filter(item => item.headingLevel === 0).map(getChildren)
 }
+
+export const mbpPagebreakRegex = /<\s*(?:mbp:)?pagebreak[^>]*>/gi

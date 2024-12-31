@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
-import { kf8Header, mobiHeader, mobiLang, palmdocHeader, pdbHeader } from './headers'
+import { parsexml } from '@blingo-reader/shared'
+import { mobiHeader, mobiLang, palmdocHeader, pdbHeader } from './headers'
 import type {
+  Chapter,
   DecompressFunc,
   Exth,
   GetStruct,
@@ -10,8 +12,10 @@ import type {
   Offset,
   PalmdocHeader,
   PdbHeader,
+  TocItem,
 } from './types'
 import {
+  concatTypedArrays,
   decompressPalmDOC,
   getDecoder,
   getExth,
@@ -22,6 +26,7 @@ import {
   getStruct,
   getUint,
   huffcdic,
+  mbpPagebreakRegex,
   toArrayBuffer,
   unescapeHTML,
 } from './utils'
@@ -29,7 +34,7 @@ import {
 export async function initMobiFile(file: string | File) {
   const mobi = new Mobi(file)
   await mobi.load()
-  mobi.parse()
+  await mobi.parse()
 
   return mobi
 }
@@ -48,7 +53,6 @@ export class Mobi {
   private exth?: Exth
 
   public isKf8: boolean = false
-  private start: number = 0
   // resource start index in records
   private resourceStart!: number
 
@@ -56,6 +60,23 @@ export class Mobi {
   private encoder!: TextEncoder
   private removeTrailingEntries!: (array: Uint8Array) => Uint8Array
   private decompress!: DecompressFunc
+
+  // chapter
+  private chapters: Chapter[] = []
+  private idToChapter = new Map<number, Chapter>()
+  private toc: TocItem[] = []
+
+  public getSpine() {
+    return this.chapters
+  }
+
+  public getChapterById(id: number) {
+    return this.idToChapter.get(id)?.text
+  }
+
+  public getNavMap() {
+    return this.toc
+  }
 
   constructor(private file: string | File) { }
 
@@ -67,30 +88,28 @@ export class Mobi {
     )
   }
 
-  decode(arr: ArrayBuffer) {
+  decode(arr: ArrayBuffer): string {
     return this.decoder.decode(arr)
   }
 
-  encode(str: string) {
+  encode(str: string): Uint8Array {
     return this.encoder.encode(str)
   }
 
   loadRecord(index: number): ArrayBuffer {
-    const [start, end] = this.recordsOffset[this.start + index]
+    const [start, end] = this.recordsOffset[index]
     return this.fileArrayBuffer.slice(start, end)
   }
 
   loadMagic(index: number): string {
-    return this.recordsMagic[this.start + index]
+    return this.recordsMagic[index]
   }
 
-  loadText(index: number) {
-    return this.decoder.decode(
-      this.decompress(
-        this.removeTrailingEntries(
-          new Uint8Array(
-            this.loadRecord(index + 1),
-          ),
+  private loadTextBuffer(index: number) {
+    return this.decompress(
+      this.removeTrailingEntries(
+        new Uint8Array(
+          this.loadRecord(index + 1),
         ),
       ),
     )
@@ -117,7 +136,6 @@ export class Mobi {
   }
 
   getMetadata() {
-    // const { mobi, exth } = this.headers
     const mobi = this.mobiHeader
     const exth = this.exth
     return {
@@ -134,7 +152,7 @@ export class Mobi {
     }
   }
 
-  getCover() {
+  getCoverImage() {
     const exth = this.exth
     const coverOffset = Number(exth?.coverOffset?.[0] ?? 0xFFFFFFFF)
     const thumbnailOffset = Number(exth?.thumbnailOffset?.[0] ?? 0xFFFFFFFF)
@@ -150,26 +168,25 @@ export class Mobi {
     return undefined
   }
 
-  parse() {
+  async parse() {
+    // pdbHeader, recordsOffset, recordsMagic
     this.parsePdbHeader()
+    // palmdocHeader, mobiHeader, isKf8, exth
     this.parseFirstRecord(this.loadRecord(0))
     // resource start index in records
     this.resourceStart = this.mobiHeader.resourceStart
     if (!this.isKf8) {
       const boundary = this.exth?.boundary?.[0] as number ?? 0xFFFFFFFF
       if (boundary < 0xFFFFFFFF) {
-        try {
-          // it's a "combo" MOBI/KF8 file; try to open the KF8 part
-          this.parseFirstRecord(this.loadRecord(boundary))
-          this.start = boundary
-        }
-        catch (e) {
-          console.warn(e)
-          console.warn('Failed to open KF8; falling back to MOBI')
-        }
+        console.warn('This seems to be a compatible file, which includes .azw3 and .mobi. '
+        + 'We will parse it as a mobi file.',
+        )
       }
     }
+
+    // setup decoder, encoder, decompress, removeTrailingEntries
     this.setup()
+    await this.init()
   }
 
   private parsePdbHeader() {
@@ -191,9 +208,8 @@ export class Mobi {
     )
   }
 
-  // mobi file header, which is in the first record
+  // palmdocHeader, mobiHeader, isKf8, exth
   private parseFirstRecord(firstRecord: ArrayBuffer) {
-    // const firstRecord = this.loadRecord(0)
     // palmdocHeader
     this.palmdocHeader = getStruct(palmdocHeader, firstRecord.slice(0, 16))
 
@@ -211,10 +227,7 @@ export class Mobi {
     }
     this.mobiHeader = Object.assign(mobi, mobiHeaderExtends)
 
-    // kf8(azw3) header, if mobi.version >= 8
-    this.kf8Header = mobi.version >= 8
-      ? getStruct(kf8Header, firstRecord)
-      : undefined
+    // isKf8
     this.isKf8 = mobi.version >= 8
 
     // exth, 16 is the length of palmdocHeader
@@ -223,6 +236,7 @@ export class Mobi {
       : undefined
   }
 
+  // setup decoder, encoder, decompress, removeTrailingEntries
   private setup() {
     this.decoder = getDecoder(this.mobiHeader.encoding.toString())
     this.encoder = new TextEncoder()
@@ -247,13 +261,119 @@ export class Mobi {
     this.removeTrailingEntries = getRemoveTrailingEntries(trailingFlags)
   }
 
-  // extract from pdb header
-  public getRecordsMagic() {
-    return this.recordsMagic
+  async init() {
+    // get all chapter buffers
+    const buffers: Uint8Array[] = []
+    for (let i = 0; i < this.palmdocHeader.numTextRecords; i++) {
+      buffers.push(this.loadTextBuffer(i))
+    }
+    const array = concatTypedArrays(buffers)
+    const str = Array.from(
+      array,
+      val => String.fromCharCode(val),
+    ).join('')
+
+    // split chapters
+    const chapters: Chapter[] = []
+    const idToChapter = new Map<number, Chapter>()
+    let id = 0
+    const matches = Array.from(str.matchAll(mbpPagebreakRegex))
+    matches.unshift({ index: 0, input: '', groups: undefined, 0: '' } as RegExpExecArray)
+
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i]
+      const start = match.index
+      const matched = match[0]
+      const end = matches[i + 1]?.index
+      const section = str.slice(start + matched.length, end)
+      const buffer = Uint8Array.from(section, c => c.charCodeAt(0))
+      const text = this.decode(buffer.buffer)
+      const chapter: Chapter = {
+        id,
+        text,
+        start,
+        end,
+        size: buffer.length,
+      }
+      chapters.push(chapter)
+      idToChapter.set(id, chapter)
+      id++
+    }
+    // process last chapter. remove trailing </body></html>
+    const lastChapterText = chapters[chapters.length - 1].text
+    chapters[chapters.length - 1].text = lastChapterText.slice(0, lastChapterText.indexOf('</body>'))
+
+    // process first chapter, remove beginning ...<body>
+    const firstChapterText = chapters[0].text
+    const bodyOpenTagIndex = firstChapterText.indexOf('<body>')
+    chapters[0].text = firstChapterText.slice(bodyOpenTagIndex + '<body>'.length)
+
+    this.chapters = chapters
+    this.idToChapter = idToChapter
+
+    // used for parsing toc
+    const referenceStr = firstChapterText.slice(0, bodyOpenTagIndex)
+    const tocChapterStr = this.findTocChapter(referenceStr)
+    if (tocChapterStr) {
+      const wrappedChapterStr = `<wrapper>${
+         tocChapterStr.text.replace(/filepos=(\d+)/gi, 'filepos="$1"')
+         }</wrapper>`
+
+      const tocAst = await parsexml(wrappedChapterStr, {
+        preserveChildrenOrder: true,
+        explicitChildren: true,
+        childkey: 'children',
+      })
+      const toc: TocItem[] = []
+      this.parseNavMap(tocAst.wrapper.children, toc)
+      this.toc = toc
+    }
   }
 
-  public getPdbHeader() {
-    return this.pdbHeader
+  private findTocChapter(referenceStr: string): Chapter | undefined {
+    const tocPosReg = /<reference.*\/>/g
+    const refs = referenceStr.match(tocPosReg)
+    const typeReg = /type="(.+?)"/
+    const fileposReg = /filepos=(.*)/
+    if (refs) {
+      for (const ref of refs) {
+        const type = ref.match(typeReg)?.[1].trim()
+        const filepos = ref.match(fileposReg)?.[1].trim()
+        if (type === 'toc' && filepos) {
+          const tocPos = Number.parseInt(filepos, 10)
+          const chapter = this.chapters.find(ch => ch.end > tocPos)
+          return chapter
+        }
+      }
+    }
+    return undefined
+  }
+
+  private parseNavMap(children: any, toc: TocItem[]) {
+    for (const child of children) {
+      const childName = child['#name']
+      if (childName === 'p' || childName === 'blockquote') {
+        let subItem: TocItem = {
+          title: '',
+          id: -1,
+        }
+        if (child.a) {
+          const a = child.a[0]
+          const title = a._
+          const filepos = Number(a.$.filepos)
+          const chapter = this.chapters.find(ch => ch.end > filepos)
+          subItem = {
+            title,
+            id: chapter?.id ?? -1,
+          }
+        }
+        toc.push(subItem)
+        if (child.p || child.blockquote) {
+          subItem.children = []
+          this.parseNavMap(child.children, subItem.children)
+        }
+      }
+    }
   }
 
   public getRecordOffset() {
