@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { parsexml } from '@blingo-reader/shared'
 import { concatTypedArrays, mbpPagebreakRegex, toArrayBuffer } from './utils'
-import { MobiFile } from './mobiHead'
+import { MobiFile } from './mobiFile'
 import type { Chapter, TocItem } from './types'
 
 export async function initMobiFile(file: string | File) {

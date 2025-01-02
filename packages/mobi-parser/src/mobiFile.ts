@@ -6,8 +6,10 @@ import type {
   Kf8Header,
   MobiHeader,
   MobiHeaderExtends,
+  Ncx,
   Offset,
   PalmdocHeader,
+  PdbHeader,
 } from './types'
 import {
   decompressPalmDOC,
@@ -29,7 +31,11 @@ export class MobiFile {
   public recordsOffset!: Offset
   public recordsMagic!: string[]
 
+  // book start index in records
+  private start: number = 0
+
   // extract from first record
+  public pdbHeader!: GetStruct<PdbHeader>
   public mobiHeader!: GetStruct<MobiHeader> & MobiHeaderExtends
   public palmdocHeader!: GetStruct<PalmdocHeader>
   public kf8Header?: GetStruct<Kf8Header>
@@ -37,7 +43,7 @@ export class MobiFile {
 
   public isKf8: boolean = false
   // resource start index in records
-  public resourceStart!: number
+  private resourceStart!: number
 
   public decoder!: TextDecoder
   public encoder!: TextEncoder
@@ -55,9 +61,19 @@ export class MobiFile {
     if (!this.isKf8) {
       const boundary = this.exth?.boundary?.[0] as number ?? 0xFFFFFFFF
       if (boundary < 0xFFFFFFFF) {
-        console.warn('This seems to be a compatible file, which includes .azw3 and .mobi. '
-        + 'We will parse it as a mobi file.',
-        )
+        try {
+          this.parseFirstRecord(this.loadRecord(boundary))
+          this.resourceStart = this.kf8Header?.resourceStart ?? this.mobiHeader.resourceStart
+          this.start = boundary
+          this.isKf8 = true
+        }
+        catch (e) {
+          // console.warn('Failed to parse kf8 header, fallback to mobi header')
+        }
+
+        // console.warn('This seems to be a compatible file, which includes .azw3 and .mobi. '
+        // + 'We will parse it as a mobi file.',
+        // )
       }
     }
 
@@ -74,15 +90,15 @@ export class MobiFile {
   }
 
   loadRecord(index: number): ArrayBuffer {
-    const [start, end] = this.recordsOffset[index]
+    const [start, end] = this.recordsOffset[this.start + index]
     return this.fileArrayBuffer.slice(start, end)
   }
 
   loadMagic(index: number): string {
-    return this.recordsMagic[index]
+    return this.recordsMagic[this.start + index]
   }
 
-  loadTextBuffer(index: number) {
+  loadTextBuffer(index: number): Uint8Array {
     return this.decompress(
       this.removeTrailingEntries(
         new Uint8Array(
@@ -104,7 +120,7 @@ export class MobiFile {
     return new Uint8Array(buf)
   }
 
-  getNCX() {
+  getNCX(): Ncx | undefined {
     const index = this.mobiHeader.indx
     if (index < 0xFFFFFFFF) {
       return getNCX(index, this.loadRecord.bind(this))
@@ -148,6 +164,7 @@ export class MobiFile {
   public parsePdbHeader() {
     const pdb = getStruct(pdbHeader, this.fileArrayBuffer.slice(0, 78))
     pdb.name = pdb.name.replace(/\0.*$/, '')
+    this.pdbHeader = pdb
     const recordsBuffer = this.fileArrayBuffer.slice(78, 78 + pdb.numRecords * 8)
 
     const recordsStart = Array.from(
@@ -218,25 +235,5 @@ export class MobiFile {
     // set up function for removing trailing bytes
     const trailingFlags = this.mobiHeader.trailingFlags
     this.removeTrailingEntries = getRemoveTrailingEntries(trailingFlags)
-  }
-
-  public getRecordOffset() {
-    return this.recordsOffset
-  }
-
-  public getMobiHeader() {
-    return this.mobiHeader
-  }
-
-  public getPalmdocHeader() {
-    return this.palmdocHeader
-  }
-
-  public getKf8Header() {
-    return this.kf8Header
-  }
-
-  public getExth() {
-    return this.exth
   }
 }

@@ -1,7 +1,7 @@
 import type { Buffer } from 'node:buffer'
 import { unzlibSync } from 'fflate'
 import { cdicHeader, exthHeader, exthRecordType, fontHeader, huffHeader, indxHeader, mobiEncoding, tagxHeader } from './headers'
-import type { Exth, GetStruct, Header, LoadRecordFunc, MobiHeader } from './types'
+import type { Exth, GetStruct, Header, IndexData, LoadRecordFunc, MobiHeader, Ncx, NcxItem } from './types'
 
 const htmlEntityMap: Record<string, string> = {
   '&lt;': '<',
@@ -29,6 +29,14 @@ export function unescapeHTML(str: string): string {
       return htmlEntityMap[match] || match
     }
   })
+}
+
+export const MIME = {
+  XML: 'application/xml',
+  XHTML: 'application/xhtml+xml',
+  HTML: 'text/html',
+  CSS: 'text/css',
+  SVG: 'image/svg+xml',
 }
 
 function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
@@ -63,8 +71,8 @@ export function getStruct<T extends Header>(def: T, buffer: ArrayBuffer): GetStr
   return res
 }
 
-type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
-export function concatTypedArrays<T extends TypedArray>(arrays: T[]): T {
+type TypedArr = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
+export function concatTypedArrays<T extends TypedArr>(arrays: T[]): T {
   const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0)
   const result = new (arrays[0].constructor as any)(totalLength)
 
@@ -321,22 +329,12 @@ export function getFont(buf: ArrayBuffer): Uint8Array {
   return array
 }
 
-function getIndexData(indxIndex: number, loadRecord: LoadRecordFunc) {
+export function getIndexData(indxIndex: number, loadRecord: LoadRecordFunc): IndexData {
   const indxRecord = loadRecord(indxIndex)
   const indx = getStruct(indxHeader, indxRecord)
   if (indx.magic !== 'INDX')
     throw new Error('Invalid INDX record')
   const decoder = getDecoder(indx.encoding.toString())
-
-  const tagxBuffer = indxRecord.slice(indx.length)
-  const tagx = getStruct(tagxHeader, tagxBuffer)
-  if (tagx.magic !== 'TAGX')
-    throw new Error('Invalid TAGX section')
-  const numTags = (tagx.length - 12) / 4
-  const tagTable = Array.from(
-    { length: numTags },
-    (_, i) => new Uint8Array(tagxBuffer.slice(12 + i * 4, 12 + i * 4 + 4)),
-  )
 
   const cncx: Record<string, string> = {}
   let cncxRecordOffset = 0
@@ -354,6 +352,15 @@ function getIndexData(indxIndex: number, loadRecord: LoadRecordFunc) {
     cncxRecordOffset += 0x10000
   }
 
+  const tagxBuffer = indxRecord.slice(indx.length)
+  const tagx = getStruct(tagxHeader, tagxBuffer)
+  if (tagx.magic !== 'TAGX')
+    throw new Error('Invalid TAGX section')
+  const numTags = (tagx.length - 12) / 4
+  const tagTable = Array.from(
+    { length: numTags },
+    (_, i) => new Uint8Array(tagxBuffer.slice(12 + i * 4, 12 + i * 4 + 4)),
+  )
   const table = []
   for (let i = 0; i < indx.numRecords; i++) {
     const record = loadRecord(indxIndex + 1 + i)
@@ -422,9 +429,9 @@ function getIndexData(indxIndex: number, loadRecord: LoadRecordFunc) {
   return { table, cncx }
 }
 
-export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBuffer) {
+export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBuffer): Ncx {
   const { table, cncx } = getIndexData(indxIndex, loadRecord)
-  const items = table.map(({ tagMap }, index) => ({
+  const items: Ncx = table.map(({ tagMap }, index) => ({
     index,
     offset: tagMap[1]?.[0],
     size: tagMap[2]?.[0],
@@ -435,7 +442,7 @@ export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBu
     firstChild: tagMap[22]?.[0],
     lastChild: tagMap[23]?.[0],
   }))
-  const getChildren = (item: any) => {
+  const getChildren = (item: NcxItem): NcxItem => {
     if (item.firstChild == null)
       return item
     item.children = items.filter(x => x.parent === item.index).map(getChildren)
@@ -445,3 +452,40 @@ export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBu
 }
 
 export const mbpPagebreakRegex = /<\s*(?:mbp:)?pagebreak[^>]*>/gi
+
+export function makePosURI(fid: number = 0, off: number = 0): string {
+  return `kindle:pos:fid:${fid.toString(32).toUpperCase().padStart(4, '0')
+    }:off:${off.toString(32).toUpperCase().padStart(10, '0')}`
+}
+
+export function getFragmentSelector(str: string) {
+  const match = str.match(/\s(id|name|aid)\s*=\s*['"]([^'"]*)['"]/i)
+  if (!match) {
+    return
+  }
+  const [, attr, value] = match
+  return `[${attr}="${value}"]`
+}
+
+const kindlePosRegex = /kindle:pos:fid:(\w+):off:(\w+)/
+export function parsePosURI(str: string) {
+  const [fid, off] = str.match(kindlePosRegex)!.slice(1)
+  return {
+    fid: Number.parseInt(fid, 32),
+    off: Number.parseInt(off, 32),
+  }
+}
+
+export const kindleResourceRegex = /kindle:(flow|embed):(\w+)(?:\?mime=(\w+\/[-+.\w]+))?/
+export function parseResourceURI(str: string) {
+  const [resourceType, id, type] = str.match(kindleResourceRegex)!.slice(1)
+  return { resourceType, id: Number.parseInt(id, 32), type }
+}
+
+// export function replaceSeries(str: string, regex: RegExp, f: (str: string)=> string) {
+//   const matches = []
+//   str.replace(regex, (...args) => (matches.push(args), null))
+//   const results = []
+//   for (const args of matches) results.push(f(...args))
+//   return str.replace(regex, () => results.shift())
+// }
