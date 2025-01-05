@@ -458,10 +458,11 @@ export function makePosURI(fid: number = 0, off: number = 0): string {
     }:off:${off.toString(32).toUpperCase().padStart(10, '0')}`
 }
 
-export function getFragmentSelector(str: string) {
-  const match = str.match(/\s(id|name|aid)\s*=\s*['"]([^'"]*)['"]/i)
+const selectorReg = /\s(id|name|aid)\s*=\s*['"]([^'"]*)['"]/i
+export function getFragmentSelector(str: string): string {
+  const match = str.match(selectorReg)
   if (!match) {
-    return
+    return ''
   }
   const [, attr, value] = match
   return `[${attr}="${value}"]`

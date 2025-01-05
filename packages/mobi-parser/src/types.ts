@@ -162,6 +162,7 @@ export interface FragTableItem {
 export type FragTable = FragTableItem[]
 
 export interface Azw3Chapter {
+  id: number
   skel: SkelTableItem
   frags: FragTable
   fragEnd: number

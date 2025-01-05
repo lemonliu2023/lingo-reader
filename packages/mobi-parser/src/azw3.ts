@@ -96,7 +96,7 @@ export class Azw3 {
     this.fragTable = fragTable
 
     // chapter obj array
-    const chapters = skelTable.reduce((acc, skel) => {
+    const chapters = skelTable.reduce((acc, skel, index) => {
       const last = acc[acc.length - 1]
       const fragStart = last?.fragEnd ?? 0
       const fragEnd = fragStart + skel.numFrag
@@ -104,7 +104,7 @@ export class Azw3 {
       const length = skel.length + frags.reduce((a, v) => a + v.length, 0)
       const totalLength = (last?.totalLength ?? 0) + length
 
-      acc.push({ skel, frags, fragEnd, length, totalLength })
+      acc.push({ id: index, skel, frags, fragEnd, length, totalLength })
       return acc
     }, [] as Azw3Chapter[])
     this.chapters = chapters
@@ -169,8 +169,8 @@ export class Azw3 {
     return this.rawTail.slice(start - rawTailStart, end - rawTailStart)
   }
 
-  loadText(section: Azw3Chapter) {
-    const { skel, frags, length } = section
+  loadText(chapter: Azw3Chapter) {
+    const { skel, frags, length } = chapter
     const raw = this.loadRaw(skel.offset, skel.offset + length)
     let skeleton = raw.slice(0, skel.length)
     for (const frag of frags) {
@@ -188,14 +188,16 @@ export class Azw3 {
         for (const offset of offsets) {
           const str = this.mobiFile.decode(fragRaw.buffer).slice(offset)
           const selector = getFragmentSelector(str)
-          !!selector && this.setFragmentSelector(frag.index, offset, selector)
+          if (selector) {
+            this.cacheFragmentSelector(frag.index, offset, selector)
+          }
         }
       }
     }
     return this.mobiFile.decode(skeleton.buffer)
   }
 
-  setFragmentSelector(id: number, offset: number, selector: string) {
+  cacheFragmentSelector(id: number, offset: number, selector: string) {
     const map = this.fragmentSelectors.get(id)
     if (map) {
       map.set(offset, selector)
@@ -214,29 +216,37 @@ export class Azw3 {
     return undefined
   }
 
-  resolveHref(href: string) {
+  resolveHref(href: string): { id: number, selector: string } | undefined {
+    // is external link
+    if (/^(?!blob|kindle)\w+:/i.test(href)) {
+      return
+    }
     const { fid, off } = parsePosURI(href)
-    const index = this.chapters.findIndex(
-      section => section.frags.some(
+    const chapter = this.chapters.find(
+      chapter => chapter.frags.some(
         frag => frag.index === fid,
       ),
     )
-    if (index < 0) {
+    if (!chapter) {
       return
     }
+    // return selector if cache
+    const id = chapter.id
     const savedSelector = this.fragmentSelectors.get(fid)?.get(off)
     if (savedSelector) {
-      return { index, savedSelector }
+      return { id, selector: savedSelector }
     }
 
-    const { skel, frags } = this.chapters[index]
+    // load fragment selector
+    const { skel, frags } = chapter
     const frag = frags.find(frag => frag.index === fid)!
     const offset = skel.offset + skel.length + frag.offset
     const fragRaw = this.loadRaw(offset, offset + frag.length)
     const str = this.mobiFile.decode(fragRaw.buffer as ArrayBuffer).slice(off)
     const selector = getFragmentSelector(str)
-    this.setFragmentSelector(fid, off, selector!)
-    return { index, selector }
+    this.cacheFragmentSelector(fid, off, selector!)
+
+    return { id, selector }
   }
 
   // loadResourceBlob(str: string) {
