@@ -297,6 +297,12 @@ export class Azw3 {
     return str.replace(
       new RegExp(kindleResourceRegex, 'gi'),
       (matched: string, resourceType: string, id: string, type: string) => {
+        // cache
+        if (this.resourceCache.has(matched)) {
+          return this.resourceCache.get(matched)!
+        }
+
+        // load resource buffer
         const raw = resourceType === 'flow'
           ? this.loadFlow(Number.parseInt(id))
           : this.mobiFile.loadResource(Number.parseInt(id) - 1)
@@ -304,6 +310,7 @@ export class Azw3 {
         let url: string = matched
         let blobData: Uint8Array | string = ''
 
+        // get blobData based on type
         if (type === MIME.CSS || type === MIME.SVG) {
           const text = this.mobiFile.decode(raw?.buffer as ArrayBuffer)
           const textReplaced = this.replaceResources(text)
@@ -313,6 +320,7 @@ export class Azw3 {
           blobData = raw as Uint8Array
         }
 
+        // convert to blob url
         if (__BROWSER__) {
           url = URL.createObjectURL(new Blob([blobData], { type }))
         }
@@ -323,12 +331,14 @@ export class Azw3 {
           writeFileSync(url, blobData)
         }
 
+        this.resourceCache.set(matched, url)
         return url
       },
     )
   }
 
   private replace(str: string): ProcessedChapter {
+    // css Part
     const cssUrls: CssPart[] = []
     const head = str.match(/<head[^>]*>([\s\S]*)<\/head>/i)![1]
     const links = head.match(/<link[^>]*>/gi) ?? []
@@ -342,6 +352,7 @@ export class Azw3 {
       })
     }
 
+    // html part
     const body = str.match(/<body[^>]*>([\s\S]*)<\/body>/i)![1]
     const bodyReplaced = this.replaceResources(body)
 
