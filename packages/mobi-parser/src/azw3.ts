@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, unlink, writeFileSync } from 'node:fs'
 import { path } from '@blingo-reader/shared'
 import {
   MIME,
@@ -360,5 +360,16 @@ export class Azw3 {
       html: bodyReplaced,
       css: cssUrls,
     }
+  }
+
+  destroy() {
+    this.resourceCache.forEach((url) => {
+      if (__BROWSER__) {
+        URL.revokeObjectURL(url)
+      }
+      else {
+        unlink(url, () => {})
+      }
+    })
   }
 }
