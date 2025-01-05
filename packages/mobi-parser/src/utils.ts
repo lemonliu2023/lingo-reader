@@ -39,12 +39,23 @@ export const MIME = {
   SVG: 'image/svg+xml',
 }
 
+export const MimeToExt = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/svg+xml': 'svg',
+  'text/css': 'css',
+  'application/xml': 'xml',
+  'application/xhtml+xml': 'xhtml',
+  'text/html': 'html',
+}
+
 function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
 }
 export async function toArrayBuffer<T extends File | Buffer>(file: T): Promise<ArrayBuffer> {
   if (__BROWSER__) {
-    return (file as File).arrayBuffer()
+    return await (file as File).arrayBuffer()
   }
   else {
     return bufferToArrayBuffer(file as Buffer)
@@ -478,15 +489,3 @@ export function parsePosURI(str: string) {
 }
 
 export const kindleResourceRegex = /kindle:(flow|embed):(\w+)(?:\?mime=(\w+\/[-+.\w]+))?/
-export function parseResourceURI(str: string) {
-  const [resourceType, id, type] = str.match(kindleResourceRegex)!.slice(1)
-  return { resourceType, id: Number.parseInt(id, 32), type }
-}
-
-// export function replaceSeries(str: string, regex: RegExp, f: (str: string)=> string) {
-//   const matches = []
-//   str.replace(regex, (...args) => (matches.push(args), null))
-//   const results = []
-//   for (const args of matches) results.push(f(...args))
-//   return str.replace(regex, () => results.shift())
-// }

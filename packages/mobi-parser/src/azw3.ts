@@ -1,12 +1,36 @@
-import { readFileSync } from 'node:fs'
-import { concatTypedArrays, getFragmentSelector, getIndexData, getStruct, getUint, makePosURI, parsePosURI, toArrayBuffer } from './utils'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { path } from '@blingo-reader/shared'
+import {
+  MIME,
+  MimeToExt,
+  concatTypedArrays,
+  getFragmentSelector,
+  getIndexData,
+  getStruct,
+  getUint,
+  kindleResourceRegex,
+  makePosURI,
+  parsePosURI,
+  toArrayBuffer,
+} from './utils'
 import { MobiFile } from './mobiFile'
 import { fdstHeader } from './headers'
-import type { Azw3Chapter, Azw3Guide, Azw3Toc, Azw3TocItem, FragTable, NcxItem, SkelTable } from './types'
+import type {
+  Azw3Chapter,
+  Azw3Guide,
+  Azw3InitOptions,
+  Azw3Toc,
+  Azw3TocItem,
+  CssPart,
+  FragTable,
+  NcxItem,
+  ProcessedChapter,
+  SkelTable,
+} from './types'
 
-export async function initAzw3File(file: string | File) {
-  const azw3 = new Azw3(file)
-  await azw3.load()
+export async function initAzw3File(file: string | File, initOptions: Azw3InitOptions = {}) {
+  const azw3 = new Azw3(file, initOptions)
+  await azw3.loadFile()
   await azw3.init()
 
   return azw3
@@ -33,7 +57,10 @@ export class Azw3 {
   lastLoadedTail: number = -1
 
   resourceCache = new Map<string, string>()
-  inlineResourceCache = new Map<string, string>()
+  chapterCache = new Map<number, ProcessedChapter>()
+
+  idToChapter = new Map<number, Azw3Chapter>()
+  imageSaveDir = './images'
 
   getMetadata() {
     return this.mobiFile.getMetadata()
@@ -43,9 +70,11 @@ export class Azw3 {
     return this.mobiFile.getCoverImage()
   }
 
-  constructor(private file: string | File) { }
+  constructor(private file: string | File, azw3InitOptions: Azw3InitOptions) {
+    this.imageSaveDir = azw3InitOptions.imageSaveDir ?? './images'
+  }
 
-  async load() {
+  async loadFile() {
     this.fileArrayBuffer = await toArrayBuffer(
       __BROWSER__
         ? this.file as File
@@ -103,8 +132,10 @@ export class Azw3 {
       const frags = fragTable.slice(fragStart, fragEnd)
       const length = skel.length + frags.reduce((a, v) => a + v.length, 0)
       const totalLength = (last?.totalLength ?? 0) + length
+      const chapter = { id: index, skel, frags, fragEnd, length, totalLength }
+      this.idToChapter.set(index, chapter)
 
-      acc.push({ id: index, skel, frags, fragEnd, length, totalLength })
+      acc.push(chapter)
       return acc
     }, [] as Azw3Chapter[])
     this.chapters = chapters
@@ -197,7 +228,20 @@ export class Azw3 {
     return this.mobiFile.decode(skeleton.buffer)
   }
 
-  cacheFragmentSelector(id: number, offset: number, selector: string) {
+  loadChapter(id: number): ProcessedChapter | undefined {
+    if (this.chapterCache.has(id)) {
+      return this.chapterCache.get(id)
+    }
+    const chapter = this.idToChapter.get(id)
+    if (chapter) {
+      const processed = this.replace(this.loadText(chapter))
+      this.chapterCache.set(id, processed)
+      return processed
+    }
+    return undefined
+  }
+
+  private cacheFragmentSelector(id: number, offset: number, selector: string) {
     const map = this.fragmentSelectors.get(id)
     if (map) {
       map.set(offset, selector)
@@ -249,36 +293,61 @@ export class Azw3 {
     return { id, selector }
   }
 
-  // loadResourceBlob(str: string) {
-  //   const { resourceType, id, type } = parseResourceURI(str)
-  //   const raw = resourceType === 'flow'
-  //     ? this.loadFlow(id)
-  //     : this.mobiFile.loadResource(id - 1)
-  //   const result = [MIME.XHTML, MIME.HTML, MIME.CSS, MIME.SVG].includes(type)
-  //     ? this.replaceResources(this.mobiFile.decode(raw?.buffer as ArrayBuffer)) : raw
-  //   const doc = type === MIME.SVG ? this.parser.parseFromString(result, type) : null
-  //   return [new Blob([result], { type }),
-  //   // SVG wrappers need to be inlined
-  //   // as browsers don't allow external resources when loading SVG as an image
-  //   doc?.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'image')?.length
-  //     ? doc.documentElement : null]
-  // }
+  private replaceResources(str: string): string {
+    return str.replace(
+      new RegExp(kindleResourceRegex, 'gi'),
+      (matched: string, resourceType: string, id: string, type: string) => {
+        const raw = resourceType === 'flow'
+          ? this.loadFlow(Number.parseInt(id))
+          : this.mobiFile.loadResource(Number.parseInt(id) - 1)
 
-  // loadResource(str: string): string {
-  //   if (this.resourceCache.has(str)) {
-  //     return this.resourceCache.get(str)!
-  //   }
-  //   const [blob, inline] = this.loadResourceBlob(str)
-  //   const url = inline ? str : URL.createObjectURL(blob)
-  //   if (inline) {
-  //     this.inlineResourceCache.set(url, inline)
-  //   }
-  //   this.resourceCache.set(str, url)
-  //   return url
-  // }
+        let url: string = matched
+        let blobData: Uint8Array | string = ''
 
-  // replaceResources(str: string) {
-  //   const regex = new RegExp(kindleResourceRegex, 'g')
-  //   return replaceSeries(str, regex, this.loadResource.bind(this))
-  // }
+        if (type === MIME.CSS || type === MIME.SVG) {
+          const text = this.mobiFile.decode(raw?.buffer as ArrayBuffer)
+          const textReplaced = this.replaceResources(text)
+          blobData = textReplaced
+        }
+        else if (type.startsWith('image')) {
+          blobData = raw as Uint8Array
+        }
+
+        if (__BROWSER__) {
+          url = URL.createObjectURL(new Blob([blobData], { type }))
+        }
+        else {
+          const ext = MimeToExt[type as keyof typeof MimeToExt] ?? 'bin'
+          const filename = `${id}.${ext}`
+          url = path.resolve(this.imageSaveDir, filename)
+          writeFileSync(url, blobData)
+        }
+
+        return url
+      },
+    )
+  }
+
+  private replace(str: string): ProcessedChapter {
+    const cssUrls: CssPart[] = []
+    const head = str.match(/<head[^>]*>([\s\S]*)<\/head>/i)![1]
+    const links = head.match(/<link[^>]*>/gi) ?? []
+    for (const link of links) {
+      const linkHref = link.match(/href="([^"]*)"/i)![1]
+      const id = link.match(kindleResourceRegex)![2]
+      const href = this.replaceResources(linkHref)
+      cssUrls.push({
+        id: Number.parseInt(id),
+        href,
+      })
+    }
+
+    const body = str.match(/<body[^>]*>([\s\S]*)<\/body>/i)![1]
+    const bodyReplaced = this.replaceResources(body)
+
+    return {
+      html: bodyReplaced,
+      css: cssUrls,
+    }
+  }
 }

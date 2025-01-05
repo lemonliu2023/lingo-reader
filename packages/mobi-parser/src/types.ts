@@ -143,6 +143,11 @@ export interface IndexData { table: IndexTable, cncx: Cncx }
 /**
  * azw3 types
  */
+export interface Azw3InitOptions {
+  // cssMountedId?: string
+  imageSaveDir?: string
+}
+
 export interface SkelTableItem {
   index: number
   name: string
@@ -197,3 +202,12 @@ export interface Azw3GuideItem {
   href: string
 }
 export type Azw3Guide = Azw3GuideItem[]
+
+export interface CssPart {
+  id: number
+  href: string
+}
+export interface ProcessedChapter {
+  html: string
+  css: CssPart[]
+}

@@ -5,6 +5,7 @@ export default antfu(
     ignores: [
       'example/**',
       'packages/svg-render/test/uiviewer',
+      'images/**',
     ],
   },
 )
