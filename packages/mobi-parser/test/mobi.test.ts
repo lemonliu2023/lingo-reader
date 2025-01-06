@@ -11,5 +11,8 @@ describe('mobi class', () => {
 
   it('mobi class', async () => {
     expect(mobi.getMetadata()).toBeDefined()
+    // console.log(mobi.getSpine())
+    // const res = mobi.getChapterById(1)
+    // console.log(res)
   })
 })

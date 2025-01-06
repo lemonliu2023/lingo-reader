@@ -174,7 +174,7 @@ export class Azw3 {
     return undefined
   }
 
-  loadRaw(start: number, end: number): Uint8Array {
+  private loadRaw(start: number, end: number): Uint8Array {
     const distanceHead = end - this.rawHead.length
     const distanceEnd = this.fullRawLength === 0
       ? Infinity
@@ -200,7 +200,7 @@ export class Azw3 {
     return this.rawTail.slice(start - rawTailStart, end - rawTailStart)
   }
 
-  loadText(chapter: Azw3Chapter) {
+  private loadText(chapter: Azw3Chapter): string {
     const { skel, frags, length } = chapter
     const raw = this.loadRaw(skel.offset, skel.offset + length)
     let skeleton = raw.slice(0, skel.length)
@@ -232,9 +232,11 @@ export class Azw3 {
     if (this.chapterCache.has(id)) {
       return this.chapterCache.get(id)
     }
+
     const chapter = this.idToChapter.get(id)
     if (chapter) {
       const processed = this.replace(this.loadText(chapter))
+
       this.chapterCache.set(id, processed)
       return processed
     }
@@ -253,7 +255,7 @@ export class Azw3 {
     }
   }
 
-  loadFlow(index: number) {
+  private loadFlow(index: number) {
     if (index < 0xFFFFFFFF) {
       return this.loadRaw(this.fdstTable[index][0], this.fdstTable[index][1])
     }
@@ -316,7 +318,7 @@ export class Azw3 {
           const textReplaced = this.replaceResources(text)
           blobData = textReplaced
         }
-        else if (type.startsWith('image')) {
+        else {
           blobData = raw as Uint8Array
         }
 

@@ -1,11 +1,15 @@
-import { readFileSync } from 'node:fs'
-import { parsexml } from '@blingo-reader/shared'
-import { concatTypedArrays, mbpPagebreakRegex, toArrayBuffer } from './utils'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { parsexml, path } from '@blingo-reader/shared'
+import { MimeToExt, concatTypedArrays, getFileType, mbpPagebreakRegex, toArrayBuffer } from './utils'
 import { MobiFile } from './mobiFile'
 import type { Chapter, TocItem } from './types'
 
-export async function initMobiFile(file: string | File) {
-  const mobi = new Mobi(file)
+interface Options {
+  imageSaveDir?: string
+}
+
+export async function initMobiFile(file: string | File, options?: Options) {
+  const mobi = new Mobi(file, options)
   await mobi.load()
   await mobi.init()
 
@@ -21,12 +25,14 @@ export class Mobi {
   private idToChapter = new Map<number, Chapter>()
   private toc: TocItem[] = []
 
+  private imageSaveDir = './images'
+
   public getSpine() {
     return this.chapters
   }
 
   public getChapterById(id: number) {
-    return this.idToChapter.get(id)?.text
+    return this.replace(this.idToChapter.get(id)!.text)
   }
 
   public getNavMap() {
@@ -41,7 +47,9 @@ export class Mobi {
     return this.mobiFile.getMetadata()
   }
 
-  constructor(private file: string | File) { }
+  constructor(private file: string | File, options: Options = {}) {
+    this.imageSaveDir = options.imageSaveDir ?? './images'
+  }
 
   async load() {
     this.fileArrayBuffer = await toArrayBuffer(
@@ -165,5 +173,67 @@ export class Mobi {
         }
       }
     }
+  }
+
+  loadResource(index: number): string {
+    const raw = this.mobiFile.loadResource(index - 1)
+    const fileType = getFileType(raw.buffer as ArrayBuffer)
+
+    if (__BROWSER__) {
+      return URL.createObjectURL(new Blob([raw], { type: fileType }))
+    }
+    else {
+      const fileName = `${index}.${MimeToExt[fileType as keyof typeof MimeToExt]}`
+      const filePath = path.resolve(this.imageSaveDir, fileName)
+      writeFileSync(filePath, raw)
+      return filePath
+    }
+  }
+
+  // TODO: optimize the logic
+  private recindexReg = /recindex=["']?(\d+)["']?/
+  private mediarecindexReg = /mediarecindex=["']?(\d+)["']?/
+  private fileposReg = /filepos=["']?(\d+)["']?/
+  private replace(str: string) {
+    // image
+    str = str.replace(
+      /<img[^>]*>/g,
+      (matched: string) => {
+        const recindex = matched.match(this.recindexReg)![1]
+        const url = this.loadResource(Number.parseInt(recindex))
+        return matched.replace(this.recindexReg, `src="${url}"`)
+      },
+    )
+
+    // video
+    str = str.replace(
+      /<(video|audio)[^>]*>/g,
+      (matched: string) => {
+        // media src
+        const mediarecindex = matched.match(this.recindexReg)![1]
+        const mediaUrl = this.loadResource(Number.parseInt(mediarecindex))
+        matched = matched.replace(this.mediarecindexReg, `src="${mediaUrl}"`)
+
+        const recindex = matched.match(this.recindexReg)?.[1]
+        // poster
+        if (recindex) {
+          const posterUrl = this.loadResource(Number.parseInt(recindex))
+          matched = matched.replace(this.recindexReg, `poster=${posterUrl}`)
+        }
+
+        return matched
+      },
+    )
+
+    // a tag filepos
+    str = str.replace(
+      /<a[^>]*>/g,
+      (matched: string) => {
+        const filepos = matched.match(this.fileposReg)![1]
+        return matched.replace(this.fileposReg, `href="filepos:${filepos}"`)
+      },
+    )
+
+    return str
   }
 }

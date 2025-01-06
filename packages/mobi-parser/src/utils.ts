@@ -48,6 +48,51 @@ export const MimeToExt = {
   'application/xml': 'xml',
   'application/xhtml+xml': 'xhtml',
   'text/html': 'html',
+  // video
+  'video/mp4': 'mp4',
+  'video/ogg': 'ogg',
+  'video/webm': 'webm',
+  // audio
+  'audio/mpeg': 'mp3',
+  'audio/ogg': 'ogg',
+  'audio/wav': 'wav',
+}
+
+type FileType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/bmp' |
+  'video/mp4' | 'video/mkv' | 'video/webm' | 'audio/mp3' |
+  'audio/wav' | 'audio/ogg' | 'unknown'
+
+export function getFileType(fileBuffer: ArrayBuffer): FileType {
+  const header = new Uint8Array(fileBuffer.slice(0, 12))
+  const hexHeader = Array.from(header).map(b => b.toString(16).padStart(2, '0')).join('')
+
+  // image
+  if (hexHeader.startsWith('ffd8ff'))
+    return 'image/jpeg'
+  if (hexHeader.startsWith('89504e47'))
+    return 'image/png'
+  if (hexHeader.startsWith('47494638'))
+    return 'image/gif'
+  if (hexHeader.startsWith('424d'))
+    return 'image/bmp'
+
+  // video
+  if (hexHeader.startsWith('00000018') || hexHeader.startsWith('00000020'))
+    return 'video/mp4'
+  if (hexHeader.startsWith('1a45dfa3'))
+    return 'video/mkv'
+  if (hexHeader.startsWith('1f43b675'))
+    return 'video/webm'
+
+  // audio
+  if (hexHeader.startsWith('494433'))
+    return 'audio/mp3'
+  if (hexHeader.startsWith('52494646') && hexHeader.slice(8, 16) === '57415645')
+    return 'audio/wav'
+  if (hexHeader.startsWith('4f676753'))
+    return 'audio/ogg'
+
+  return 'unknown'
 }
 
 function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
