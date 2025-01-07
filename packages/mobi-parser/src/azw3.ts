@@ -71,7 +71,11 @@ export class Azw3 {
   }
 
   getCoverImage() {
-    return this.mobiFile.getCoverImage()
+    const coverImage = this.mobiFile.getCoverImage()
+    if (coverImage) {
+      return saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+    }
+    return undefined
   }
 
   constructor(private file: string | File, azw3InitOptions: Azw3InitOptions) {

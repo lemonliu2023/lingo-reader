@@ -45,7 +45,11 @@ export class Mobi {
   }
 
   public getCoverImage() {
-    return this.mobiFile.getCoverImage()
+    const coverImage = this.mobiFile.getCoverImage()
+    if (coverImage) {
+      return saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+    }
+    return undefined
   }
 
   public getMetadata() {
