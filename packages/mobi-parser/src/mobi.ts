@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync } from 'node:fs'
-import { parsexml, path } from '@blingo-reader/shared'
-import { MimeToExt, getFileType } from './utils'
+import { readFileSync } from 'node:fs'
+import { parsexml } from '@blingo-reader/shared'
+import { saveResource } from './utils'
 import {
   concatTypedArrays,
   mbpPagebreakRegex,
@@ -183,18 +183,8 @@ export class Mobi {
   }
 
   loadResource(index: number): string {
-    const raw = this.mobiFile.loadResource(index - 1)
-    const fileType = getFileType(raw.buffer as ArrayBuffer)
-
-    if (__BROWSER__) {
-      return URL.createObjectURL(new Blob([raw], { type: fileType }))
-    }
-    else {
-      const fileName = `${index}.${MimeToExt[fileType as keyof typeof MimeToExt]}`
-      const filePath = path.resolve(this.imageSaveDir, fileName)
-      writeFileSync(filePath, raw)
-      return filePath
-    }
+    const { type, raw } = this.mobiFile.loadResource(index - 1)
+    return saveResource(raw, type, String(index), this.imageSaveDir)
   }
 
   // TODO: optimize the logic

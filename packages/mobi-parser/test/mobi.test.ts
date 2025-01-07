@@ -12,7 +12,7 @@ describe('mobi class', () => {
   it('mobi class', async () => {
     expect(mobi.getMetadata()).toBeDefined()
     // console.log(mobi.getSpine())
-    // const res = mobi.getChapterById(1)
+    // const res = mobi.getChapterById(2)
     // console.log(res)
   })
 })

@@ -1,3 +1,6 @@
+import { writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 const htmlEntityMap: Record<string, string> = {
   '&lt;': '<',
   '&gt;': '>',
@@ -26,6 +29,9 @@ export function unescapeHTML(str: string): string {
   })
 }
 
+/**
+ * resource type
+ */
 export const MIME = {
   XML: 'application/xml',
   XHTML: 'application/xhtml+xml',
@@ -34,7 +40,7 @@ export const MIME = {
   SVG: 'image/svg+xml',
 }
 
-type FileType =
+type FileMimeType =
   'image/jpeg' | 'image/png' | 'image/gif' | 'image/bmp' |
   'image/svg+xml' | 'text/css' | 'application/xml' | 'application/xhtml+xml' |
   'text/html' | 'video/mp4' | 'video/mkv' | 'video/webm' | 'audio/mp3' |
@@ -46,7 +52,7 @@ type FileExt =
   'html' | 'mp4' | 'mkv' | 'webm' | 'mp3' | 'wav' | 'ogg' | 'ttf' |
   'otf' | 'woff' | 'woff2' | 'eot' | 'bin'
 
-export const MimeToExt: Record<FileType, FileExt> = {
+export const MimeToExt: Record<FileMimeType, FileExt> = {
   // image
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -81,7 +87,7 @@ export const MimeToExt: Record<FileType, FileExt> = {
   'unknown': 'bin',
 }
 
-const fileSignatures: Record<string, FileType> = {
+const fileSignatures: Record<string, FileMimeType> = {
   'ffd8ff': 'image/jpeg',
   '89504e47': 'image/png',
   '47494638': 'image/gif',
@@ -102,8 +108,8 @@ const fileSignatures: Record<string, FileType> = {
   '504c': 'font/eot',
 }
 
-export function getFileType(fileBuffer: ArrayBuffer): FileType {
-  const header = new Uint8Array(fileBuffer, 0, 12)
+export function getFileMimeType(fileBuffer: Uint8Array): FileMimeType {
+  const header = fileBuffer.slice(0, 12)
   const hexHeader = Array.from(header)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
@@ -115,6 +121,28 @@ export function getFileType(fileBuffer: ArrayBuffer): FileType {
   }
 
   return 'unknown'
+}
+
+export interface Resource {
+  type: FileMimeType
+  raw: Uint8Array
+}
+
+export function saveResource(
+  data: Uint8Array | string,
+  type: FileMimeType,
+  filename: string,
+  imageSaveDir: string,
+): string {
+  if (__BROWSER__) {
+    return URL.createObjectURL(new Blob([data], { type }))
+  }
+  else {
+    const fileName = `${filename}.${MimeToExt[type]}`
+    const url = resolve(imageSaveDir, fileName)
+    writeFileSync(url, data)
+    return url
+  }
 }
 
 export const mobiEncoding: Record<string, string> = {

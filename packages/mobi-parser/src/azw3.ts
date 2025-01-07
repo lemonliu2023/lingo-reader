@@ -1,8 +1,10 @@
-import { readFileSync, unlink, writeFileSync } from 'node:fs'
-import { path } from '@blingo-reader/shared'
+import { readFileSync, unlink } from 'node:fs'
+import type {
+  MimeToExt,
+} from './utils'
 import {
   MIME,
-  MimeToExt,
+  saveResource,
 } from './utils'
 import {
   concatTypedArrays,
@@ -311,11 +313,11 @@ export class Azw3 {
         // load resource buffer
         const raw = resourceType === 'flow'
           ? this.loadFlow(Number.parseInt(id))
-          : this.mobiFile.loadResource(Number.parseInt(id) - 1)
+          : this.mobiFile.loadResource(Number.parseInt(id) - 1).raw
 
-        let url: string = matched
         let blobData: Uint8Array | string = ''
 
+        // TODO?: should handle xml html and xhtml file?
         // get blobData based on type
         if (type === MIME.CSS || type === MIME.SVG) {
           const text = this.mobiFile.decode(raw?.buffer as ArrayBuffer)
@@ -323,21 +325,15 @@ export class Azw3 {
           blobData = textReplaced
         }
         else {
-          blobData = raw as Uint8Array
+          blobData = raw!
         }
 
         // convert to blob url
-        if (__BROWSER__) {
-          url = URL.createObjectURL(new Blob([blobData], { type }))
-        }
-        else {
-          const ext = MimeToExt[type as keyof typeof MimeToExt] ?? 'bin'
-          const filename = `${id}.${ext}`
-          url = path.resolve(this.imageSaveDir, filename)
-          writeFileSync(url, blobData)
-        }
+        const url = saveResource(blobData, type as keyof typeof MimeToExt, id, this.imageSaveDir)
 
-        this.resourceCache.set(matched, url)
+        if (!this.resourceCache.has(matched)) {
+          this.resourceCache.set(matched, url)
+        }
         return url
       },
     )

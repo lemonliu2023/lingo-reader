@@ -1,5 +1,6 @@
+import { getFileMimeType, mobiLang, unescapeHTML } from './utils'
+import type { Resource } from './utils'
 import { kf8Header, mobiHeader, palmdocHeader, pdbHeader } from './headers'
-import { mobiLang, unescapeHTML } from './utils'
 import type {
   GetStruct,
   Kf8Header,
@@ -110,16 +111,24 @@ export class MobiFile {
     )
   }
 
-  loadResource(index: number): Uint8Array {
+  loadResource(index: number): Resource {
     const buf = this.loadRecord(this.resourceStart + index)
     const magic = getString(buf.slice(0, 4))
+    let data: Uint8Array
     if (magic === 'FONT') {
-      return getFont(buf)
+      data = getFont(buf)
     }
-    if (magic === 'VIDE' || magic === 'AUDI') {
-      return new Uint8Array(buf.slice(12))
+    else if (magic === 'VIDE' || magic === 'AUDI') {
+      data = new Uint8Array(buf.slice(12))
     }
-    return new Uint8Array(buf)
+    else {
+      // no magic
+      data = new Uint8Array(buf)
+    }
+    return {
+      type: getFileMimeType(data),
+      raw: data,
+    }
   }
 
   getNCX(): Ncx | undefined {
@@ -147,7 +156,7 @@ export class MobiFile {
     }
   }
 
-  getCoverImage() {
+  getCoverImage(): Resource | undefined {
     const exth = this.exth
     const coverOffset = Number(exth?.coverOffset?.[0] ?? 0xFFFFFFFF)
     const thumbnailOffset = Number(exth?.thumbnailOffset?.[0] ?? 0xFFFFFFFF)
@@ -157,8 +166,7 @@ export class MobiFile {
         ? thumbnailOffset
         : undefined
     if (offset) {
-      const buf = this.loadResource(offset)
-      return new Blob([buf])
+      return this.loadResource(offset)
     }
     return undefined
   }

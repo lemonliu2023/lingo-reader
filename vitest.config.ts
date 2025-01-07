@@ -13,6 +13,6 @@ export default defineConfig({
       provider: 'v8',
       exclude: [...coverageConfigDefaults.exclude, 'reader-html', 'ui', '**/dist/**'],
     },
-    testTimeout: 15_000,
+    testTimeout: 10_000,
   },
 })
