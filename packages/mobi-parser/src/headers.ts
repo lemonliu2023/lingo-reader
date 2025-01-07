@@ -1,16 +1,117 @@
-import type {
-  CdicHeader,
-  ExthHeader,
-  FdstHeader,
-  FontHeader,
-  HuffHeader,
-  IndxHeader,
-  Kf8Header,
-  MobiHeader,
-  PalmdocHeader,
-  PdbHeader,
-  TagxHeader,
-} from './types'
+/**
+ * headers
+ */
+type ValueType = 'string' | 'uint'
+type HeaderValue<T extends ValueType> = [number, number, T]
+
+export interface PdbHeader {
+  name: HeaderValue<'string'>
+  type: HeaderValue<'string'>
+  creator: HeaderValue<'string'>
+  numRecords: HeaderValue<'uint'>
+}
+
+export interface PalmdocHeader {
+  compression: HeaderValue<'uint'>
+  numTextRecords: HeaderValue<'uint'>
+  recordSize: HeaderValue<'uint'>
+  encryption: HeaderValue<'uint'>
+}
+
+export interface MobiHeader {
+  magic: HeaderValue<'string'>
+  length: HeaderValue<'uint'>
+  type: HeaderValue<'uint'>
+  encoding: HeaderValue<'uint'>
+  uid: HeaderValue<'uint'>
+  version: HeaderValue<'uint'>
+  titleOffset: HeaderValue<'uint'>
+  titleLength: HeaderValue<'uint'>
+  localeRegion: HeaderValue<'uint'>
+  localeLanguage: HeaderValue<'uint'>
+  resourceStart: HeaderValue<'uint'>
+  huffcdic: HeaderValue<'uint'>
+  numHuffcdic: HeaderValue<'uint'>
+  exthFlag: HeaderValue<'uint'>
+  trailingFlags: HeaderValue<'uint'>
+  indx: HeaderValue<'uint'>
+}
+
+export interface MobiHeaderExtends {
+  title: string
+  language: string
+}
+
+export interface Kf8Header {
+  resourceStart: HeaderValue<'uint'>
+  fdst: HeaderValue<'uint'>
+  numFdst: HeaderValue<'uint'>
+  frag: HeaderValue<'uint'>
+  skel: HeaderValue<'uint'>
+  guide: HeaderValue<'uint'>
+}
+
+export interface ExthHeader {
+  magic: HeaderValue<'string'>
+  length: HeaderValue<'uint'>
+  count: HeaderValue<'uint'>
+}
+
+export interface IndxHeader {
+  magic: HeaderValue<'string'>
+  length: HeaderValue<'uint'>
+  type: HeaderValue<'uint'>
+  idxt: HeaderValue<'uint'>
+  numRecords: HeaderValue<'uint'>
+  encoding: HeaderValue<'uint'>
+  language: HeaderValue<'uint'>
+  total: HeaderValue<'uint'>
+  ordt: HeaderValue<'uint'>
+  ligt: HeaderValue<'uint'>
+  numLigt: HeaderValue<'uint'>
+  numCncx: HeaderValue<'uint'>
+}
+
+export interface TagxHeader {
+  magic: HeaderValue<'string'>
+  length: HeaderValue<'uint'>
+  numControlBytes: HeaderValue<'uint'>
+}
+
+export interface HuffHeader {
+  magic: HeaderValue<'string'>
+  offset1: HeaderValue<'uint'>
+  offset2: HeaderValue<'uint'>
+}
+
+export interface CdicHeader {
+  magic: HeaderValue<'string'>
+  length: HeaderValue<'uint'>
+  numEntries: HeaderValue<'uint'>
+  codeLength: HeaderValue<'uint'>
+}
+
+export interface FdstHeader {
+  magic: HeaderValue<'string'>
+  numEntries: HeaderValue<'uint'>
+}
+
+export interface FontHeader {
+  flags: HeaderValue<'uint'>
+  dataStart: HeaderValue<'uint'>
+  keyLength: HeaderValue<'uint'>
+  keyStart: HeaderValue<'uint'>
+}
+
+export type Header = PdbHeader | PalmdocHeader | MobiHeader
+  | Kf8Header | ExthHeader | IndxHeader | TagxHeader | HuffHeader
+  | CdicHeader | FdstHeader | FontHeader
+
+export type GetStruct<T extends Header> = {
+  [K in keyof T]: T[K] extends HeaderValue<ValueType>
+    ? (T[K][2] extends 'string' ? string : number)
+    : never
+}
 
 export const pdbHeader: PdbHeader = {
   name: [0, 32, 'string'],
@@ -104,125 +205,4 @@ export const fontHeader: FontHeader = {
   dataStart: [12, 4, 'uint'],
   keyLength: [16, 4, 'uint'],
   keyStart: [20, 4, 'uint'],
-}
-
-export const mime = {
-  XML: 'application/xml',
-  XHTML: 'application/xhtml+xml',
-  HTML: 'text/html',
-  CSS: 'text/css',
-  SVG: 'image/svg+xml',
-}
-
-export const mobiEncoding: Record<string, string> = {
-  1252: 'windows-1252',
-  65001: 'utf-8',
-}
-
-export const exthRecordType: Record<string, [string, string]> = {
-  100: ['creator', 'string'], // many
-  101: ['publisher', 'string'],
-  103: ['description', 'string'],
-  104: ['isbn', 'string'],
-  105: ['subject', 'string'], // many
-  106: ['date', 'string'],
-  108: ['contributor', 'string'], // many
-  109: ['rights', 'string'],
-  110: ['subjectCode', 'string'], // many
-  112: ['source', 'string'], // many
-  113: ['asin', 'string'],
-  121: ['boundary', 'uint'],
-  122: ['fixedLayout', 'string'],
-  125: ['numResources', 'uint'],
-  126: ['originalResolution', 'string'],
-  127: ['zeroGutter', 'string'],
-  128: ['zeroMargin', 'string'],
-  129: ['coverURI', 'string'],
-  132: ['regionMagnification', 'string'],
-  201: ['coverOffset', 'uint'],
-  202: ['thumbnailOffset', 'uint'],
-  503: ['title', 'string'],
-  524: ['language', 'string'], // many
-  527: ['pageProgressionDirection', 'string'],
-}
-
-export const mobiLang: Record<string, (string | null)[]> = {
-  1: ['ar', 'ar-SA', 'ar-IQ', 'ar-EG', 'ar-LY', 'ar-DZ', 'ar-MA', 'ar-TN', 'ar-OM', 'ar-YE', 'ar-SY', 'ar-JO', 'ar-LB', 'ar-KW', 'ar-AE', 'ar-BH', 'ar-QA'],
-  2: ['bg'],
-  3: ['ca'],
-  4: ['zh', 'zh-TW', 'zh-CN', 'zh-HK', 'zh-SG'],
-  5: ['cs'],
-  6: ['da'],
-  7: ['de', 'de-DE', 'de-CH', 'de-AT', 'de-LU', 'de-LI'],
-  8: ['el'],
-  9: ['en', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'en-NZ', 'en-IE', 'en-ZA', 'en-JM', null, 'en-BZ', 'en-TT', 'en-ZW', 'en-PH'],
-  10: ['es', 'es-ES', 'es-MX', null, 'es-GT', 'es-CR', 'es-PA', 'es-DO', 'es-VE', 'es-CO', 'es-PE', 'es-AR', 'es-EC', 'es-CL', 'es-UY', 'es-PY', 'es-BO', 'es-SV', 'es-HN', 'es-NI', 'es-PR'],
-  11: ['fi'],
-  12: ['fr', 'fr-FR', 'fr-BE', 'fr-CA', 'fr-CH', 'fr-LU', 'fr-MC'],
-  13: ['he'],
-  14: ['hu'],
-  15: ['is'],
-  16: ['it', 'it-IT', 'it-CH'],
-  17: ['ja'],
-  18: ['ko'],
-  19: ['nl', 'nl-NL', 'nl-BE'],
-  20: ['no', 'nb', 'nn'],
-  21: ['pl'],
-  22: ['pt', 'pt-BR', 'pt-PT'],
-  23: ['rm'],
-  24: ['ro'],
-  25: ['ru'],
-  26: ['hr', null, 'sr'],
-  27: ['sk'],
-  28: ['sq'],
-  29: ['sv', 'sv-SE', 'sv-FI'],
-  30: ['th'],
-  31: ['tr'],
-  32: ['ur'],
-  33: ['id'],
-  34: ['uk'],
-  35: ['be'],
-  36: ['sl'],
-  37: ['et'],
-  38: ['lv'],
-  39: ['lt'],
-  41: ['fa'],
-  42: ['vi'],
-  43: ['hy'],
-  44: ['az'],
-  45: ['eu'],
-  46: ['hsb'],
-  47: ['mk'],
-  48: ['st'],
-  49: ['ts'],
-  50: ['tn'],
-  52: ['xh'],
-  53: ['zu'],
-  54: ['af'],
-  55: ['ka'],
-  56: ['fo'],
-  57: ['hi'],
-  58: ['mt'],
-  59: ['se'],
-  62: ['ms'],
-  63: ['kk'],
-  65: ['sw'],
-  67: ['uz', null, 'uz-UZ'],
-  68: ['tt'],
-  69: ['bn'],
-  70: ['pa'],
-  71: ['gu'],
-  72: ['or'],
-  73: ['ta'],
-  74: ['te'],
-  75: ['kn'],
-  76: ['ml'],
-  77: ['as'],
-  78: ['mr'],
-  79: ['sa'],
-  82: ['cy', 'cy-GB'],
-  83: ['gl', 'gl-ES'],
-  87: ['kok'],
-  97: ['ne'],
-  98: ['fy'],
 }

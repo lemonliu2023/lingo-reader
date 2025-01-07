@@ -1,6 +1,11 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { parsexml, path } from '@blingo-reader/shared'
-import { MimeToExt, concatTypedArrays, getFileType, mbpPagebreakRegex, toArrayBuffer } from './utils'
+import { MimeToExt, getFileType } from './utils'
+import {
+  concatTypedArrays,
+  mbpPagebreakRegex,
+  toArrayBuffer,
+} from './book'
 import { MobiFile } from './mobiFile'
 import type { Chapter, TocItem } from './types'
 
@@ -127,6 +132,8 @@ export class Mobi {
       this.parseNavMap(tocAst.wrapper.children, toc)
       this.toc = toc
     }
+
+    // TODO: fileposList for resolveHref selector
   }
 
   private findTocChapter(referenceStr: string): Chapter | undefined {
@@ -235,5 +242,12 @@ export class Mobi {
     )
 
     return str
+  }
+
+  resolveHref(href: string) {
+    const filepos = href.match(/filepos:(\d+)/)![1]
+    const fileposNum = Number(filepos)
+    const chapter = this.chapters.find(ch => ch.end > fileposNum)
+    return { id: chapter?.id, selector: `[id="filepos:${filepos}]` }
   }
 }

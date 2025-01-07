@@ -3,6 +3,8 @@ import { path } from '@blingo-reader/shared'
 import {
   MIME,
   MimeToExt,
+} from './utils'
+import {
   concatTypedArrays,
   getFragmentSelector,
   getIndexData,
@@ -12,7 +14,7 @@ import {
   makePosURI,
   parsePosURI,
   toArrayBuffer,
-} from './utils'
+} from './book'
 import { MobiFile } from './mobiFile'
 import { fdstHeader } from './headers'
 import type {
@@ -237,7 +239,9 @@ export class Azw3 {
     if (chapter) {
       const processed = this.replace(this.loadText(chapter))
 
-      this.chapterCache.set(id, processed)
+      if (!this.chapterCache.has(id)) {
+        this.chapterCache.set(id, processed)
+      }
       return processed
     }
     return undefined
@@ -370,7 +374,7 @@ export class Azw3 {
         URL.revokeObjectURL(url)
       }
       else {
-        unlink(url, () => {})
+        unlink(url, () => { })
       }
     })
   }

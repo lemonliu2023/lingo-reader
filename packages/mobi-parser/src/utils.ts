@@ -1,8 +1,3 @@
-import type { Buffer } from 'node:buffer'
-import { unzlibSync } from 'fflate'
-import { cdicHeader, exthHeader, exthRecordType, fontHeader, huffHeader, indxHeader, mobiEncoding, tagxHeader } from './headers'
-import type { Exth, GetStruct, Header, IndexData, LoadRecordFunc, MobiHeader, Ncx, NcxItem } from './types'
-
 const htmlEntityMap: Record<string, string> = {
   '&lt;': '<',
   '&gt;': '>',
@@ -39,498 +34,198 @@ export const MIME = {
   SVG: 'image/svg+xml',
 }
 
-export const MimeToExt = {
+type FileType =
+  'image/jpeg' | 'image/png' | 'image/gif' | 'image/bmp' |
+  'image/svg+xml' | 'text/css' | 'application/xml' | 'application/xhtml+xml' |
+  'text/html' | 'video/mp4' | 'video/mkv' | 'video/webm' | 'audio/mp3' |
+  'audio/wav' | 'audio/ogg' | 'font/ttf' | 'font/otf' | 'font/woff' |
+  'font/woff2' | 'font/eot' | 'unknown'
+
+type FileExt =
+  'jpg' | 'png' | 'gif' | 'bmp' | 'svg' | 'css' | 'xml' | 'xhtml' |
+  'html' | 'mp4' | 'mkv' | 'webm' | 'mp3' | 'wav' | 'ogg' | 'ttf' |
+  'otf' | 'woff' | 'woff2' | 'eot' | 'bin'
+
+export const MimeToExt: Record<FileType, FileExt> = {
+  // image
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/gif': 'gif',
+  'image/bmp': 'bmp',
   'image/svg+xml': 'svg',
+
+  // text
   'text/css': 'css',
   'application/xml': 'xml',
   'application/xhtml+xml': 'xhtml',
   'text/html': 'html',
+
   // video
   'video/mp4': 'mp4',
-  'video/ogg': 'ogg',
+  'video/mkv': 'mkv',
   'video/webm': 'webm',
+
   // audio
-  'audio/mpeg': 'mp3',
-  'audio/ogg': 'ogg',
+  'audio/mp3': 'mp3',
   'audio/wav': 'wav',
+  'audio/ogg': 'ogg',
+
+  // font
+  'font/ttf': 'ttf',
+  'font/otf': 'otf',
+  'font/woff': 'woff',
+  'font/woff2': 'woff2',
+  'font/eot': 'eot',
+
+  // unknown
+  'unknown': 'bin',
 }
 
-type FileType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/bmp' |
-  'video/mp4' | 'video/mkv' | 'video/webm' | 'audio/mp3' |
-  'audio/wav' | 'audio/ogg' | 'unknown'
+const fileSignatures: Record<string, FileType> = {
+  'ffd8ff': 'image/jpeg',
+  '89504e47': 'image/png',
+  '47494638': 'image/gif',
+  '424d': 'image/bmp',
+  '3c737667': 'image/svg+xml',
+  '00000018': 'video/mp4',
+  '00000020': 'video/mp4',
+  '1a45dfa3': 'video/mkv',
+  '1f43b675': 'video/webm',
+  '494433': 'audio/mp3',
+  '52494646': 'audio/wav',
+  '4f676753': 'audio/ogg',
+  '00010000': 'font/ttf',
+  '74727565': 'font/ttf',
+  '4f54544f': 'font/otf',
+  '774f4646': 'font/woff',
+  '774f4632': 'font/woff2',
+  '504c': 'font/eot',
+}
 
 export function getFileType(fileBuffer: ArrayBuffer): FileType {
-  const header = new Uint8Array(fileBuffer.slice(0, 12))
-  const hexHeader = Array.from(header).map(b => b.toString(16).padStart(2, '0')).join('')
+  const header = new Uint8Array(fileBuffer, 0, 12)
+  const hexHeader = Array.from(header)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
 
-  // image
-  if (hexHeader.startsWith('ffd8ff'))
-    return 'image/jpeg'
-  if (hexHeader.startsWith('89504e47'))
-    return 'image/png'
-  if (hexHeader.startsWith('47494638'))
-    return 'image/gif'
-  if (hexHeader.startsWith('424d'))
-    return 'image/bmp'
-
-  // video
-  if (hexHeader.startsWith('00000018') || hexHeader.startsWith('00000020'))
-    return 'video/mp4'
-  if (hexHeader.startsWith('1a45dfa3'))
-    return 'video/mkv'
-  if (hexHeader.startsWith('1f43b675'))
-    return 'video/webm'
-
-  // audio
-  if (hexHeader.startsWith('494433'))
-    return 'audio/mp3'
-  if (hexHeader.startsWith('52494646') && hexHeader.slice(8, 16) === '57415645')
-    return 'audio/wav'
-  if (hexHeader.startsWith('4f676753'))
-    return 'audio/ogg'
+  for (const [signature, type] of Object.entries(fileSignatures)) {
+    if (hexHeader.startsWith(signature)) {
+      return type
+    }
+  }
 
   return 'unknown'
 }
 
-function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
-}
-export async function toArrayBuffer<T extends File | Buffer>(file: T): Promise<ArrayBuffer> {
-  if (__BROWSER__) {
-    return await (file as File).arrayBuffer()
-  }
-  else {
-    return bufferToArrayBuffer(file as Buffer)
-  }
+export const mobiEncoding: Record<string, string> = {
+  1252: 'windows-1252',
+  65001: 'utf-8',
 }
 
-const decoder = new TextDecoder()
-export const getString = (buffer: ArrayBuffer): string => decoder.decode(buffer)
-export function getUint(buffer: ArrayBuffer): number {
-  const l = buffer.byteLength
-  const func = l === 4 ? 'getUint32' : l === 2 ? 'getUint16' : 'getUint8'
-  return new DataView(buffer)[func](0)
+export const exthRecordType: Record<string, [string, string]> = {
+  100: ['creator', 'string'], // many
+  101: ['publisher', 'string'],
+  103: ['description', 'string'],
+  104: ['isbn', 'string'],
+  105: ['subject', 'string'], // many
+  106: ['date', 'string'],
+  108: ['contributor', 'string'], // many
+  109: ['rights', 'string'],
+  110: ['subjectCode', 'string'], // many
+  112: ['source', 'string'], // many
+  113: ['asin', 'string'],
+  121: ['boundary', 'uint'],
+  122: ['fixedLayout', 'string'],
+  125: ['numResources', 'uint'],
+  126: ['originalResolution', 'string'],
+  127: ['zeroGutter', 'string'],
+  128: ['zeroMargin', 'string'],
+  129: ['coverURI', 'string'],
+  132: ['regionMagnification', 'string'],
+  201: ['coverOffset', 'uint'],
+  202: ['thumbnailOffset', 'uint'],
+  503: ['title', 'string'],
+  524: ['language', 'string'], // many
+  527: ['pageProgressionDirection', 'string'],
 }
 
-export function getStruct<T extends Header>(def: T, buffer: ArrayBuffer): GetStruct<T> {
-  const res = {} as GetStruct<T>
-  for (const key in def) {
-    const [start, len, type] = def[key] as [number, number, string]
-    res[key] = (type === 'string'
-      ? getString(buffer.slice(start, start + len))
-      : getUint(buffer.slice(start, start + len))
-    ) as GetStruct<T>[typeof key]
-  }
-  return res
+export const mobiLang: Record<string, (string | null)[]> = {
+  1: ['ar', 'ar-SA', 'ar-IQ', 'ar-EG', 'ar-LY', 'ar-DZ', 'ar-MA', 'ar-TN', 'ar-OM', 'ar-YE', 'ar-SY', 'ar-JO', 'ar-LB', 'ar-KW', 'ar-AE', 'ar-BH', 'ar-QA'],
+  2: ['bg'],
+  3: ['ca'],
+  4: ['zh', 'zh-TW', 'zh-CN', 'zh-HK', 'zh-SG'],
+  5: ['cs'],
+  6: ['da'],
+  7: ['de', 'de-DE', 'de-CH', 'de-AT', 'de-LU', 'de-LI'],
+  8: ['el'],
+  9: ['en', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'en-NZ', 'en-IE', 'en-ZA', 'en-JM', null, 'en-BZ', 'en-TT', 'en-ZW', 'en-PH'],
+  10: ['es', 'es-ES', 'es-MX', null, 'es-GT', 'es-CR', 'es-PA', 'es-DO', 'es-VE', 'es-CO', 'es-PE', 'es-AR', 'es-EC', 'es-CL', 'es-UY', 'es-PY', 'es-BO', 'es-SV', 'es-HN', 'es-NI', 'es-PR'],
+  11: ['fi'],
+  12: ['fr', 'fr-FR', 'fr-BE', 'fr-CA', 'fr-CH', 'fr-LU', 'fr-MC'],
+  13: ['he'],
+  14: ['hu'],
+  15: ['is'],
+  16: ['it', 'it-IT', 'it-CH'],
+  17: ['ja'],
+  18: ['ko'],
+  19: ['nl', 'nl-NL', 'nl-BE'],
+  20: ['no', 'nb', 'nn'],
+  21: ['pl'],
+  22: ['pt', 'pt-BR', 'pt-PT'],
+  23: ['rm'],
+  24: ['ro'],
+  25: ['ru'],
+  26: ['hr', null, 'sr'],
+  27: ['sk'],
+  28: ['sq'],
+  29: ['sv', 'sv-SE', 'sv-FI'],
+  30: ['th'],
+  31: ['tr'],
+  32: ['ur'],
+  33: ['id'],
+  34: ['uk'],
+  35: ['be'],
+  36: ['sl'],
+  37: ['et'],
+  38: ['lv'],
+  39: ['lt'],
+  41: ['fa'],
+  42: ['vi'],
+  43: ['hy'],
+  44: ['az'],
+  45: ['eu'],
+  46: ['hsb'],
+  47: ['mk'],
+  48: ['st'],
+  49: ['ts'],
+  50: ['tn'],
+  52: ['xh'],
+  53: ['zu'],
+  54: ['af'],
+  55: ['ka'],
+  56: ['fo'],
+  57: ['hi'],
+  58: ['mt'],
+  59: ['se'],
+  62: ['ms'],
+  63: ['kk'],
+  65: ['sw'],
+  67: ['uz', null, 'uz-UZ'],
+  68: ['tt'],
+  69: ['bn'],
+  70: ['pa'],
+  71: ['gu'],
+  72: ['or'],
+  73: ['ta'],
+  74: ['te'],
+  75: ['kn'],
+  76: ['ml'],
+  77: ['as'],
+  78: ['mr'],
+  79: ['sa'],
+  82: ['cy', 'cy-GB'],
+  83: ['gl', 'gl-ES'],
+  87: ['kok'],
+  97: ['ne'],
+  98: ['fy'],
 }
-
-type TypedArr = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
-export function concatTypedArrays<T extends TypedArr>(arrays: T[]): T {
-  const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0)
-  const result = new (arrays[0].constructor as any)(totalLength)
-
-  let offset = 0
-  for (const array of arrays) {
-    result.set(array, offset)
-    offset += array.length
-  }
-
-  return result
-}
-
-export const getDecoder = (x: string) => new TextDecoder(mobiEncoding[x])
-
-export function getVarLen(byteArray: Uint8Array, i = 0) {
-  let value = 0
-  let length = 0
-  for (const byte of byteArray.subarray(i, i + 4)) {
-    value = (value << 7) | (byte & 0b111_1111) >>> 0
-    length++
-    if (byte & 0b1000_0000) {
-      break
-    }
-  }
-  return { value, length }
-}
-
-export function getVarLenFromEnd(byteArray: Uint8Array): number {
-  let value = 0
-  for (const byte of byteArray.subarray(-4)) {
-    if (byte & 0b1000_0000) {
-      value = 0
-    }
-    value = (value << 7) | (byte & 0b111_1111)
-  }
-  return value
-}
-
-export function countBitsSet(x: number): number {
-  let count = 0
-  for (; x > 0; x = x >> 1) {
-    if ((x & 1) === 1) {
-      count++
-    }
-  }
-  return count
-}
-
-export function countUnsetEnd(x: number): number {
-  let count = 0
-  while ((x & 1) === 0) {
-    x = x >> 1
-    count++
-  }
-  return count
-}
-
-export function decompressPalmDOC(array: Uint8Array): Uint8Array {
-  const output: number[] = []
-  for (let i = 0; i < array.length; i++) {
-    const byte = array[i]
-    if (byte === 0) {
-      // uncompressed literal, just copy it
-      output.push(0)
-    }
-    else if (byte <= 8) {
-      // copy next 1-8 bytes
-      for (const x of array.subarray(i + 1, (i += byte) + 1))
-        output.push(x)
-    }
-    else if (byte <= 0b0111_1111) {
-      // uncompressed literal
-      output.push(byte)
-    }
-    else if (byte <= 0b1011_1111) {
-      // 1st and 2nd bits are 10, meaning this is a length-distance pair
-      // read next byte and combine it with current byte
-      const bytes = (byte << 8) | array[i++ + 1]
-      // the 3rd to 13th bits encode distance
-      const distance = (bytes & 0b0011_1111_1111_1111) >>> 3
-      // the last 3 bits, plus 3, is the length to copy
-      const length = (bytes & 0b111) + 3
-      for (let j = 0; j < length; j++)
-        output.push(output[output.length - distance])
-    }
-    else {
-      // compressed from space plus char
-      output.push(32, byte ^ 0b1000_0000)
-    }
-  }
-  return Uint8Array.from(output)
-}
-
-export function huffcdic(mobi: GetStruct<MobiHeader>, loadRecord: (index: number) => ArrayBuffer) {
-  const huffRecord = loadRecord(mobi.huffcdic)
-  const { magic, offset1, offset2 } = getStruct(huffHeader, huffRecord)
-  if (magic !== 'HUFF') {
-    throw new Error('Invalid HUFF record')
-  }
-
-  // table1 is indexed by byte value
-  const table1 = Array.from(
-    { length: 256 },
-    (_, i) => offset1 + i * 4,
-  )
-    .map(offset => getUint(huffRecord.slice(offset, offset + 4)))
-    .map(x => [x & 0b1000_0000, x & 0b1_1111, x >>> 8])
-
-  // table2 is indexed by code length
-  const table2 = [[0, 0], ...Array.from(
-    { length: 32 },
-    (_, i) => offset2 + i * 8,
-  )
-    .map(offset => [
-      getUint(huffRecord.slice(offset, offset + 4)),
-      getUint(huffRecord.slice(offset + 4, offset + 8)),
-    ])]
-
-  const dictionary: [Uint8Array, number | boolean][] = []
-  for (let i = 1; i < mobi.numHuffcdic; i++) {
-    const record = loadRecord(mobi.huffcdic + i)
-    const cdic = getStruct(cdicHeader, record)
-    if (cdic.magic !== 'CDIC') {
-      throw new Error('Invalid CDIC record')
-    }
-    // `numEntries` is the total number of dictionary data across CDIC records
-    // so `n` here is the number of entries in *this* record
-    const n = Math.min(1 << cdic.codeLength, cdic.numEntries - dictionary.length)
-    const buffer = record.slice(cdic.length)
-    for (let i = 0; i < n; i++) {
-      const offset = getUint(buffer.slice(i * 2, i * 2 + 2))
-      const x = getUint(buffer.slice(offset, offset + 2))
-      const length = x & 0x7FFF
-      const decompressed = x & 0x8000
-      const value = new Uint8Array(buffer.slice(offset + 2, offset + 2 + length))
-      dictionary.push([value, decompressed])
-    }
-  }
-
-  const decompress = (byteArray: Uint8Array): Uint8Array => {
-    let output = new Uint8Array()
-    const bitLength = byteArray.byteLength * 8
-    for (let i = 0; i < bitLength;) {
-      const bits = Number(read32Bits(byteArray, i))
-      let [found, codeLength, value] = table1[bits >>> 24]
-      if (!found) {
-        while (bits >>> (32 - codeLength) < table2[codeLength][0])
-          codeLength += 1
-        value = table2[codeLength][1]
-      }
-      i += codeLength
-      if (i > bitLength) {
-        break
-      }
-
-      const code = value - (bits >>> (32 - codeLength))
-      let [result, decompressed] = dictionary[code]
-      if (!decompressed) {
-        // the result is itself compressed
-        result = decompress(result)
-        // cache the result for next time
-        dictionary[code] = [result, true]
-      }
-      output = concatTypedArrays([output, result]) as any
-    }
-    return output
-  }
-  return decompress
-}
-
-export function read32Bits(byteArray: Uint8Array, from: number): bigint {
-  const startByte = from >> 3
-  const end = from + 32
-  const endByte = end >> 3
-  let bits = 0n
-  for (let i = startByte; i <= endByte; i++) {
-    bits = bits << 8n | BigInt(byteArray[i] ?? 0)
-  }
-  return (bits >> (8n - BigInt(end & 7))) & 0xFFFFFFFFn
-}
-
-export function isMOBI(file: ArrayBuffer) {
-  const magic = getString(file.slice(60, 68))
-  return magic === 'BOOKMOBI'// || magic === 'TEXtREAd'
-}
-
-// also known as metadata
-export function getExth(buf: ArrayBuffer, encoding: number): Exth {
-  const { magic, count } = getStruct(exthHeader, buf)
-  if (magic !== 'EXTH') {
-    throw new Error('Invalid EXTH header')
-  }
-
-  const decoder = getDecoder(encoding.toString())
-  const results: Record<string, (string | number)[]> = {}
-  // exthHeader length is 12
-  let offset = 12
-  for (let i = 0; i < count; i++) {
-    const type = getUint(buf.slice(offset, offset + 4)).toString()
-    // header value: type, length, data
-    // exth record length, include data.
-    const length = getUint(buf.slice(offset + 4, offset + 8))
-    if (type in exthRecordType) {
-      const [name, typ] = exthRecordType[type]
-      const data = buf.slice(offset + 8, offset + length)
-      const value = typ === 'uint' ? getUint(data) : decoder.decode(data)
-
-      results[name] ??= []
-      results[name].push(value)
-    }
-    offset += length
-  }
-
-  return results
-}
-
-export function getRemoveTrailingEntries(trailingFlags: number) {
-  const multibyte = trailingFlags & 1
-  const numTrailingEntries = countBitsSet(trailingFlags >>> 1)
-
-  return (array: Uint8Array): Uint8Array => {
-    for (let i = 0; i < numTrailingEntries; i++) {
-      const length = getVarLenFromEnd(array)
-      array = array.subarray(0, -length)
-    }
-    if (multibyte) {
-      const length = (array[array.length - 1] & 0b11) + 1
-      array = array.subarray(0, -length)
-    }
-    return array
-  }
-}
-
-export function getFont(buf: ArrayBuffer): Uint8Array {
-  const { flags, dataStart, keyLength, keyStart } = getStruct(fontHeader, buf)
-  const array = new Uint8Array(buf.slice(dataStart))
-  // deobfuscate font
-  if (flags & 0b10) {
-    const bytes = keyLength === 16 ? 1024 : 1040
-    const key = new Uint8Array(buf.slice(keyStart, keyStart + keyLength))
-    const length = Math.min(bytes, array.length)
-    for (let i = 0; i < length; i++) array[i] = array[i] ^ key[i % key.length]
-  }
-  // decompress font
-  if (flags & 1) {
-    try {
-      return unzlibSync(array)
-    }
-    catch (e) {
-      console.warn(e)
-      console.warn('Failed to decompress font')
-    }
-  }
-  return array
-}
-
-export function getIndexData(indxIndex: number, loadRecord: LoadRecordFunc): IndexData {
-  const indxRecord = loadRecord(indxIndex)
-  const indx = getStruct(indxHeader, indxRecord)
-  if (indx.magic !== 'INDX')
-    throw new Error('Invalid INDX record')
-  const decoder = getDecoder(indx.encoding.toString())
-
-  const cncx: Record<string, string> = {}
-  let cncxRecordOffset = 0
-  for (let i = 0; i < indx.numCncx; i++) {
-    const record = loadRecord(indxIndex + indx.numRecords + i + 1)
-    const array = new Uint8Array(record)
-    for (let pos = 0; pos < array.byteLength;) {
-      const index = pos
-      const { value, length } = getVarLen(array, pos)
-      pos += length
-      const result = record.slice(pos, pos + value)
-      pos += value
-      cncx[cncxRecordOffset + index] = decoder.decode(result)
-    }
-    cncxRecordOffset += 0x10000
-  }
-
-  const tagxBuffer = indxRecord.slice(indx.length)
-  const tagx = getStruct(tagxHeader, tagxBuffer)
-  if (tagx.magic !== 'TAGX')
-    throw new Error('Invalid TAGX section')
-  const numTags = (tagx.length - 12) / 4
-  const tagTable = Array.from(
-    { length: numTags },
-    (_, i) => new Uint8Array(tagxBuffer.slice(12 + i * 4, 12 + i * 4 + 4)),
-  )
-  const table = []
-  for (let i = 0; i < indx.numRecords; i++) {
-    const record = loadRecord(indxIndex + 1 + i)
-    const array = new Uint8Array(record)
-    const indx = getStruct(indxHeader, record)
-    if (indx.magic !== 'INDX') {
-      throw new Error('Invalid INDX record')
-    }
-    for (let j = 0; j < indx.numRecords; j++) {
-      const offsetOffset = indx.idxt + 4 + 2 * j
-      const offset = getUint(record.slice(offsetOffset, offsetOffset + 2))
-
-      const length = getUint(record.slice(offset, offset + 1))
-      const name = getString(record.slice(offset + 1, offset + 1 + length))
-
-      const tags: number[][] = []
-      const startPos = offset + 1 + length
-      let controlByteIndex = 0
-      let pos = startPos + tagx.numControlBytes
-      for (const [tag, numValues, mask, end] of tagTable) {
-        if (end & 1) {
-          controlByteIndex++
-          continue
-        }
-        const offset = startPos + controlByteIndex
-        const value = getUint(record.slice(offset, offset + 1)) & mask
-        if (value === mask) {
-          if (countBitsSet(mask) > 1) {
-            const { value, length } = getVarLen(array, pos)
-            tags.push([tag, 0, value, numValues])
-            pos += length
-          }
-          else {
-            tags.push([tag, 1, 0, numValues])
-          }
-        }
-        else {
-          tags.push([tag, value >> countUnsetEnd(mask), 0, numValues])
-        }
-      }
-
-      const tagMap: Record<string, number[]> = {}
-      for (const [tag, valueCount, valueBytes, numValues] of tags) {
-        const values = []
-        if (valueCount !== 0) {
-          for (let i = 0; i < valueCount * numValues; i++) {
-            const { value, length } = getVarLen(array, pos)
-            values.push(value)
-            pos += length
-          }
-        }
-        else {
-          let count = 0
-          while (count < valueBytes) {
-            const { value, length } = getVarLen(array, pos)
-            values.push(value)
-            pos += length
-            count += length
-          }
-        }
-        tagMap[tag] = values
-      }
-      table.push({ name, tagMap })
-    }
-  }
-  return { table, cncx }
-}
-
-export function getNCX(indxIndex: number, loadRecord: (index: number) => ArrayBuffer): Ncx {
-  const { table, cncx } = getIndexData(indxIndex, loadRecord)
-  const items: Ncx = table.map(({ tagMap }, index) => ({
-    index,
-    offset: tagMap[1]?.[0],
-    size: tagMap[2]?.[0],
-    label: cncx[tagMap[3]?.[0]] ?? '',
-    headingLevel: tagMap[4]?.[0],
-    pos: tagMap[6],
-    parent: tagMap[21]?.[0],
-    firstChild: tagMap[22]?.[0],
-    lastChild: tagMap[23]?.[0],
-  }))
-  const getChildren = (item: NcxItem): NcxItem => {
-    if (item.firstChild == null)
-      return item
-    item.children = items.filter(x => x.parent === item.index).map(getChildren)
-    return item
-  }
-  return items.filter(item => item.headingLevel === 0).map(getChildren)
-}
-
-export const mbpPagebreakRegex = /<\s*(?:mbp:)?pagebreak[^>]*>/gi
-
-export function makePosURI(fid: number = 0, off: number = 0): string {
-  return `kindle:pos:fid:${fid.toString(32).toUpperCase().padStart(4, '0')
-    }:off:${off.toString(32).toUpperCase().padStart(10, '0')}`
-}
-
-const selectorReg = /\s(id|name|aid)\s*=\s*['"]([^'"]*)['"]/i
-export function getFragmentSelector(str: string): string {
-  const match = str.match(selectorReg)
-  if (!match) {
-    return ''
-  }
-  const [, attr, value] = match
-  return `[${attr}="${value}"]`
-}
-
-const kindlePosRegex = /kindle:pos:fid:(\w+):off:(\w+)/
-export function parsePosURI(str: string) {
-  const [fid, off] = str.match(kindlePosRegex)!.slice(1)
-  return {
-    fid: Number.parseInt(fid, 32),
-    off: Number.parseInt(off, 32),
-  }
-}
-
-export const kindleResourceRegex = /kindle:(flow|embed):(\w+)(?:\?mime=(\w+\/[-+.\w]+))?/

@@ -1,15 +1,18 @@
-import { kf8Header, mobiHeader, mobiLang, palmdocHeader, pdbHeader } from './headers'
+import { kf8Header, mobiHeader, palmdocHeader, pdbHeader } from './headers'
+import { mobiLang, unescapeHTML } from './utils'
 import type {
-  DecompressFunc,
-  Exth,
   GetStruct,
   Kf8Header,
   MobiHeader,
   MobiHeaderExtends,
-  Ncx,
-  Offset,
   PalmdocHeader,
   PdbHeader,
+} from './headers'
+import type {
+  DecompressFunc,
+  Exth,
+  Ncx,
+  Offset,
 } from './types'
 import {
   decompressPalmDOC,
@@ -22,8 +25,7 @@ import {
   getStruct,
   getUint,
   huffcdic,
-  unescapeHTML,
-} from './utils'
+} from './book'
 
 export class MobiFile {
   private fileArrayBuffer!: ArrayBuffer
