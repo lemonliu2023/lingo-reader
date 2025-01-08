@@ -29,6 +29,7 @@ import type {
   FragTable,
   NcxItem,
   ProcessedChapter,
+  ResolvedHref,
   SkelTable,
 } from './types'
 
@@ -41,41 +42,54 @@ export async function initAzw3File(file: string | File, initOptions: Azw3InitOpt
 }
 
 export class Azw3 {
-  fileArrayBuffer!: ArrayBuffer
-  mobiFile!: MobiFile
+  private fileArrayBuffer!: ArrayBuffer
+  private mobiFile!: MobiFile
 
-  fdstTable: number[][] = []
-  fullRawLength: number = 0
-  skelTable: SkelTable = []
-  fragTable: FragTable = []
-  chapters: Azw3Chapter[] = []
-  toc: Azw3Toc | undefined = []
-  guide: Azw3Guide | undefined = []
+  private fdstTable: number[][] = []
+  private fullRawLength: number = 0
+  private skelTable: SkelTable = []
+  private fragTable: FragTable = []
+  private chapters: Azw3Chapter[] = []
+  private toc: Azw3Toc | undefined = []
 
-  fragmentOffsets = new Map<number, number[]>()
-  fragmentSelectors = new Map<number, Map<number, string>>()
+  private fragmentOffsets = new Map<number, number[]>()
+  private fragmentSelectors = new Map<number, Map<number, string>>()
 
-  rawHead: Uint8Array<ArrayBuffer> = new Uint8Array()
-  rawTail: Uint8Array<ArrayBuffer> = new Uint8Array()
-  lastLoadedHead: number = -1
-  lastLoadedTail: number = -1
+  private rawHead: Uint8Array<ArrayBuffer> = new Uint8Array()
+  private rawTail: Uint8Array<ArrayBuffer> = new Uint8Array()
+  private lastLoadedHead: number = -1
+  private lastLoadedTail: number = -1
 
-  resourceCache = new Map<string, string>()
-  chapterCache = new Map<number, ProcessedChapter>()
+  private resourceCache = new Map<string, string>()
+  private chapterCache = new Map<number, ProcessedChapter>()
 
-  idToChapter = new Map<number, Azw3Chapter>()
-  imageSaveDir = './images'
+  private idToChapter = new Map<number, Azw3Chapter>()
+  private imageSaveDir = './images'
 
   getMetadata() {
     return this.mobiFile.getMetadata()
   }
 
   getCoverImage() {
+    if (this.resourceCache.has('cover')) {
+      return this.resourceCache.get('cover')!
+    }
+
     const coverImage = this.mobiFile.getCoverImage()
     if (coverImage) {
-      return saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+      const url = saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+      this.resourceCache.set('cover', url)
+      return url
     }
     return undefined
+  }
+
+  getSpine() {
+    return this.chapters
+  }
+
+  getToc() {
+    return this.toc
   }
 
   constructor(private file: string | File, azw3InitOptions: Azw3InitOptions) {
@@ -133,11 +147,11 @@ export class Azw3 {
     this.fragTable = fragTable
 
     // chapter obj array
-    const chapters = skelTable.reduce((acc, skel, index) => {
+    const chapters = this.skelTable.reduce((acc, skel, index) => {
       const last = acc[acc.length - 1]
       const fragStart = last?.fragEnd ?? 0
       const fragEnd = fragStart + skel.numFrag
-      const frags = fragTable.slice(fragStart, fragEnd)
+      const frags = this.fragTable.slice(fragStart, fragEnd)
       const length = skel.length + frags.reduce((a, v) => a + v.length, 0)
       const totalLength = (last?.totalLength ?? 0) + length
       const chapter = { id: index, skel, frags, fragEnd, length, totalLength }
@@ -164,7 +178,6 @@ export class Azw3 {
         return { label, href, subitems: children?.map(map) }
       }
       this.toc = ncx.map(map)
-      this.guide = this.getGuide()
     }
   }
 
@@ -272,10 +285,10 @@ export class Azw3 {
     return undefined
   }
 
-  resolveHref(href: string): { id: number, selector: string } | undefined {
+  resolveHref(href: string): ResolvedHref | undefined {
     // is external link
     if (/^(?!blob|kindle)\w+:/i.test(href)) {
-      return
+      return undefined
     }
     const { fid, off } = parsePosURI(href)
     const chapter = this.chapters.find(
@@ -284,7 +297,7 @@ export class Azw3 {
       ),
     )
     if (!chapter) {
-      return
+      return undefined
     }
     // return selector if cache
     const id = chapter.id

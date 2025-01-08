@@ -150,3 +150,8 @@ export interface ProcessedChapter {
   html: string
   css: CssPart[]
 }
+
+export interface ResolvedHref {
+  id: number
+  selector: string
+}

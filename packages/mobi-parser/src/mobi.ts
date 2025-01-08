@@ -7,7 +7,7 @@ import {
   toArrayBuffer,
 } from './book'
 import { MobiFile } from './mobiFile'
-import type { Chapter, TocItem } from './types'
+import type { Chapter, ResolvedHref, TocItem } from './types'
 
 interface Options {
   imageSaveDir?: string
@@ -238,10 +238,13 @@ export class Mobi {
     return str
   }
 
-  resolveHref(href: string) {
+  resolveHref(href: string): ResolvedHref | undefined {
     const filepos = href.match(/filepos:(\d+)/)![1]
     const fileposNum = Number(filepos)
     const chapter = this.chapters.find(ch => ch.end > fileposNum)
-    return { id: chapter?.id, selector: `[id="filepos:${filepos}]` }
+    if (chapter) {
+      return { id: chapter.id, selector: `[id="filepos:${filepos}]` }
+    }
+    return undefined
   }
 }
