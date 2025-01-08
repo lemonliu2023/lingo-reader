@@ -12,6 +12,7 @@ describe('azw3 class', () => {
   })
   it('azw3 class', () => {
     expect(azw3).toBeDefined()
+    // console.log(azw3.getMetadata())
   })
 })
 

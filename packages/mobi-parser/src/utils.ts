@@ -150,33 +150,6 @@ export const mobiEncoding: Record<string, string> = {
   65001: 'utf-8',
 }
 
-export const exthRecordType: Record<string, [string, string]> = {
-  100: ['creator', 'string'], // many
-  101: ['publisher', 'string'],
-  103: ['description', 'string'],
-  104: ['isbn', 'string'],
-  105: ['subject', 'string'], // many
-  106: ['date', 'string'],
-  108: ['contributor', 'string'], // many
-  109: ['rights', 'string'],
-  110: ['subjectCode', 'string'], // many
-  112: ['source', 'string'], // many
-  113: ['asin', 'string'],
-  121: ['boundary', 'uint'],
-  122: ['fixedLayout', 'string'],
-  125: ['numResources', 'uint'],
-  126: ['originalResolution', 'string'],
-  127: ['zeroGutter', 'string'],
-  128: ['zeroMargin', 'string'],
-  129: ['coverURI', 'string'],
-  132: ['regionMagnification', 'string'],
-  201: ['coverOffset', 'uint'],
-  202: ['thumbnailOffset', 'uint'],
-  503: ['title', 'string'],
-  524: ['language', 'string'], // many
-  527: ['pageProgressionDirection', 'string'],
-}
-
 export const mobiLang: Record<string, (string | null)[]> = {
   1: ['ar', 'ar-SA', 'ar-IQ', 'ar-EG', 'ar-LY', 'ar-DZ', 'ar-MA', 'ar-TN', 'ar-OM', 'ar-YE', 'ar-SY', 'ar-JO', 'ar-LB', 'ar-KW', 'ar-AE', 'ar-BH', 'ar-QA'],
   2: ['bg'],

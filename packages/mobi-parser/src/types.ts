@@ -1,6 +1,57 @@
 export type Offset = [number, number][]
 
-export type Exth = Record<string, (string | number)[]>
+/**
+ * exth, or metadata
+ */
+export type ExthKey = 100 | 101 | 103 | 104 | 105 | 106 | 108 | 109 |
+  110 | 112 | 113 | 121 | 122 | 125 | 126 | 127 | 128 | 129 |
+  132 | 201 | 202 | 503 | 524 | 527
+export type ExthName =
+  'creator' | 'publisher' | 'description' | 'isbn' | 'subject' |
+  'date' | 'contributor' | 'rights' | 'subjectCode' | 'source' |
+  'asin' | 'boundary' | 'fixedLayout' | 'numResources' |
+  'originalResolution' | 'zeroGutter' | 'zeroMargin' | 'coverURI' |
+  'regionMagnification' | 'coverOffset' | 'thumbnailOffset' |
+  'title' | 'language' | 'pageProgressionDirection'
+type ExthType = 'string' | 'uint'
+type IsMany = true | false
+export interface ExthRecord {
+  100: ['creator', 'string', true]
+  101: ['publisher', 'string', false]
+  103: ['description', 'string', false]
+  104: ['isbn', 'string', false]
+  105: ['subject', 'string', true]
+  106: ['date', 'string', false]
+  108: ['contributor', 'string', true]
+  109: ['rights', 'string', false]
+  110: ['subjectCode', 'string', true]
+  112: ['source', 'string', true]
+  113: ['asin', 'string', false]
+  121: ['boundary', 'uint', false]
+  122: ['fixedLayout', 'string', false]
+  125: ['numResources', 'uint', false]
+  126: ['originalResolution', 'string', false]
+  127: ['zeroGutter', 'string', false]
+  128: ['zeroMargin', 'string', false]
+  129: ['coverURI', 'string', false]
+  132: ['regionMagnification', 'string', false]
+  201: ['coverOffset', 'uint', false]
+  202: ['thumbnailOffset', 'uint', false]
+  503: ['title', 'string', false]
+  524: ['language', 'string', true]
+  527: ['pageProgressionDirection', 'string', false]
+}
+export type ConvertExthRecord<T extends Record<ExthKey, [ExthName, ExthType, IsMany]>> = {
+  [K in Extract<T[keyof T], [string, any, any]>[0]]?:
+  Extract<T[keyof T], [K, any, any]>[2] extends true
+    ? Extract<T[keyof T], [K, any, any]>[1] extends 'uint'
+      ? number[]
+      : string[]
+    : Extract<T[keyof T], [K, any, any]>[1] extends 'uint'
+      ? number
+      : string
+}
+export type Exth = ConvertExthRecord<ExthRecord>
 
 export type DecompressFunc = (data: Uint8Array) => Uint8Array
 

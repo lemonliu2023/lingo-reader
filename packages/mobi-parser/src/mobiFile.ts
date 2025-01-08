@@ -62,7 +62,7 @@ export class MobiFile {
     // resource start index in records
     this.resourceStart = this.mobiHeader.resourceStart
     if (!this.isKf8) {
-      const boundary = this.exth?.boundary?.[0] as number ?? 0xFFFFFFFF
+      const boundary = this.exth!.boundary ?? 0xFFFFFFFF
       if (boundary < 0xFFFFFFFF) {
         try {
           this.parseFirstRecord(this.loadRecord(boundary))
@@ -145,12 +145,12 @@ export class MobiFile {
     return {
       identifier: this.mobiHeader.uid.toString(),
       title: exth?.title || mobi.title,
-      author: (exth?.creator as string[])?.map(unescapeHTML),
+      author: exth?.creator?.map(unescapeHTML),
       publisher: exth?.publisher,
       language: exth?.language ?? mobi.language,
       published: exth?.date ?? '',
       description: exth?.description ?? '',
-      subject: (exth?.subject as string[])?.map(unescapeHTML),
+      subject: exth?.subject?.map(unescapeHTML),
       rights: exth?.rights ?? '',
       contributor: exth?.contributor,
     }
@@ -158,8 +158,8 @@ export class MobiFile {
 
   getCoverImage(): Resource | undefined {
     const exth = this.exth
-    const coverOffset = Number(exth?.coverOffset?.[0] ?? 0xFFFFFFFF)
-    const thumbnailOffset = Number(exth?.thumbnailOffset?.[0] ?? 0xFFFFFFFF)
+    const coverOffset = Number(exth!.coverOffset ?? 0xFFFFFFFF)
+    const thumbnailOffset = Number(exth!.thumbnailOffset ?? 0xFFFFFFFF)
     const offset = coverOffset < 0xFFFFFFFF
       ? coverOffset
       : thumbnailOffset < 0xFFFFFFFF

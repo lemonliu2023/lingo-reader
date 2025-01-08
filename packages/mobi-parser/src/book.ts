@@ -14,10 +14,9 @@ import type {
   MobiHeader,
 } from './headers'
 import {
-  exthRecordType,
   mobiEncoding,
 } from './utils'
-import type { Exth, IndexData, LoadRecordFunc, Ncx, NcxItem } from './types'
+import type { Exth, ExthKey, ExthRecord, IndexData, LoadRecordFunc, Ncx, NcxItem } from './types'
 
 function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
@@ -239,7 +238,34 @@ export function isMOBI(file: ArrayBuffer) {
   return magic === 'BOOKMOBI'// || magic === 'TEXtREAd'
 }
 
-// also known as metadata
+const exthRecordType: ExthRecord = {
+  100: ['creator', 'string', true], // many
+  101: ['publisher', 'string', false],
+  103: ['description', 'string', false],
+  104: ['isbn', 'string', false],
+  105: ['subject', 'string', true], // many
+  106: ['date', 'string', false],
+  108: ['contributor', 'string', true], // many
+  109: ['rights', 'string', false],
+  110: ['subjectCode', 'string', true], // many
+  112: ['source', 'string', true], // many
+  113: ['asin', 'string', false],
+  121: ['boundary', 'uint', false],
+  122: ['fixedLayout', 'string', false],
+  125: ['numResources', 'uint', false],
+  126: ['originalResolution', 'string', false],
+  127: ['zeroGutter', 'string', false],
+  128: ['zeroMargin', 'string', false],
+  129: ['coverURI', 'string', false],
+  132: ['regionMagnification', 'string', false],
+  201: ['coverOffset', 'uint', false],
+  202: ['thumbnailOffset', 'uint', false],
+  503: ['title', 'string', false],
+  524: ['language', 'string', true], // many
+  527: ['pageProgressionDirection', 'string', false],
+}
+
+// metadata
 export function getExth(buf: ArrayBuffer, encoding: number): Exth {
   const { magic, count } = getStruct(exthHeader, buf)
   if (magic !== 'EXTH') {
@@ -247,21 +273,25 @@ export function getExth(buf: ArrayBuffer, encoding: number): Exth {
   }
 
   const decoder = getDecoder(encoding.toString())
-  const results: Record<string, (string | number)[]> = {}
+  const results: Record<string, Exth[keyof Exth]> = {}
   // exthHeader length is 12
   let offset = 12
   for (let i = 0; i < count; i++) {
-    const type = getUint(buf.slice(offset, offset + 4)).toString()
+    const type = getUint(buf.slice(offset, offset + 4)) as ExthKey
     // header value: type, length, data
     // exth record length, include data.
     const length = getUint(buf.slice(offset + 4, offset + 8))
     if (type in exthRecordType) {
-      const [name, typ] = exthRecordType[type]
+      const [name, typ, ismany] = exthRecordType[type]
       const data = buf.slice(offset + 8, offset + length)
       const value = typ === 'uint' ? getUint(data) : decoder.decode(data)
-
-      results[name] ??= []
-      results[name].push(value)
+      if (ismany) {
+        results[name] ??= [];
+        (results[name] as any[]).push(value)
+      }
+      else {
+        results[name] = value
+      }
     }
     offset += length
   }
