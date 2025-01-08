@@ -57,7 +57,7 @@ export type DecompressFunc = (data: Uint8Array) => Uint8Array
 
 export type LoadRecordFunc = (index: number) => ArrayBuffer
 
-export interface Chapter {
+export interface MobiChapter {
   id: number
   text: string
   start: number
@@ -65,11 +65,12 @@ export interface Chapter {
   size: number
 }
 
-export interface TocItem {
+export interface MobiTocItem {
   title: string
-  id: number
-  children?: TocItem[]
+  href: string
+  children?: MobiTocItem[]
 }
+export type MobiToc = MobiTocItem[]
 
 export interface IndexTableItem {
   name: string

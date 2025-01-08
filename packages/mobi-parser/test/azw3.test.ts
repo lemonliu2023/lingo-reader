@@ -96,6 +96,9 @@ describe('azw3 class', () => {
     // cache
     const resolvedHref2 = azw3.resolveHref(href)
     expect(resolvedHref).toEqual(resolvedHref2)
+    // uncached
+    const uncachedHref = azw3.resolveHref('kindle:pos:fid:0000:off:0000000023')
+    expect(uncachedHref).toEqual({ id: 0, selector: '[aid="2"]' })
   })
 
   it('resolveHref when href format is incorrect', () => {

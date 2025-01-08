@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, unlink } from 'node:fs'
 import { parsexml } from '@blingo-reader/shared'
 import { saveResource } from './utils'
 import {
@@ -7,7 +7,7 @@ import {
   toArrayBuffer,
 } from './book'
 import { MobiFile } from './mobiFile'
-import type { Chapter, ResolvedHref, TocItem } from './types'
+import type { MobiChapter, MobiToc, MobiTocItem, ProcessedChapter, ResolvedHref } from './types'
 
 interface Options {
   imageSaveDir?: string
@@ -26,28 +26,50 @@ export class Mobi {
   private mobiFile!: MobiFile
 
   // chapter
-  private chapters: Chapter[] = []
-  private idToChapter = new Map<number, Chapter>()
-  private toc: TocItem[] = []
+  private chapters: MobiChapter[] = []
+  private idToChapter = new Map<number, MobiChapter>()
+  private toc: MobiToc = []
 
   private imageSaveDir = './images'
+  private chapterCache = new Map<number, ProcessedChapter>()
+  private resourceCache = new Map<string, string>()
 
-  public getSpine() {
+  public getSpine(): MobiChapter[] {
     return this.chapters
   }
 
-  public getChapterById(id: number) {
-    return this.replace(this.idToChapter.get(id)!.text)
+  public loadChapter(id: number): ProcessedChapter | undefined {
+    // cache
+    if (this.chapterCache.has(id)) {
+      return this.chapterCache.get(id)!
+    }
+
+    const chapter = this.idToChapter.get(id)!
+    if (!chapter) {
+      return undefined
+    }
+
+    const processedChapter = this.replace(chapter.text)
+    this.chapterCache.set(id, processedChapter)
+
+    return processedChapter
   }
 
-  public getNavMap() {
+  public getToc(): MobiToc {
     return this.toc
   }
 
-  public getCoverImage() {
+  public getCoverImage(): string | undefined {
+    if (this.resourceCache.has('cover')) {
+      return this.resourceCache.get('cover')!
+    }
+
     const coverImage = this.mobiFile.getCoverImage()
     if (coverImage) {
-      return saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+      const coverUrl = saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+
+      this.resourceCache.set('cover', coverUrl)
+      return coverUrl
     }
     return undefined
   }
@@ -83,8 +105,8 @@ export class Mobi {
     ).join('')
 
     // split chapters
-    const chapters: Chapter[] = []
-    const idToChapter = new Map<number, Chapter>()
+    const chapters: MobiChapter[] = []
+    const idToChapter = new Map<number, MobiChapter>()
     let id = 0
     const matches = Array.from(str.matchAll(mbpPagebreakRegex))
     matches.unshift({ index: 0, input: '', groups: undefined, 0: '' } as RegExpExecArray)
@@ -97,7 +119,7 @@ export class Mobi {
       const section = str.slice(start + matched.length, end)
       const buffer = Uint8Array.from(section, c => c.charCodeAt(0))
       const text = this.mobiFile.decode(buffer.buffer)
-      const chapter: Chapter = {
+      const chapter: MobiChapter = {
         id,
         text,
         start,
@@ -132,7 +154,7 @@ export class Mobi {
         explicitChildren: true,
         childkey: 'children',
       })
-      const toc: TocItem[] = []
+      const toc: MobiToc = []
       this.parseNavMap(tocAst.wrapper.children, toc)
       this.toc = toc
     }
@@ -140,7 +162,7 @@ export class Mobi {
     // TODO: fileposList for resolveHref selector
   }
 
-  private findTocChapter(referenceStr: string): Chapter | undefined {
+  private findTocChapter(referenceStr: string): MobiChapter | undefined {
     const tocPosReg = /<reference.*\/>/g
     const refs = referenceStr.match(tocPosReg)
     const typeReg = /type="(.+?)"/
@@ -159,25 +181,24 @@ export class Mobi {
     return undefined
   }
 
-  private parseNavMap(children: any, toc: TocItem[]) {
+  private parseNavMap(children: any, toc: MobiToc) {
     for (const child of children) {
       const childName = child['#name']
       if (childName === 'p' || childName === 'blockquote') {
-        let subItem: TocItem = {
+        let subItem: MobiTocItem = {
           title: '',
-          id: -1,
+          href: '',
         }
         if (child.a) {
           const a = child.a[0]
           const title = a._
           const filepos = Number(a.$.filepos)
-          const chapter = this.chapters.find(ch => ch.end > filepos)
           subItem = {
             title,
-            id: chapter?.id ?? -1,
+            href: `filepos:${filepos}`,
           }
+          toc.push(subItem)
         }
-        toc.push(subItem)
         if (child.p || child.blockquote) {
           subItem.children = []
           this.parseNavMap(child.children, subItem.children)
@@ -186,18 +207,25 @@ export class Mobi {
     }
   }
 
-  loadResource(index: number): string {
+  private loadResource(index: number): string {
+    if (this.resourceCache.has(String(index))) {
+      return this.resourceCache.get(String(index))!
+    }
+
     const { type, raw } = this.mobiFile.loadResource(index - 1)
-    return saveResource(raw, type, String(index), this.imageSaveDir)
+    const resourceUrl = saveResource(raw, type, String(index), this.imageSaveDir)
+
+    this.resourceCache.set(String(index), resourceUrl)
+    return resourceUrl
   }
 
   // TODO: optimize the logic
   private recindexReg = /recindex=["']?(\d+)["']?/
   private mediarecindexReg = /mediarecindex=["']?(\d+)["']?/
   private fileposReg = /filepos=["']?(\d+)["']?/
-  private replace(str: string) {
+  private replace(html: string): ProcessedChapter {
     // image
-    str = str.replace(
+    html = html.replace(
       /<img[^>]*>/g,
       (matched: string) => {
         const recindex = matched.match(this.recindexReg)![1]
@@ -207,7 +235,7 @@ export class Mobi {
     )
 
     // video
-    str = str.replace(
+    html = html.replace(
       /<(video|audio)[^>]*>/g,
       (matched: string) => {
         // media src
@@ -219,7 +247,7 @@ export class Mobi {
         // poster
         if (recindex) {
           const posterUrl = this.loadResource(Number.parseInt(recindex))
-          matched = matched.replace(this.recindexReg, `poster=${posterUrl}`)
+          matched = matched.replace(this.recindexReg, `poster="${posterUrl}"`)
         }
 
         return matched
@@ -227,7 +255,7 @@ export class Mobi {
     )
 
     // a tag filepos
-    str = str.replace(
+    html = html.replace(
       /<a[^>]*>/g,
       (matched: string) => {
         const filepos = matched.match(this.fileposReg)![1]
@@ -235,16 +263,34 @@ export class Mobi {
       },
     )
 
-    return str
+    return {
+      html,
+      css: [],
+    }
   }
 
   resolveHref(href: string): ResolvedHref | undefined {
-    const filepos = href.match(/filepos:(\d+)/)![1]
+    const hrefmatch = href.match(/filepos:(\d+)/)
+    if (!hrefmatch) {
+      return undefined
+    }
+    const filepos = hrefmatch[1]
     const fileposNum = Number(filepos)
     const chapter = this.chapters.find(ch => ch.end > fileposNum)
     if (chapter) {
-      return { id: chapter.id, selector: `[id="filepos:${filepos}]` }
+      return { id: chapter.id, selector: `[id="filepos:${filepos}"]` }
     }
     return undefined
+  }
+
+  destroy() {
+    this.resourceCache.forEach((url) => {
+      if (__BROWSER__) {
+        URL.revokeObjectURL(url)
+      }
+      else {
+        unlink(url, () => { })
+      }
+    })
   }
 }

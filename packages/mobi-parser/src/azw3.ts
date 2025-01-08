@@ -70,7 +70,7 @@ export class Azw3 {
     return this.mobiFile.getMetadata()
   }
 
-  getCoverImage() {
+  getCoverImage(): string | undefined {
     if (this.resourceCache.has('cover')) {
       return this.resourceCache.get('cover')!
     }
@@ -84,11 +84,11 @@ export class Azw3 {
     return undefined
   }
 
-  getSpine() {
+  getSpine(): Azw3Chapter[] {
     return this.chapters
   }
 
-  getToc() {
+  getToc(): Azw3Toc | undefined {
     return this.toc
   }
 
@@ -258,9 +258,7 @@ export class Azw3 {
     if (chapter) {
       const processed = this.replace(this.loadText(chapter))
 
-      if (!this.chapterCache.has(id)) {
-        this.chapterCache.set(id, processed)
-      }
+      this.chapterCache.set(id, processed)
       return processed
     }
     return undefined
@@ -348,9 +346,7 @@ export class Azw3 {
         // convert to blob url
         const url = saveResource(blobData, type as keyof typeof MimeToExt, id, this.imageSaveDir)
 
-        if (!this.resourceCache.has(matched)) {
-          this.resourceCache.set(matched, url)
-        }
+        this.resourceCache.set(matched, url)
         return url
       },
     )
