@@ -15,8 +15,8 @@ interface Options {
 
 export async function initMobiFile(file: string | File, options?: Options) {
   const mobi = new Mobi(file, options)
-  await mobi.load()
-  await mobi.init()
+  await mobi.innerLoadFile()
+  await mobi.innerInit()
 
   return mobi
 }
@@ -82,7 +82,7 @@ export class Mobi {
     this.imageSaveDir = options.imageSaveDir ?? './images'
   }
 
-  async load() {
+  async innerLoadFile() {
     this.fileArrayBuffer = await toArrayBuffer(
       __BROWSER__
         ? this.file as File
@@ -91,7 +91,7 @@ export class Mobi {
     this.mobiFile = new MobiFile(this.fileArrayBuffer)
   }
 
-  async init() {
+  async innerInit() {
     const { palmdocHeader } = this.mobiFile
     // get all chapter buffers
     const buffers: Uint8Array[] = []

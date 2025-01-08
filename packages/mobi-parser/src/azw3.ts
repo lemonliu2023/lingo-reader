@@ -35,8 +35,8 @@ import type {
 
 export async function initAzw3File(file: string | File, initOptions: Azw3InitOptions = {}) {
   const azw3 = new Azw3(file, initOptions)
-  await azw3.loadFile()
-  await azw3.init()
+  await azw3.innerLoadFile()
+  await azw3.innerInit()
 
   return azw3
 }
@@ -96,7 +96,7 @@ export class Azw3 {
     this.imageSaveDir = azw3InitOptions.imageSaveDir ?? './images'
   }
 
-  async loadFile() {
+  async innerLoadFile() {
     this.fileArrayBuffer = await toArrayBuffer(
       __BROWSER__
         ? this.file as File
@@ -105,7 +105,7 @@ export class Azw3 {
     this.mobiFile = new MobiFile(this.fileArrayBuffer)
   }
 
-  async init() {
+  async innerInit() {
     const loadRecord = this.mobiFile.loadRecord.bind(this.mobiFile)
     const kf8Header = this.mobiFile.kf8Header!
     const fdstBuffer = this.mobiFile.loadRecord(kf8Header!.fdst)

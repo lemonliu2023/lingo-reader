@@ -2,7 +2,7 @@ import { coverageConfigDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
-    extensions: ['.ts', '.js', '.json'],
+    extensions: ['.ts', '.d.ts', '.json', '.js'],
   },
   test: {
     pool: 'forks',

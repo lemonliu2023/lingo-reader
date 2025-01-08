@@ -1,8 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { Azw3 } from '../src/azw3'
-import { initAzw3File } from '../src/azw3'
+import { type Azw3, initAzw3File } from '../src'
 
 describe('azw3 class', () => {
   let azw3: Azw3

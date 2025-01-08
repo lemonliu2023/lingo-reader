@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { type Mobi, initMobiFile } from '../src/mobi'
+import { type Mobi, initMobiFile } from '../src'
 
 describe('mobi class', () => {
   let mobi: Mobi
