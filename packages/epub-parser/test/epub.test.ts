@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { initEpubFile } from '../src'
 import { EpubFile } from '../src/epub'
 
-describe('parse epubFile', async () => {
+describe('parse epubFile in node', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false
 
@@ -95,7 +95,7 @@ describe('parse epubFile', async () => {
     expect(spine.length).toBe(1)
     expect(spine[0]).toEqual({
       id: 'item32',
-      href: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       mediaType: 'application/xhtml+xml',
       mediaOverlay: '',
       properties: '',
@@ -110,7 +110,7 @@ describe('parse epubFile', async () => {
     expect(guide).toEqual([{
       title: 'Cover Image',
       type: 'cover',
-      href: '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
+      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
     }])
   })
 
@@ -120,7 +120,7 @@ describe('parse epubFile', async () => {
   })
 
   // .ncx file
-  it('.ncx navMap, getToc', () => {
+  it('getToc: .ncx navMap', () => {
     const navMap = epub.getToc()
     expect(navMap.length).toBe(14)
     expect(navMap[13]).toEqual({
@@ -132,7 +132,7 @@ describe('parse epubFile', async () => {
     })
   })
 
-  it('.ncx pageList', () => {
+  it('getPageList: .ncx pageList', () => {
     const pageList = epub.getPageList()
     expect(pageList.label).toBe('Pages')
     expect(pageList.pageTargets.length).toBe(48)
@@ -146,7 +146,7 @@ describe('parse epubFile', async () => {
     })
   })
 
-  it('alice epub has no navList in toc.ncx', () => {
+  it('getNavList: alice epub has no navList in toc.ncx', () => {
     const navList = epub.getNavList()
     expect(navList).toBe(undefined)
   })
@@ -190,7 +190,7 @@ describe('parse epubFile', async () => {
     expect(resolvedHref).toBeUndefined()
   })
 
-  it('revoke image urls', () => {
+  it('destroy', () => {
     expect(() => epub.destroy()).not.toThrow()
   })
 })
@@ -232,7 +232,7 @@ describe('parse epubFile in browser', async () => {
     delete globalThis.FileReader
   })
 
-  it('image src should be a blob url in browser env when epub.getHTML()', async () => {
+  it('loadChapter', async () => {
     const { css, html } = await epub.loadChapter('item32')
     // html
     const imageTags = html.match(/<img[^>]*>/g)
@@ -248,10 +248,10 @@ describe('parse epubFile in browser', async () => {
 
   // simulate File
   class FileSimulated {
-    constructor(public name: string) {}
+    constructor(public name: string) { }
   }
 
-  it('read file name of File', () => {
+  it('getFileInfo', () => {
     const fileName = 'alice.epub'
     const file = new FileSimulated(fileName)
     const epub = new EpubFile(file as unknown as File)
@@ -262,7 +262,7 @@ describe('parse epubFile in browser', async () => {
     })
   })
 
-  it('revoke image urls', () => {
+  it('destroy', () => {
     expect(() => epub.destroy()).not.toThrow()
   })
 })

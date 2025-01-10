@@ -184,6 +184,8 @@ export class EpubFile {
           break
         }
         case 'manifest': {
+          // href will pad with 'Epub:' except for manifest item
+          //  we should use resolveHref to get the real href
           this.manifest = parseManifest(rootFile[key][0], this.opfDir)
           // save element if it is a resource, such as image, css
           // which was determined by media-type
@@ -274,7 +276,8 @@ export class EpubFile {
     if (!href.startsWith('Epub:')) {
       return undefined
     }
-    href = href.slice(5)
+    // remove 'Epub:'
+    href = href.slice(5).trim()
     const [urlPath, hrefId] = href.split('#')
     let id = ''
     if (this.hrefToIdMap[urlPath]) {

@@ -314,6 +314,7 @@ export function parseSpine(
       const element = manifest[$.idref]
       spine.push({
         ...element,
+        href: `Epub:${element.href}`,
         // default to 'yes'
         linear: $.linear || 'yes',
       })
@@ -340,7 +341,7 @@ export function parseGuide(guideAST: Record<string, any>, baseDir: string): Guid
   for (const reference of references) {
     const element = reference.$
     if (element.href && element.href.length > 0) {
-      element.href = path.joinPosix(baseDir, element.href)
+      element.href = `Epub:${path.joinPosix(baseDir, element.href)}`
     }
     guide.push(element)
   }
