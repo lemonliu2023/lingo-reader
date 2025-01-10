@@ -152,7 +152,7 @@ describe('parse epubFile', async () => {
   })
 
   it('getHTML', async () => {
-    const { css, html } = (await epub.loadChapter('item32'))
+    const { css, html } = await epub.loadChapter('item32')
     // html
     const imageTags = html.match(/<img[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
@@ -164,6 +164,11 @@ describe('parse epubFile', async () => {
     // css
     expect(css.length).toBe(3)
     expect(css.every(cssPath => cssPath.startsWith(cwd))).toBe(true)
+
+    // cache
+    const { css: css2, html: html2 } = await epub.loadChapter('item32')
+    expect(css2).toEqual(css)
+    expect(html2).toEqual(html)
   })
 
   it('revoke image urls', () => {

@@ -245,16 +245,26 @@ export class EpubFile {
     }
   }
 
+  private chapterCache = new Map<string, ProcessedChapter>()
   /**
    * replace <img> src absolute path or blob url
    * @param id the manifest item id of the chapter
    * @returns replaced html string
    */
   public async loadChapter(id: string): Promise<ProcessedChapter> {
+    if (this.chapterCache.has(id)) {
+      return this.chapterCache.get(id)!
+    }
     const xmlHref = this.manifest[id].href
     const htmlDir = path.dirname(xmlHref)
-    return transformHTML(await this.zip.readFile(xmlHref), htmlDir, this.resourceSaveDir)
+    const transformed = transformHTML(await this.zip.readFile(xmlHref), htmlDir, this.resourceSaveDir)
+    this.chapterCache.set(id, transformed)
+    return transformed
   }
+
+  // public resolveHref(href: string) {
+
+  // }
 
   public destroy() {
     // resource in file system
