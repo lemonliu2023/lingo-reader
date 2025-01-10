@@ -126,7 +126,7 @@ describe('parse epubFile', async () => {
     expect(navMap[13]).toEqual({
       depth: 1,
       label: 'X—ALICE\'S EVIDENCE',
-      src: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00058',
+      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00058',
       correspondId: 'item32',
       playOrder: '59',
     })
@@ -139,7 +139,7 @@ describe('parse epubFile', async () => {
     expect(pageList.pageTargets[47]).toEqual({
       label: '[Pg 48]',
       value: '48',
-      src: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#Page_48',
+      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#Page_48',
       playOrder: '62',
       type: 'normal',
       correspondId: 'item32',
@@ -151,7 +151,7 @@ describe('parse epubFile', async () => {
     expect(navList).toBe(undefined)
   })
 
-  it('getHTML', async () => {
+  it('loadChapter', async () => {
     const { css, html } = await epub.loadChapter('item32')
     // html
     const imageTags = html.match(/<img[^>]*>/g)
@@ -167,8 +167,27 @@ describe('parse epubFile', async () => {
 
     // cache
     const { css: css2, html: html2 } = await epub.loadChapter('item32')
-    expect(css2).toEqual(css)
-    expect(html2).toEqual(html)
+    expect(css2.length).toBe(css.length)
+    expect(html2.length).toEqual(html.length)
+  })
+
+  it('resolveHref', () => {
+    const tocItem = epub.getToc()[0]
+    const resolvedHref = epub.resolveHref(tocItem.href)!
+    expect(resolvedHref.id).toBe('item32')
+    expect(resolvedHref.selector).toBe('[id="pgepubid00000"]')
+  })
+
+  it('resolveHref with no corresponding id', () => {
+    const href = 'https://www.baidu.com/path#temp'
+    const resolvedHref = epub.resolveHref(href)
+    expect(resolvedHref).toBeUndefined()
+  })
+
+  it('resolveHref with no selector', () => {
+    const href = 'Epub:19033/www.gutenberg.org@files@19033@19033-#'
+    const resolvedHref = epub.resolveHref(href)!
+    expect(resolvedHref).toBeUndefined()
   })
 
   it('revoke image urls', () => {

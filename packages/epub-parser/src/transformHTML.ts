@@ -66,6 +66,18 @@ export function transformHTML(html: string, htmlDir: string, resourceSaveDir: st
 
       return imgTag.replace(src, imageSrc)
     })
+
+    // a tag href
+    bodyReplaced = bodyReplaced.replace(/<a[^>]*>/g, (aTag: string) => {
+      // TODO: add test case
+      const href = aTag.match(/href="([^"]*)"/)
+      if (href) {
+        const hrefValue = href[1]
+        const transformedHref = path.joinPosix(htmlDir, hrefValue)
+        aTag = aTag.replace(hrefValue, `epub:${transformedHref}`)
+      }
+      return aTag
+    })
   }
 
   return {

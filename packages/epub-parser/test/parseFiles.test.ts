@@ -462,28 +462,28 @@ describe('parseNcx', async () => {
     expect(navMap[0]).toEqual({
       depth: 0,
       label: 'Chapter 1',
-      src: 'OEBPS/content.html#ch_1',
+      href: 'Epub:OEBPS/content.html#ch_1',
       correspondId: 'id',
       playOrder: '1',
     })
     expect(navMap[1]).toEqual({
       depth: 1,
       label: 'Chapter 1.1',
-      src: 'OEBPS/content.html#ch_1_1',
+      href: 'Epub:OEBPS/content.html#ch_1_1',
       correspondId: 'id',
       playOrder: '',
     })
     expect(navMap[2]).toEqual({
       depth: 0,
       label: 'Chapter 2',
-      src: 'OEBPS/content.html#ch_2',
+      href: 'Epub:OEBPS/content.html#ch_2',
       correspondId: 'id',
       playOrder: '',
     })
     expect(navMap[3]).toEqual({
       depth: 0,
       label: 'Chapter 3',
-      src: 'OEBPS/content2.html#ch_3',
+      href: 'Epub:OEBPS/content2.html#ch_3',
       correspondId: undefined,
       playOrder: '',
     })
@@ -502,7 +502,7 @@ describe('parseNcx', async () => {
     expect(pageList.pageTargets[0]).toEqual({
       label: '1',
       value: '1',
-      src: 'OEBPS/content.html#p1',
+      href: 'Epub:OEBPS/content.html#p1',
       playOrder: '1',
       type: 'normal',
       correspondId: 'id',
@@ -510,7 +510,7 @@ describe('parseNcx', async () => {
     expect(pageList.pageTargets[1]).toEqual({
       label: '2',
       value: '2',
-      src: 'OEBPS/content.html#p2',
+      href: 'Epub:OEBPS/content.html#p2',
       playOrder: '',
       type: 'normal',
       correspondId: 'id',
@@ -518,7 +518,7 @@ describe('parseNcx', async () => {
     expect(pageList.pageTargets[2]).toEqual({
       label: '',
       value: '',
-      src: 'OEBPS/content3.html#p3',
+      href: 'Epub:OEBPS/content3.html#p3',
       playOrder: '',
       type: '',
       correspondId: undefined,
@@ -549,17 +549,17 @@ describe('parseNcx', async () => {
     expect(navList.navTargets.length).toBe(3)
     expect(navList.navTargets[0]).toEqual({
       label: 'Portratit of Georg Gisze (Holbein)',
-      src: 'OEBPS/content.html#ill1',
+      href: 'Epub:OEBPS/content.html#ill1',
       correspondId: 'id',
     })
     expect(navList.navTargets[1]).toEqual({
       label: 'The adoration of the lamb (Van Eyck)',
-      src: 'OEBPS/content.html#ill2',
+      href: 'Epub:OEBPS/content.html#ill2',
       correspondId: 'id',
     })
     expect(navList.navTargets[2]).toEqual({
       label: '',
-      src: 'OEBPS/content2.html#ill2',
+      href: 'Epub:OEBPS/content2.html#ill2',
       correspondId: undefined,
     })
   })

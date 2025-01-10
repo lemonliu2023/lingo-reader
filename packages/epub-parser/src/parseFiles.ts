@@ -407,13 +407,13 @@ function walkNavMap(
 
   for (const navPoint of navPoints) {
     if (navPoint.navLabel) {
-      const src = path.joinPosix(ncxBaseDir, navPoint.content[0].$?.src)
-      const href = src.split('#')[0]
+      const href = path.joinPosix(ncxBaseDir, navPoint.content[0].$?.src)
+      const hrefPath = href.split('#')[0]
       const element: NavPoint = {
         depth,
         label: navPoint.navLabel[0]?.text[0] || '',
-        src,
-        correspondId: hrefToIdMap[href],
+        href: `Epub:${href}`,
+        correspondId: hrefToIdMap[hrefPath],
         playOrder: navPoint.$?.playOrder || '',
       }
       output.push(element)
@@ -456,7 +456,7 @@ export function parsePageList(
     const element: PageTarget = {
       label: pageTarget.navLabel[0].text[0] || '',
       value: $.value || '',
-      src,
+      href: `Epub:${src}`,
       playOrder: $.playOrder || '',
       type: $.type || '',
       correspondId: hrefToIdMap[href],
@@ -495,7 +495,7 @@ export function parseNavList(
 
     const element: NavTarget = {
       label: navTarget.navLabel[0]?.text?.[0] || '',
-      src,
+      href: `Epub:${src}`,
       correspondId: hrefToIdMap[href],
     }
 

@@ -85,7 +85,7 @@ export interface CollectionItem {
 export interface NavPoint {
   depth: number
   label: string
-  src: string
+  href: string
   correspondId: string | undefined
   playOrder: string
 }
@@ -95,7 +95,7 @@ export interface NavPoint {
 export interface PageTarget {
   label: string
   value: string
-  src: string
+  href: string
   playOrder: string
   type: string
   correspondId: string
@@ -108,7 +108,7 @@ export interface PageList {
 
 export interface NavTarget {
   label: string
-  src: string
+  href: string
   correspondId: string
 }
 
@@ -129,4 +129,9 @@ export interface NavList {
 export interface ProcessedChapter {
   css: string[]
   html: string
+}
+
+export interface ResolvedHref {
+  id: string
+  selector: string
 }

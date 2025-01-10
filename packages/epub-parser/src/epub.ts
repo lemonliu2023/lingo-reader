@@ -10,6 +10,7 @@ import type {
   NavPoint,
   PageList,
   ProcessedChapter,
+  ResolvedHref,
   SpineItem,
 } from './types'
 import {
@@ -166,6 +167,7 @@ export class EpubFile {
   }
 
   private savedResourcePath: string[] = []
+  private hrefToIdMap: Record<string, string> = {}
   /**
    * parse .opf file
    */
@@ -187,6 +189,8 @@ export class EpubFile {
           // which was determined by media-type
           for (const key in this.manifest) {
             const manifestItem = this.manifest[key]
+
+            this.hrefToIdMap[manifestItem.href] = manifestItem.id
 
             if (
               manifestItem.mediaType.startsWith('image')
@@ -225,23 +229,23 @@ export class EpubFile {
     if (tocPath.length > 0) {
       const tocDir = path.dirname(tocPath)
       // href to id
-      const hrefToIdMap: Record<string, string> = {}
-      for (const item of this.spine) {
-        hrefToIdMap[item.href] = item.id
-      }
+      // const hrefToIdMap: Record<string, string> = {}
+      // for (const item of this.spine) {
+      //   hrefToIdMap[item.href] = item.id
+      // }
       const tocNcxFile = await this.zip.readFile(tocPath)
       const ncx = (await parsexml(tocNcxFile)).ncx
       // navMap
       if (ncx.navMap)
-        this.navMap = parseNavMap(ncx.navMap[0], hrefToIdMap, tocDir)
+        this.navMap = parseNavMap(ncx.navMap[0], this.hrefToIdMap, tocDir)
 
       // pageList
       if (ncx.pageList)
-        this.pageList = parsePageList(ncx.pageList[0], hrefToIdMap, tocDir)
+        this.pageList = parsePageList(ncx.pageList[0], this.hrefToIdMap, tocDir)
 
       // navList
       if (ncx.navList)
-        this.navList = parseNavList(ncx.navList[0], hrefToIdMap, tocDir)
+        this.navList = parseNavList(ncx.navList[0], this.hrefToIdMap, tocDir)
     }
   }
 
@@ -257,14 +261,37 @@ export class EpubFile {
     }
     const xmlHref = this.manifest[id].href
     const htmlDir = path.dirname(xmlHref)
-    const transformed = transformHTML(await this.zip.readFile(xmlHref), htmlDir, this.resourceSaveDir)
+    const transformed = transformHTML(
+      await this.zip.readFile(xmlHref),
+      htmlDir,
+      this.resourceSaveDir,
+    )
     this.chapterCache.set(id, transformed)
     return transformed
   }
 
-  // public resolveHref(href: string) {
-
-  // }
+  public resolveHref(href: string): ResolvedHref | undefined {
+    if (!href.startsWith('Epub:')) {
+      return undefined
+    }
+    href = href.slice(5)
+    const [urlPath, hrefId] = href.split('#')
+    let id = ''
+    if (this.hrefToIdMap[urlPath]) {
+      id = this.hrefToIdMap[urlPath]
+    }
+    else {
+      return undefined
+    }
+    let selector = ''
+    if (hrefId) {
+      selector = `[id="${hrefId}"]`
+    }
+    return {
+      id,
+      selector,
+    }
+  }
 
   public destroy() {
     // resource in file system
