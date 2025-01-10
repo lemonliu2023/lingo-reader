@@ -20,6 +20,39 @@ const imageExtensionToMimeType: Record<string, string> = {
 
 const blobUrls: string[] = []
 
+function replaceResources(str: string, htmlDir: string, resourceSaveDir: string) {
+  // <img> tag src
+  str = str.replace(/<img[^>]*>/g, (imgTag) => {
+    const src = imgTag.match(/src="([^"]*)"/)![1]
+    const imageName = path.joinPosix(htmlDir, src).replace('/', '_')
+    let imageSrc = path.resolve(resourceSaveDir, imageName)
+    if (__BROWSER__) {
+      const ext = imageName.split('.').pop()!
+      const blobType = imageExtensionToMimeType[ext]
+      const image = new Uint8Array(readFileSync(imageSrc))
+      const blob = new Blob([image], { type: blobType })
+      imageSrc = URL.createObjectURL(blob)
+      blobUrls.push(imageSrc)
+    }
+
+    return imgTag.replace(src, imageSrc)
+  })
+
+  // a tag href
+  str = str.replace(/<a[^>]*>/g, (aTag: string) => {
+    // TODO: add test case
+    const href = aTag.match(/href="([^"]*)"/)
+    if (href) {
+      const hrefValue = href[1]
+      const transformedHref = path.joinPosix(htmlDir, hrefValue)
+      aTag = aTag.replace(hrefValue, `epub:${transformedHref}`)
+    }
+    return aTag
+  })
+
+  return str
+}
+
 export function transformHTML(html: string, htmlDir: string, resourceSaveDir: string): ProcessedChapter {
   // head
   const head = html.match(/<head[^>]*>([\s\S]*)<\/head>/i)
@@ -50,34 +83,7 @@ export function transformHTML(html: string, htmlDir: string, resourceSaveDir: st
   const body = html.match(/<body[^>]*>(.*?)<\/body>/is)
   let bodyReplaced = ''
   if (body) {
-    // <img> tag
-    bodyReplaced = body[1].replace(/<img[^>]*>/g, (imgTag) => {
-      const src = imgTag.match(/src="([^"]*)"/)![1]
-      const imageName = path.joinPosix(htmlDir, src).replace('/', '_')
-      let imageSrc = path.resolve(resourceSaveDir, imageName)
-      if (__BROWSER__) {
-        const ext = imageName.split('.').pop()!
-        const blobType = imageExtensionToMimeType[ext]
-        const image = new Uint8Array(readFileSync(imageSrc))
-        const blob = new Blob([image], { type: blobType })
-        imageSrc = URL.createObjectURL(blob)
-        blobUrls.push(imageSrc)
-      }
-
-      return imgTag.replace(src, imageSrc)
-    })
-
-    // a tag href
-    bodyReplaced = bodyReplaced.replace(/<a[^>]*>/g, (aTag: string) => {
-      // TODO: add test case
-      const href = aTag.match(/href="([^"]*)"/)
-      if (href) {
-        const hrefValue = href[1]
-        const transformedHref = path.joinPosix(htmlDir, hrefValue)
-        aTag = aTag.replace(hrefValue, `epub:${transformedHref}`)
-      }
-      return aTag
-    })
+    bodyReplaced = replaceResources(body[1], htmlDir, resourceSaveDir)
   }
 
   return {

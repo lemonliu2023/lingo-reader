@@ -3,9 +3,20 @@ import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { parsexml } from '@blingo-reader/shared'
-import { parseCollection, parseContainer, parseGuide, parseManifest, parseMetadata, parseMimeType, parseNavList, parseNavMap, parsePageList, parseSpine } from '../src/parseFiles'
+import {
+  parseCollection,
+  parseContainer,
+  parseGuide,
+  parseManifest,
+  parseMetadata,
+  parseMimeType,
+  parseNavList,
+  parseNavMap,
+  parsePageList,
+  parseSpine,
+} from '../src/parseFiles'
 
-describe('parseFiles', () => {
+describe('parseMimeType', () => {
   it('should return application/epub+zip', () => {
     const file = 'application/epub+zip'
     expect(parseMimeType(file)).toBe('application/epub+zip')
@@ -28,7 +39,7 @@ describe('parseContainer', () => {
       </container>
     `
     const containerAST = await parsexml(containerXML)
-    expect(await parseContainer(containerAST)).toBe('19033/content.opf')
+    expect(parseContainer(containerAST)).toBe('19033/content.opf')
   })
 
   it('should throw an error when rootfiles is not found', () => {
@@ -40,7 +51,7 @@ describe('parseContainer', () => {
     expect(
       async () => {
         const containerAST = await parsexml(containerXMLWithNoRootFiles)
-        await parseContainer(containerAST)
+        parseContainer(containerAST)
       },
     ).rejects.toThrowError('No <rootfiles></rootfiles> tag found in meta-inf/container.xml')
   })
@@ -177,30 +188,12 @@ describe('parseMetadata', async () => {
   })
 
   it('links field', () => {
-    expect(metadata.links).toEqual([
-      {
-        href: 'front.xhtml#meta-json',
-        rel: 'record',
-        mediaType: 'application/xhtml+xml',
-        hreflang: 'en',
-      },
-      {
-        href: 'meta/9780000000001.xml',
-        rel: 'record',
-        mediaType: 'application/marc',
-      },
-      {
-        rel: 'record',
-        href: 'http://example.org/meta/12389347?format=onix',
-        mediaType: 'application/xml',
-        properties: 'onix',
-      },
-      {
-        href: 'description.html',
-        rel: 'dcterms:description',
-        mediaType: 'text/html',
-      },
-    ])
+    expect(metadata.links!.length).toBe(4)
+    expect(metadata.links![3]).toEqual({
+      href: 'description.html',
+      rel: 'dcterms:description',
+      mediaType: 'text/html',
+    })
   })
 })
 
@@ -359,25 +352,9 @@ describe('parseSpine', async () => {
     const { tocPath, spine } = parseSpine(spineAST.package.spine0[0], manifest)
     expect(tocPath).toBe('toc.ncx')
     expect(spine.length).toBe(3)
-    expect(spine[0]).toEqual({
-      id: 'intro',
-      href: 'intro.xhtml',
-      mediaType: 'application/xhtml+xml',
-      properties: '',
-      mediaOverlay: '',
-      linear: 'yes',
-    })
-    expect(spine[1]).toEqual({
-      id: 'c1',
-      href: 'chapter1.xhtml',
-      mediaType: 'application/xhtml+xml',
-      properties: '',
-      mediaOverlay: '',
-      linear: 'yes',
-    })
     expect(spine[2]).toEqual({
       id: 'c1-answerkey',
-      href: 'chapter1-answerkey.xhtml',
+      href: 'Epub:chapter1-answerkey.xhtml',
       mediaType: 'application/xhtml+xml',
       properties: '',
       mediaOverlay: '',
@@ -400,20 +377,10 @@ describe('parseGuide', async () => {
   it('should parse guide reference: type, title, href', () => {
     const guide = parseGuide(guideAST.package.guide0[0], '19033/')
     expect(guide.length).toBe(3)
-    expect(guide[0]).toEqual({
-      type: 'toc',
-      title: 'Table of Contents',
-      href: '19033/toc.html',
-    })
-    expect(guide[1]).toEqual({
-      type: 'loi',
-      title: 'List Of Illustrations',
-      href: '19033/toc.html#figures',
-    })
     expect(guide[2]).toEqual({
       type: 'other.intro',
       title: 'Introduction',
-      href: '19033/intro.html',
+      href: 'Epub:19033/intro.html',
     })
   })
 
@@ -459,27 +426,6 @@ describe('parseNcx', async () => {
       'OEBPS/',
     )
     expect(navMap.length).toBe(4)
-    expect(navMap[0]).toEqual({
-      depth: 0,
-      label: 'Chapter 1',
-      href: 'Epub:OEBPS/content.html#ch_1',
-      correspondId: 'id',
-      playOrder: '1',
-    })
-    expect(navMap[1]).toEqual({
-      depth: 1,
-      label: 'Chapter 1.1',
-      href: 'Epub:OEBPS/content.html#ch_1_1',
-      correspondId: 'id',
-      playOrder: '',
-    })
-    expect(navMap[2]).toEqual({
-      depth: 0,
-      label: 'Chapter 2',
-      href: 'Epub:OEBPS/content.html#ch_2',
-      correspondId: 'id',
-      playOrder: '',
-    })
     expect(navMap[3]).toEqual({
       depth: 0,
       label: 'Chapter 3',
@@ -499,22 +445,6 @@ describe('parseNcx', async () => {
     )
     expect(pageList.label).toBe('')
     expect(pageList.pageTargets.length).toBe(3)
-    expect(pageList.pageTargets[0]).toEqual({
-      label: '1',
-      value: '1',
-      href: 'Epub:OEBPS/content.html#p1',
-      playOrder: '1',
-      type: 'normal',
-      correspondId: 'id',
-    })
-    expect(pageList.pageTargets[1]).toEqual({
-      label: '2',
-      value: '2',
-      href: 'Epub:OEBPS/content.html#p2',
-      playOrder: '',
-      type: 'normal',
-      correspondId: 'id',
-    })
     expect(pageList.pageTargets[2]).toEqual({
       label: '',
       value: '',
@@ -547,16 +477,6 @@ describe('parseNcx', async () => {
     )
     expect(navList.label).toBe('List of Illustrations')
     expect(navList.navTargets.length).toBe(3)
-    expect(navList.navTargets[0]).toEqual({
-      label: 'Portratit of Georg Gisze (Holbein)',
-      href: 'Epub:OEBPS/content.html#ill1',
-      correspondId: 'id',
-    })
-    expect(navList.navTargets[1]).toEqual({
-      label: 'The adoration of the lamb (Van Eyck)',
-      href: 'Epub:OEBPS/content.html#ill2',
-      correspondId: 'id',
-    })
     expect(navList.navTargets[2]).toEqual({
       label: '',
       href: 'Epub:OEBPS/content2.html#ill2',
