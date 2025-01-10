@@ -125,3 +125,8 @@ export interface NavList {
 //   navPoint: NavPoint[]
 // }
 // export type NavPoints = NavPoint[]
+
+export interface ProcessedChapter {
+  css: string[]
+  html: string
+}

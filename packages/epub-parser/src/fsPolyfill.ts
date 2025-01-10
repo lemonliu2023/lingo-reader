@@ -2,7 +2,7 @@ import {
   existsSync as existsSyncNode,
   mkdirSync as mkdirSyncNode,
   readFileSync as readFileSyncNode,
-  unlinkSync as unlinkSyncNode,
+  unlink as unlinkNode,
   writeFileSync as writeFileSyncNode,
 } from 'node:fs'
 import type {
@@ -61,12 +61,12 @@ function mkdirSync(dir: string, _options: MakeDirectoryOptions & {
   }
 }
 
-function unlinkSync(path: string): void {
+function unlink(path: string): void {
   if (__BROWSER__) {
     delete imageRecord[path]
   }
   else {
-    unlinkSyncNode(path)
+    unlinkNode(path, () => { })
   }
 }
 
@@ -75,5 +75,5 @@ export {
   readFileSync,
   existsSync,
   mkdirSync,
-  unlinkSync,
+  unlink,
 }

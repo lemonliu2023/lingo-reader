@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
 import { describe, expect, it } from 'vitest'
@@ -47,8 +46,7 @@ describe('createZipFile in Node', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false
 
-  const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
+  const epubPath = path.resolve('./example/alice.epub')
   const epubFile = await createZipFile(epubPath)
 
   it('names in epub', () => {
@@ -65,14 +63,14 @@ describe('createZipFile in Node', async () => {
   })
 
   it('readImage', async () => {
-    const imageContent = await epubFile.readImage(
+    const imageContent = await epubFile.readResource(
       '19033/www.gutenberg.org@files@19033@19033-h@images@i022_th.jpg',
     )
     expect(imageContent.length).toBeGreaterThan(0)
   })
 
   it('readImage if file not exit', async () => {
-    await expect(epubFile.readImage('not-exist')).rejects.toThrow()
+    await expect(epubFile.readResource('not-exist')).rejects.toThrow()
   })
 })
 
@@ -80,8 +78,7 @@ describe('createZipFile in Browser', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = true
 
-  const currentDir = path.dirname(fileURLToPath(import.meta.url))
-  const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
+  const epubPath = path.resolve('./example/alice.epub')
   const fileReaderResult = fs.readFileSync(epubPath)
 
   // simulate FileReader in browser

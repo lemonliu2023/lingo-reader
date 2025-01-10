@@ -21,7 +21,7 @@ const useBookStore = defineStore('ebook', () => {
   // TODO: add cache
   const getChapterHTML = async () => {
     // for security
-    return DOMPurify.sanitize(await book!.getHTML(toc[chapterIndex.value].id), {
+    return DOMPurify.sanitize((await book!.getHTML(toc[chapterIndex.value].id)).html, {
       ALLOWED_URI_REGEXP: /^(blob|https)/gi,
     })
   }
@@ -35,7 +35,7 @@ const useBookStore = defineStore('ebook', () => {
   }
 
   const reset = () => {
-    book!.revokeImageUrls()
+    book!.destroy()
     book = undefined
     toc = []
     chapterIndex.value = 0

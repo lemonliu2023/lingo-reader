@@ -60,7 +60,7 @@ export class ZipFile {
     return file
   }
 
-  public async readImage(name: string): Promise<Uint8Array> {
+  public async readResource(name: string): Promise<Uint8Array> {
     if (!this.hasFile(name)) {
       throw new Error(`${name} file was not exit in ${this.filePath}`)
     }

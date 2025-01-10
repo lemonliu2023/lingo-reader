@@ -5,6 +5,9 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   base: '/blingo-reader/',
+  define: {
+    'process.cwd': '(()=>"/")',
+  },
   build: {
     rollupOptions: {
       output: {

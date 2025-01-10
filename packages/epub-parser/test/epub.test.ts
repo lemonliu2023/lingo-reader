@@ -18,8 +18,7 @@ describe('parse epubFile', async () => {
   })
 
   it('imageSaveDir', () => {
-    const dir = path.resolve(process.cwd(), './images')
-    expect(epub.getImageSaveDir()).toBe(dir)
+    expect(epub.getResourceSaveDir()).toBe('./images')
   })
 
   it('mimeType', async () => {
@@ -169,19 +168,22 @@ describe('parse epubFile', async () => {
   })
 
   it('getHTML', async () => {
-    const replacedHTMLStr = await epub.getHTML('item32')
-    const imageTags = replacedHTMLStr.match(/<img[^>]*>/g)
+    const { css, html } = (await epub.getHTML('item32'))
+    // html
+    const imageTags = html.match(/<img[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
       const src = imgTag.match(/src="([^"]*)"/)!
       return src[1]
     })
     const cwd = process.cwd()
     expect(srcs?.every(src => src.startsWith(cwd))).toBe(true)
+    // css
+    expect(css.length).toBe(3)
+    expect(css.every(cssPath => cssPath.startsWith(cwd))).toBe(true)
   })
 
   it('revoke image urls', () => {
-    const urls = epub.revokeImageUrls()
-    expect(urls.length).toBe(28)
+    expect(() => epub.destroy()).not.toThrow()
   })
 })
 
@@ -223,13 +225,17 @@ describe('parse epubFile in browser', async () => {
   })
 
   it('image src should be a blob url in browser env when epub.getHTML()', async () => {
-    const replacedHTMLStr = await epub.getHTML('item32')
-    const imageTags = replacedHTMLStr.match(/<img[^>]*>/g)
+    const { css, html } = await epub.getHTML('item32')
+    // html
+    const imageTags = html.match(/<img[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
       const src = imgTag.match(/src="([^"]*)"/)!
       return src[1]
     })
     expect(srcs?.every(src => src.startsWith('blob:'))).toBe(true)
+    // css
+    expect(css.length).toBe(3)
+    expect(css.every(cssPath => cssPath.startsWith('blob'))).toBe(true)
   })
 
   // simulate File
@@ -245,7 +251,6 @@ describe('parse epubFile in browser', async () => {
   })
 
   it('revoke image urls', () => {
-    const urls = epub.revokeImageUrls()
-    expect(urls.length).toBe(28)
+    expect(() => epub.destroy()).not.toThrow()
   })
 })

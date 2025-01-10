@@ -1,6 +1,5 @@
-import process from 'node:process'
 import { parsexml, path } from '@blingo-reader/shared'
-import { existsSync, mkdirSync, writeFileSync } from './fsImagePolyfill'
+import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile } from './utils'
 import type {
   CollectionItem,
@@ -10,6 +9,7 @@ import type {
   NavList,
   NavPoint,
   PageList,
+  ProcessedChapter,
   SpineItem,
 } from './types'
 import {
@@ -24,14 +24,14 @@ import {
   parsePageList,
   parseSpine,
 } from './parseFiles'
-import { revokeImageUrls, transformHTML } from './transformHTML'
+import { revokeBlobUrls, transformHTML } from './transformHTML'
 /*
   TODO: parse links in meta-inf/container.xml
 */
 
 // wrapper for async constructor, because EpubFile class has async code
-export async function initEpubFile(epubPath: string | File, imageRoot?: string): Promise<EpubFile> {
-  const epub = new EpubFile(epubPath, imageRoot)
+export async function initEpubFile(epubPath: string | File, resourceRoot?: string): Promise<EpubFile> {
+  const epub = new EpubFile(epubPath, resourceRoot)
   await epub.loadEpub()
   await epub.parse()
   return epub
@@ -59,9 +59,9 @@ export class EpubFile {
    *  the read/write of image file occurs in memory, so the imageSaveDir is not used. It also
    *  an absolute path.
    */
-  private imageSaveDir: string
-  getImageSaveDir(): string {
-    return this.imageSaveDir
+  private resourceSaveDir: string
+  getResourceSaveDir(): string {
+    return this.resourceSaveDir
   }
 
   /**
@@ -142,6 +142,11 @@ export class EpubFile {
     return this.navMap
   }
 
+  // for replacing getNavMap and getToc
+  public getToc2(): NavPoint[] {
+    return this.navMap
+  }
+
   /**
    * <pageList> in .ncx file
    *  which is default value if there is no <pageList> in epub file
@@ -168,7 +173,7 @@ export class EpubFile {
     return this.navList
   }
 
-  constructor(private epub: string | File, imageRoot: string = './images') {
+  constructor(private epub: string | File, resourceSaveDir: string = './images') {
     if (typeof epub === 'string') {
       this.fileName = path.basename(epub)
     }
@@ -176,9 +181,9 @@ export class EpubFile {
       this.fileName = epub.name
     }
     // imageSaveDir must be an absolute path
-    this.imageSaveDir = path.resolve(process.cwd(), imageRoot)
-    if (!existsSync(this.imageSaveDir)) {
-      mkdirSync(this.imageSaveDir, { recursive: true })
+    this.resourceSaveDir = resourceSaveDir
+    if (!existsSync(this.resourceSaveDir)) {
+      mkdirSync(this.resourceSaveDir, { recursive: true })
     }
   }
 
@@ -202,6 +207,7 @@ export class EpubFile {
     await this.parseRootFile()
   }
 
+  private savedResourcePath: string[] = []
   /**
    * parse .opf file
    */
@@ -219,17 +225,21 @@ export class EpubFile {
         }
         case 'manifest': {
           this.manifest = parseManifest(rootFile[key][0], this.contentBaseDir)
-          // save element if it is an image,
-          // which was determined by whether media-type starts with 'image'
+          // save element if it is a resource, such as image, css
+          // which was determined by media-type
           for (const key in this.manifest) {
             const manifestItem = this.manifest[key]
 
-            if (manifestItem.mediaType.startsWith('image')) {
-              const imageName: string = manifestItem.href.split('/').pop()!
-              const imagePath = path.resolve(this.imageSaveDir, imageName)
+            if (
+              manifestItem.mediaType.startsWith('image')
+              || manifestItem.mediaType.startsWith('text/css')
+            ) {
+              const fileName: string = manifestItem.href.replace('/', '_')
+              const filePath = path.resolve(this.resourceSaveDir, fileName)
+              this.savedResourcePath.push(filePath)
               writeFileSync(
-                imagePath,
-                await this.zip.readImage(manifestItem.href),
+                filePath,
+                await this.zip.readResource(manifestItem.href),
               )
             }
           }
@@ -291,12 +301,26 @@ export class EpubFile {
    * @param id the manifest item id of the chapter
    * @returns replaced html string
    */
-  public async getHTML(id: string): Promise<string> {
+  public async getHTML(id: string): Promise<ProcessedChapter> {
     const xmlHref = this.manifest[id].href
-    return transformHTML(await this.zip.readFile(xmlHref), this.imageSaveDir)
+    const htmlDir = path.dirname(xmlHref)
+    return transformHTML(await this.zip.readFile(xmlHref), htmlDir, this.resourceSaveDir)
   }
 
-  public revokeImageUrls(): string[] {
-    return revokeImageUrls()
+  // // for replacing getHTML
+  // public async loadChapter(id: string): Promise<ProcessedChapter> {
+  //   const xmlHref = this.manifest[id].href
+  //   return transformHTML(await this.zip.readFile(xmlHref), this.imageSaveDir)
+  // }
+
+  // TODO: destroy
+  public destroy() {
+    // resource in file system
+    this.savedResourcePath.forEach((filePath) => {
+      unlink(filePath)
+    })
+    this.savedResourcePath.length = 0
+    // blob urls
+    revokeBlobUrls()
   }
 }
