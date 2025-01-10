@@ -120,8 +120,8 @@ describe('parse epubFile', async () => {
   })
 
   // .ncx file
-  it('.ncx navMap', () => {
-    const navMap = epub.getNavMap()
+  it('.ncx navMap, getToc', () => {
+    const navMap = epub.getToc()
     expect(navMap.length).toBe(14)
     expect(navMap[13]).toEqual({
       depth: 1,
@@ -149,11 +149,6 @@ describe('parse epubFile', async () => {
   it('alice epub has no navList in toc.ncx', () => {
     const navList = epub.getNavList()
     expect(navList).toBe(undefined)
-  })
-
-  it('getToc', () => {
-    const toc = epub.getToc()
-    expect(toc.length).toBe(1)
   })
 
   it('getHTML', async () => {

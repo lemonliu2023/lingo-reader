@@ -75,7 +75,7 @@ export class EpubFile {
    */
   private spine: SpineItem[] = []
   public getSpine(): SpineItem[] {
-    return this.spine
+    return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
   }
 
   /**
@@ -99,7 +99,7 @@ export class EpubFile {
    *  which is default value if there is no <navMap> in epub file
    */
   private navMap: NavPoint[] = []
-  public getNavMap(): NavPoint[] {
+  public getToc(): NavPoint[] {
     return this.navMap
   }
 
@@ -246,15 +246,6 @@ export class EpubFile {
   }
 
   /**
-   *
-   * @returns { SpineItem[] } the table of contents of the epub file
-   */
-  public getToc(): SpineItem[] {
-    // the priority is spine > manifest
-    return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
-  }
-
-  /**
    * replace <img> src absolute path or blob url
    * @param id the manifest item id of the chapter
    * @returns replaced html string
@@ -265,7 +256,6 @@ export class EpubFile {
     return transformHTML(await this.zip.readFile(xmlHref), htmlDir, this.resourceSaveDir)
   }
 
-  // TODO: destroy
   public destroy() {
     // resource in file system
     this.savedResourcePath.forEach((filePath) => {

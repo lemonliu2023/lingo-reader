@@ -6,7 +6,7 @@ import DOMPurify from 'dompurify'
 
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | undefined
-  let toc: SpineItem[] = []
+  let spine: SpineItem[] = []
   const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
   let fileInfo = {
@@ -17,8 +17,8 @@ const useBookStore = defineStore('ebook', () => {
   const initBook = async (file: File) => {
     if (file.name.endsWith('epub')) {
       book = await initEpubFile(file)
-      toc = book.getToc()
-      chapterNums.value = toc.length
+      spine = book.getSpine()
+      chapterNums.value = spine.length
       fileInfo = book.getFileInfo()
     }
   }
@@ -26,13 +26,13 @@ const useBookStore = defineStore('ebook', () => {
   // TODO: add cache
   const getChapterHTML = async () => {
     // for security
-    return DOMPurify.sanitize((await book!.loadChapter(toc[chapterIndex.value].id)).html, {
+    return DOMPurify.sanitize((await book!.loadChapter(spine[chapterIndex.value].id)).html, {
       ALLOWED_URI_REGEXP: /^(blob|https)/gi,
     })
   }
 
-  const getNavMap = () => {
-    return book!.getNavMap()
+  const getToc = () => {
+    return book!.getToc()
   }
 
   const getFileName = () => {
@@ -42,7 +42,7 @@ const useBookStore = defineStore('ebook', () => {
   const reset = () => {
     book!.destroy()
     book = undefined
-    toc = []
+    spine = []
     chapterIndex.value = 0
     chapterNums.value = 0
   }
@@ -56,7 +56,7 @@ const useBookStore = defineStore('ebook', () => {
     chapterNums,
     initBook,
     getChapterHTML,
-    getNavMap,
+    getToc,
     getFileName,
     reset,
     existBook,
