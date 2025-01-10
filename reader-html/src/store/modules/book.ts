@@ -9,19 +9,24 @@ const useBookStore = defineStore('ebook', () => {
   let toc: SpineItem[] = []
   const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
+  let fileInfo = {
+    fileName: '',
+    mimetype: '',
+  }
 
   const initBook = async (file: File) => {
     if (file.name.endsWith('epub')) {
       book = await initEpubFile(file)
       toc = book.getToc()
       chapterNums.value = toc.length
+      fileInfo = book.getFileInfo()
     }
   }
 
   // TODO: add cache
   const getChapterHTML = async () => {
     // for security
-    return DOMPurify.sanitize((await book!.getHTML(toc[chapterIndex.value].id)).html, {
+    return DOMPurify.sanitize((await book!.loadChapter(toc[chapterIndex.value].id)).html, {
       ALLOWED_URI_REGEXP: /^(blob|https)/gi,
     })
   }
@@ -31,7 +36,7 @@ const useBookStore = defineStore('ebook', () => {
   }
 
   const getFileName = () => {
-    return book!.getFileName()
+    return fileInfo.fileName
   }
 
   const reset = () => {

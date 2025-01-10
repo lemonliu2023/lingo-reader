@@ -45,52 +45,13 @@ export async function initEpubFile(epubPath: string | File, resourceRoot?: strin
  *  from epub file is stored in the form of EpubFile class attributes.
  */
 export class EpubFile {
-  /**
-   * epub file name without extension
-   */
   private fileName: string = ''
-  public getFileName(): string {
-    return this.fileName
-  }
-
-  /**
-   * imageSaveDir is an absolute path in Node env, because it was obtained by path.resolve
-   *  and it is used to save images in epub file. In browser env, the __dirname is '/' and
-   *  the read/write of image file occurs in memory, so the imageSaveDir is not used. It also
-   *  an absolute path.
-   */
-  private resourceSaveDir: string
-  getResourceSaveDir(): string {
-    return this.resourceSaveDir
-  }
-
-  /**
-   * mimetype through reading the file 'mimetype'
-   */
   private mimeType: string = ''
-  public getMimeType(): string {
-    return this.mimeType
-  }
-
-  /**
-   * zip processing class
-   */
-  private zip!: ZipFile
-
-  /**
-   * meta-inf/container.xml full-path and .opf file path when reading zip
-   */
-  private rootFilePath: string = ''
-  public getRootFilePath(): string {
-    return this.rootFilePath
-  }
-
-  /**
-   * content base dir when reading files using ZipFile attribute,
-   */
-  private contentBaseDir: string = ''
-  public getContentBaseDir(): string {
-    return this.contentBaseDir
+  getFileInfo() {
+    return {
+      fileName: this.fileName,
+      mimetype: this.mimeType,
+    }
   }
 
   /**
@@ -142,20 +103,11 @@ export class EpubFile {
     return this.navMap
   }
 
-  // for replacing getNavMap and getToc
-  public getToc2(): NavPoint[] {
-    return this.navMap
-  }
-
   /**
    * <pageList> in .ncx file
    *  which is default value if there is no <pageList> in epub file
    */
-  private pageList: PageList = {
-    label: '',
-    pageTargets: [],
-  }
-
+  private pageList!: PageList
   public getPageList(): PageList {
     return this.pageList
   }
@@ -164,14 +116,20 @@ export class EpubFile {
    * <navList> in .ncx file,
    *  which is default value if there is no <navList> in epub file
    */
-  private navList: NavList = {
-    label: '',
-    navTargets: [],
-  }
+  private navList!: NavList
 
   public getNavList(): NavList {
     return this.navList
   }
+
+  /**
+   * zip processing class
+   */
+  private zip!: ZipFile
+
+  private opfPath: string = ''
+  private opfDir: string = ''
+  private resourceSaveDir: string
 
   constructor(private epub: string | File, resourceSaveDir: string = './images') {
     if (typeof epub === 'string') {
@@ -200,8 +158,8 @@ export class EpubFile {
     const containerXml = await this.zip.readFile('meta-inf/container.xml')
     const containerAST = await parsexml(containerXml)
     // full-path
-    this.rootFilePath = parseContainer(containerAST)
-    this.contentBaseDir = this.rootFilePath.split('/').slice(0, -1).join('/')
+    this.opfPath = parseContainer(containerAST)
+    this.opfDir = path.dirname(this.opfPath)
 
     // .opf file
     await this.parseRootFile()
@@ -212,7 +170,7 @@ export class EpubFile {
    * parse .opf file
    */
   private async parseRootFile(): Promise<void> {
-    const rootFileOPF = await this.zip.readFile(this.rootFilePath)
+    const rootFileOPF = await this.zip.readFile(this.opfPath)
     const xml = await parsexml(rootFileOPF)
     const rootFile = xml.package
 
@@ -224,7 +182,7 @@ export class EpubFile {
           break
         }
         case 'manifest': {
-          this.manifest = parseManifest(rootFile[key][0], this.contentBaseDir)
+          this.manifest = parseManifest(rootFile[key][0], this.opfDir)
           // save element if it is a resource, such as image, css
           // which was determined by media-type
           for (const key in this.manifest) {
@@ -253,11 +211,11 @@ export class EpubFile {
           break
         }
         case 'guide': {
-          this.guide = parseGuide(rootFile[key][0], this.contentBaseDir)
+          this.guide = parseGuide(rootFile[key][0], this.opfDir)
           break
         }
         case 'collection': {
-          this.collections = parseCollection(rootFile[key], this.contentBaseDir)
+          this.collections = parseCollection(rootFile[key], this.opfDir)
           break
         }
       }
@@ -265,7 +223,7 @@ export class EpubFile {
 
     // .ncx file
     if (tocPath.length > 0) {
-      const tocDirPath = path.dirname(tocPath)
+      const tocDir = path.dirname(tocPath)
       // href to id
       const hrefToIdMap: Record<string, string> = {}
       for (const item of this.spine) {
@@ -275,15 +233,15 @@ export class EpubFile {
       const ncx = (await parsexml(tocNcxFile)).ncx
       // navMap
       if (ncx.navMap)
-        this.navMap = parseNavMap(ncx.navMap[0], hrefToIdMap, tocDirPath)
+        this.navMap = parseNavMap(ncx.navMap[0], hrefToIdMap, tocDir)
 
       // pageList
       if (ncx.pageList)
-        this.pageList = parsePageList(ncx.pageList[0], hrefToIdMap, tocDirPath)
+        this.pageList = parsePageList(ncx.pageList[0], hrefToIdMap, tocDir)
 
       // navList
       if (ncx.navList)
-        this.navList = parseNavList(ncx.navList[0], hrefToIdMap, tocDirPath)
+        this.navList = parseNavList(ncx.navList[0], hrefToIdMap, tocDir)
     }
   }
 
@@ -301,17 +259,11 @@ export class EpubFile {
    * @param id the manifest item id of the chapter
    * @returns replaced html string
    */
-  public async getHTML(id: string): Promise<ProcessedChapter> {
+  public async loadChapter(id: string): Promise<ProcessedChapter> {
     const xmlHref = this.manifest[id].href
     const htmlDir = path.dirname(xmlHref)
     return transformHTML(await this.zip.readFile(xmlHref), htmlDir, this.resourceSaveDir)
   }
-
-  // // for replacing getHTML
-  // public async loadChapter(id: string): Promise<ProcessedChapter> {
-  //   const xmlHref = this.manifest[id].href
-  //   return transformHTML(await this.zip.readFile(xmlHref), this.imageSaveDir)
-  // }
 
   // TODO: destroy
   public destroy() {

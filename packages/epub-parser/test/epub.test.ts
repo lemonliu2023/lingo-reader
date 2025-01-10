@@ -13,21 +13,11 @@ describe('parse epubFile', async () => {
   // alice.epub file path
   const epub = await initEpubFile('./example/alice.epub')
 
-  it('file name', () => {
-    expect(epub.getFileName()).toBe('alice.epub')
-  })
-
-  it('imageSaveDir', () => {
-    expect(epub.getResourceSaveDir()).toBe('./images')
-  })
-
-  it('mimeType', async () => {
-    expect(epub.getMimeType()).toBe('application/epub+zip')
-  })
-
-  it('container file fullpath', () => {
-    expect(epub.getRootFilePath()).toBe('19033/content.opf')
-    expect(epub.getContentBaseDir()).toBe('19033')
+  it('getFileInfo', () => {
+    expect(epub.getFileInfo()).toEqual({
+      fileName: 'alice.epub',
+      mimetype: 'application/epub+zip',
+    })
   })
 
   it('parseMetadata', () => {
@@ -158,8 +148,7 @@ describe('parse epubFile', async () => {
 
   it('alice epub has no navList in toc.ncx', () => {
     const navList = epub.getNavList()
-    expect(navList.label).toBe('')
-    expect(navList.navTargets.length).toBe(0)
+    expect(navList).toBe(undefined)
   })
 
   it('getToc', () => {
@@ -168,7 +157,7 @@ describe('parse epubFile', async () => {
   })
 
   it('getHTML', async () => {
-    const { css, html } = (await epub.getHTML('item32'))
+    const { css, html } = (await epub.loadChapter('item32'))
     // html
     const imageTags = html.match(/<img[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
@@ -225,7 +214,7 @@ describe('parse epubFile in browser', async () => {
   })
 
   it('image src should be a blob url in browser env when epub.getHTML()', async () => {
-    const { css, html } = await epub.getHTML('item32')
+    const { css, html } = await epub.loadChapter('item32')
     // html
     const imageTags = html.match(/<img[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
@@ -247,7 +236,11 @@ describe('parse epubFile in browser', async () => {
     const fileName = 'alice.epub'
     const file = new FileSimulated(fileName)
     const epub = new EpubFile(file as unknown as File)
-    expect(epub.getFileName()).toBe(fileName)
+
+    expect(epub.getFileInfo()).toEqual({
+      fileName,
+      mimetype: '',
+    })
   })
 
   it('revoke image urls', () => {
