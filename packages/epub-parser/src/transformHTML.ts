@@ -1,5 +1,5 @@
 import { path } from '@blingo-reader/shared'
-import { readFileSync } from './fsPolyfill'
+import { readFileSync, writeFileSync } from './fsPolyfill'
 import type { ProcessedChapter } from './types'
 
 const imageExtensionToMimeType: Record<string, string> = {
@@ -16,36 +16,69 @@ const imageExtensionToMimeType: Record<string, string> = {
   heic: 'image/heic',
   avif: 'image/avif',
   css: 'text/css',
+
+  // video
+  mp4: 'video/mp4',
+  mkv: 'video/mkv',
+  webm: 'video/webm',
+
+  // audio
+  mp3: 'audio/mp3',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+
+  // font
+  ttf: 'font/ttf',
+  otf: 'font/otf',
+  woff: 'font/woff',
+  woff2: 'font/woff2',
+  eot: 'font/eot',
 }
 
 const blobUrls: string[] = []
 
-function replaceResources(str: string, htmlDir: string, resourceSaveDir: string) {
-  // <img> tag src
-  str = str.replace(/<img[^>]*>/g, (imgTag) => {
-    const src = imgTag.match(/src="([^"]*)"/)![1]
-    const imageName = path.joinPosix(htmlDir, src).replace('/', '_')
-    let imageSrc = path.resolve(resourceSaveDir, imageName)
-    if (__BROWSER__) {
-      const ext = imageName.split('.').pop()!
-      const blobType = imageExtensionToMimeType[ext]
-      const image = new Uint8Array(readFileSync(imageSrc))
-      const blob = new Blob([image], { type: blobType })
-      imageSrc = URL.createObjectURL(blob)
-      blobUrls.push(imageSrc)
+function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
+  const resourceName = path.joinPosix(htmlDir, src).replace('/', '_')
+  let resourceSrc = path.resolve(resourceSaveDir, resourceName)
+  if (__BROWSER__) {
+    const ext = resourceName.split('.').pop()!
+    const blobType = imageExtensionToMimeType[ext]
+    const resource = new Uint8Array(readFileSync(resourceSrc))
+    const blob = new Blob([resource], { type: blobType })
+    resourceSrc = URL.createObjectURL(blob)
+
+    blobUrls.push(resourceSrc)
+  }
+  return resourceSrc
+}
+
+// TODO: add test case
+function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: string) {
+  // resource src: src in <img>, <video>, <audio>, <source> tag
+  str = str.replace(/<(img|video|audio|source)[^>]*>/g, (imgTag) => {
+    // src
+    const src = imgTag.match(/src="([^"]*)"/)?.[1]
+    if (src) {
+      const imageSrc = getResourceUrl(src, htmlDir, resourceSaveDir)
+      imgTag = imgTag.replace(src, imageSrc)
     }
 
-    return imgTag.replace(src, imageSrc)
+    // poster
+    const poster = imgTag.match(/poster="([^"]*)"/)?.[1]
+    if (poster) {
+      const posterSrc = getResourceUrl(poster, htmlDir, resourceSaveDir)
+      imgTag = imgTag.replace(poster, posterSrc)
+    }
+    return imgTag
   })
 
   // a tag href
   str = str.replace(/<a[^>]*>/g, (aTag: string) => {
-    // TODO: add test case
     const href = aTag.match(/href="([^"]*)"/)
     if (href) {
       const hrefValue = href[1]
       const transformedHref = path.joinPosix(htmlDir, hrefValue)
-      aTag = aTag.replace(hrefValue, `epub:${transformedHref}`)
+      aTag = aTag.replace(hrefValue, `Epub:${transformedHref}`)
     }
     return aTag
   })
@@ -53,6 +86,7 @@ function replaceResources(str: string, htmlDir: string, resourceSaveDir: string)
   return str
 }
 
+// TODO: add test case
 export function transformHTML(html: string, htmlDir: string, resourceSaveDir: string): ProcessedChapter {
   // head
   const head = html.match(/<head[^>]*>([\s\S]*)<\/head>/i)
@@ -62,19 +96,28 @@ export function transformHTML(html: string, htmlDir: string, resourceSaveDir: st
     if (links) {
       for (const link of links) {
         const linkHref = link.match(/href="([^"]*)"/)![1]
-        const filename = path.joinPosix(htmlDir, linkHref).replace('/', '_')
-        let cssFilePath = path.resolve(resourceSaveDir, filename)
-        if (__BROWSER__) {
-          const ext = filename.split('.').pop()!
-          const blobType = imageExtensionToMimeType[ext]
-          const cssFile = readFileSync(cssFilePath)
-          const cssText = new TextDecoder().decode(cssFile)
-          // TODO: replace resource url in css file
-          const blob = new Blob([cssText], { type: blobType })
-          cssFilePath = URL.createObjectURL(blob)
-          blobUrls.push(cssFilePath)
+        if (linkHref.endsWith('.css')) {
+          // css file path
+          const cssFilePath = path.joinPosix(htmlDir, linkHref)
+          const cssName = cssFilePath.replace('/', '_')
+          let realPath = path.resolve(resourceSaveDir, cssName)
+
+          // replace url() in css and save css file
+          let fileContent = new TextDecoder().decode(readFileSync(realPath))
+          fileContent = fileContent.replace(/url\(([^)]*)\)/g, (_, url: string) => {
+            // remove ' or "
+            url = url.replace(/['"]/g, '')
+            const realUrl = getResourceUrl(url.trim(), path.dirname(cssFilePath), resourceSaveDir)
+            return `url(${realUrl})`
+          })
+          writeFileSync(realPath, new TextEncoder().encode(fileContent))
+
+          // get blob url in browser
+          if (__BROWSER__) {
+            realPath = URL.createObjectURL(new Blob([fileContent], { type: 'text/css' }))
+          }
+          css.push(realPath)
         }
-        css.push(cssFilePath)
       }
     }
   }
@@ -83,7 +126,7 @@ export function transformHTML(html: string, htmlDir: string, resourceSaveDir: st
   const body = html.match(/<body[^>]*>(.*?)<\/body>/is)
   let bodyReplaced = ''
   if (body) {
-    bodyReplaced = replaceResources(body[1], htmlDir, resourceSaveDir)
+    bodyReplaced = replaceBodyResources(body[1], htmlDir, resourceSaveDir)
   }
 
   return {

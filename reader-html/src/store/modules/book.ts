@@ -25,8 +25,9 @@ const useBookStore = defineStore('ebook', () => {
 
   // TODO: add cache
   const getChapterHTML = async () => {
+    const { html } = await book!.loadChapter(spine[chapterIndex.value].id)
     // for security
-    return DOMPurify.sanitize((await book!.loadChapter(spine[chapterIndex.value].id)).html, {
+    return DOMPurify.sanitize(html, {
       ALLOWED_URI_REGEXP: /^(blob|https)/gi,
     })
   }

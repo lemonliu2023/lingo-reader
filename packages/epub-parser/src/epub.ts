@@ -48,7 +48,7 @@ export async function initEpubFile(epubPath: string | File, resourceRoot?: strin
 export class EpubFile {
   private fileName: string = ''
   private mimeType: string = ''
-  getFileInfo() {
+  public getFileInfo() {
     return {
       fileName: this.fileName,
       mimetype: this.mimeType,
