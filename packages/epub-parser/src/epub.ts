@@ -26,6 +26,7 @@ import {
   parseSpine,
 } from './parseFiles'
 import { revokeBlobUrls, transformHTML } from './transformHTML'
+import { HREF_PREFIX } from './constant'
 /*
   TODO: parse links in meta-inf/container.xml
 */
@@ -273,7 +274,7 @@ export class EpubFile {
   }
 
   public resolveHref(href: string): ResolvedHref | undefined {
-    if (!href.startsWith('Epub:')) {
+    if (!href.startsWith(HREF_PREFIX)) {
       return undefined
     }
     // remove 'Epub:'

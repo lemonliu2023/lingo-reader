@@ -16,6 +16,7 @@ import type {
   Subject,
 } from './types'
 import { camelCase } from './utils'
+import { HREF_PREFIX } from './constant'
 
 // the content of mimetype must be 'application/epub+zip'
 export function parseMimeType(file: string): string {
@@ -341,7 +342,7 @@ export function parseGuide(guideAST: Record<string, any>, baseDir: string): Guid
   for (const reference of references) {
     const element = reference.$
     if (element.href && element.href.length > 0) {
-      element.href = `Epub:${path.joinPosix(baseDir, element.href)}`
+      element.href = HREF_PREFIX + path.joinPosix(baseDir, element.href)
     }
     guide.push(element)
   }
@@ -413,7 +414,7 @@ function walkNavMap(
       const element: NavPoint = {
         depth,
         label: navPoint.navLabel[0]?.text[0] || '',
-        href: `Epub:${href}`,
+        href: HREF_PREFIX + href,
         correspondId: hrefToIdMap[hrefPath],
         playOrder: navPoint.$?.playOrder || '',
       }
@@ -457,7 +458,7 @@ export function parsePageList(
     const element: PageTarget = {
       label: pageTarget.navLabel[0].text[0] || '',
       value: $.value || '',
-      href: `Epub:${src}`,
+      href: HREF_PREFIX + src,
       playOrder: $.playOrder || '',
       type: $.type || '',
       correspondId: hrefToIdMap[href],
@@ -496,7 +497,7 @@ export function parseNavList(
 
     const element: NavTarget = {
       label: navTarget.navLabel[0]?.text?.[0] || '',
-      href: `Epub:${src}`,
+      href: HREF_PREFIX + src,
       correspondId: hrefToIdMap[href],
     }
 

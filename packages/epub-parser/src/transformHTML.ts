@@ -1,6 +1,7 @@
 import { path } from '@blingo-reader/shared'
 import { readFileSync, writeFileSync } from './fsPolyfill'
 import type { ProcessedChapter } from './types'
+import { HREF_PREFIX } from './constant'
 
 const imageExtensionToMimeType: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -78,7 +79,7 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
     if (href) {
       const hrefValue = href[1]
       const transformedHref = path.joinPosix(htmlDir, hrefValue)
-      aTag = aTag.replace(hrefValue, `Epub:${transformedHref}`)
+      aTag = aTag.replace(hrefValue, HREF_PREFIX + transformedHref)
     }
     return aTag
   })
