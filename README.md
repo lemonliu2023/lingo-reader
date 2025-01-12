@@ -10,10 +10,12 @@ The next step is to complete the parser of unencrypted .mobi, azw, azw3, etc. fi
 2. add a link to blingo-reader github on the homepage.
 3. add a new way to open files. Enable users to open file via urls.
 4. add navMap in Book page.
-5. handle jump logic when user click an \<a\> tag dynamically rendered.
 6. the `xml2js` and `jszip` are very large. Find a way to reduce their size.
 7. adjust ui in book page.
-8. exploring a unified api for different ebook file parser.
-9. picture preview
-10. use scroll api to finish column reader
-11. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. So it could be better to convert the way to ondemand loading.
+7. picture preview
+8. use scroll api to finish column reader
+9. √ exploring a unified api for different ebook file parser.
+   1. write documentation include epub-parser, mobi-parser, reader-html
+   2. write blog to explain how to parse epub, mobi or kf8 file
+10. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.
+11. find test case
