@@ -12,6 +12,7 @@ import type {
 import type {
   DecompressFunc,
   Exth,
+  MobiMetadata,
   Ncx,
   Offset,
 } from './types'
@@ -139,20 +140,21 @@ export class MobiFile {
     return undefined
   }
 
-  getMetadata() {
+  getMetadata(): MobiMetadata {
     const mobi = this.mobiHeader
     const exth = this.exth
     return {
       identifier: this.mobiHeader.uid.toString(),
       title: exth?.title || mobi.title,
-      author: exth?.creator?.map(unescapeHTML),
-      publisher: exth?.publisher,
-      language: exth?.language ?? mobi.language,
+      author: exth?.creator?.map(unescapeHTML) ?? [],
+      publisher: exth?.publisher ?? '',
+      // language in exth is many, we use the first one in this case
+      language: exth?.language?.[0] ?? mobi.language,
       published: exth?.date ?? '',
       description: exth?.description ?? '',
-      subject: exth?.subject?.map(unescapeHTML),
+      subject: exth?.subject?.map(unescapeHTML) ?? [],
       rights: exth?.rights ?? '',
-      contributor: exth?.contributor,
+      contributor: exth?.contributor ?? [],
     }
   }
 

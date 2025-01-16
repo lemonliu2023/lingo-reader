@@ -1,4 +1,6 @@
 import { readFileSync, unlink } from 'node:fs'
+import path from 'node:path'
+import type { EBookParser } from '@blingo-reader/shared'
 import type {
   MimeToExt,
 } from './utils'
@@ -21,15 +23,18 @@ import { MobiFile } from './mobiFile'
 import { fdstHeader } from './headers'
 import type {
   Azw3Chapter,
+  Azw3CssPart,
+  Azw3FileInfo,
   Azw3Guide,
   Azw3InitOptions,
+  Azw3Metadata,
+  Azw3ProcessedChapter,
+  Azw3ResolvedHref,
+  Azw3Spine,
   Azw3Toc,
   Azw3TocItem,
-  CssPart,
   FragTable,
   NcxItem,
-  ProcessedChapter,
-  ResolvedHref,
   SkelTable,
 } from './types'
 
@@ -41,9 +46,11 @@ export async function initAzw3File(file: string | File, initOptions: Azw3InitOpt
   return azw3
 }
 
-export class Azw3 {
+export class Azw3 implements EBookParser {
   private fileArrayBuffer!: ArrayBuffer
   private mobiFile!: MobiFile
+
+  private fileName = ''
 
   private fdstTable: number[][] = []
   private fullRawLength: number = 0
@@ -61,12 +68,18 @@ export class Azw3 {
   private lastLoadedTail: number = -1
 
   private resourceCache = new Map<string, string>()
-  private chapterCache = new Map<number, ProcessedChapter>()
+  private chapterCache = new Map<number, Azw3ProcessedChapter>()
 
   private idToChapter = new Map<number, Azw3Chapter>()
   private imageSaveDir = './images'
 
-  getMetadata() {
+  getFileInfo(): Azw3FileInfo {
+    return {
+      fileName: this.fileName,
+    }
+  }
+
+  getMetadata(): Azw3Metadata {
     return this.mobiFile.getMetadata()
   }
 
@@ -84,7 +97,7 @@ export class Azw3 {
     return undefined
   }
 
-  getSpine(): Azw3Chapter[] {
+  getSpine(): Azw3Spine {
     return this.chapters
   }
 
@@ -94,6 +107,10 @@ export class Azw3 {
 
   constructor(private file: string | File, azw3InitOptions: Azw3InitOptions) {
     this.imageSaveDir = azw3InitOptions.imageSaveDir ?? './images'
+    this.fileName
+      = __BROWSER__
+        ? (file as File).name
+        : path.dirname(file as string)
   }
 
   async innerLoadFile() {
@@ -154,7 +171,7 @@ export class Azw3 {
       const frags = this.fragTable.slice(fragStart, fragEnd)
       const length = skel.length + frags.reduce((a, v) => a + v.length, 0)
       const totalLength = (last?.totalLength ?? 0) + length
-      const chapter = { id: index, skel, frags, fragEnd, length, totalLength }
+      const chapter = { id: index.toString(), skel, frags, fragEnd, length, totalLength }
       this.idToChapter.set(index, chapter)
 
       acc.push(chapter)
@@ -175,7 +192,7 @@ export class Azw3 {
         else {
           this.fragmentOffsets.set(fid, [off])
         }
-        return { label, href, subitems: children?.map(map) }
+        return { label, href, children: children?.map(map) }
       }
       this.toc = ncx.map(map)
     }
@@ -249,16 +266,20 @@ export class Azw3 {
     return this.mobiFile.decode(skeleton.buffer)
   }
 
-  loadChapter(id: number): ProcessedChapter | undefined {
-    if (this.chapterCache.has(id)) {
-      return this.chapterCache.get(id)
+  loadChapter(id: string): Azw3ProcessedChapter | undefined {
+    const numId = Number.parseInt(id)
+    if (Number.isNaN(numId)) {
+      return undefined
+    }
+    if (this.chapterCache.has(numId)) {
+      return this.chapterCache.get(numId)
     }
 
-    const chapter = this.idToChapter.get(id)
+    const chapter = this.idToChapter.get(numId)
     if (chapter) {
       const processed = this.replace(this.loadText(chapter))
 
-      this.chapterCache.set(id, processed)
+      this.chapterCache.set(numId, processed)
       return processed
     }
     return undefined
@@ -283,7 +304,7 @@ export class Azw3 {
     return undefined
   }
 
-  resolveHref(href: string): ResolvedHref | undefined {
+  resolveHref(href: string): Azw3ResolvedHref | undefined {
     // is external link
     if (/^(?!blob|kindle)\w+:/i.test(href)) {
       return undefined
@@ -352,9 +373,9 @@ export class Azw3 {
     )
   }
 
-  private replace(str: string): ProcessedChapter {
+  private replace(str: string): Azw3ProcessedChapter {
     // css Part
-    const cssUrls: CssPart[] = []
+    const cssUrls: Azw3CssPart[] = []
     const head = str.match(/<head[^>]*>([\s\S]*)<\/head>/i)![1]
     const links = head.match(/<link[^>]*>/gi) ?? []
     for (const link of links) {
@@ -362,7 +383,7 @@ export class Azw3 {
       const id = link.match(kindleResourceRegex)![2]
       const href = this.replaceResources(linkHref)
       cssUrls.push({
-        id: Number.parseInt(id),
+        id,
         href,
       })
     }

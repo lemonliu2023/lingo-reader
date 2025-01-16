@@ -1,4 +1,6 @@
 import { readFileSync, unlink } from 'node:fs'
+import path from 'node:path'
+import type { EBookParser } from '@blingo-reader/shared'
 import { parsexml } from '@blingo-reader/shared'
 import { saveResource } from './utils'
 import {
@@ -7,7 +9,16 @@ import {
   toArrayBuffer,
 } from './book'
 import { MobiFile } from './mobiFile'
-import type { MobiChapter, MobiToc, MobiTocItem, ProcessedChapter, ResolvedHref } from './types'
+import type {
+  MobiChapter,
+  MobiFileInfo,
+  MobiMetadata,
+  MobiProcessedChapter,
+  MobiResolvedHref,
+  MobiSpine,
+  MobiToc,
+  MobiTocItem,
+} from './types'
 
 interface Options {
   imageSaveDir?: string
@@ -21,9 +32,11 @@ export async function initMobiFile(file: string | File, options?: Options) {
   return mobi
 }
 
-export class Mobi {
+export class Mobi implements EBookParser {
   private fileArrayBuffer!: ArrayBuffer
   private mobiFile!: MobiFile
+
+  private fileName = ''
 
   // chapter
   private chapters: MobiChapter[] = []
@@ -31,26 +44,36 @@ export class Mobi {
   private toc: MobiToc = []
 
   private imageSaveDir = './images'
-  private chapterCache = new Map<number, ProcessedChapter>()
+  private chapterCache = new Map<number, MobiProcessedChapter>()
   private resourceCache = new Map<string, string>()
 
-  public getSpine(): MobiChapter[] {
+  public getFileInfo(): MobiFileInfo {
+    return {
+      fileName: this.fileName,
+    }
+  }
+
+  public getSpine(): MobiSpine {
     return this.chapters
   }
 
-  public loadChapter(id: number): ProcessedChapter | undefined {
+  public loadChapter(id: string): MobiProcessedChapter | undefined {
+    const numId = Number.parseInt(id)
+    if (Number.isNaN(numId)) {
+      return undefined
+    }
     // cache
-    if (this.chapterCache.has(id)) {
-      return this.chapterCache.get(id)!
+    if (this.chapterCache.has(numId)) {
+      return this.chapterCache.get(numId)!
     }
 
-    const chapter = this.idToChapter.get(id)!
+    const chapter = this.idToChapter.get(numId)!
     if (!chapter) {
       return undefined
     }
 
     const processedChapter = this.replace(chapter.text)
-    this.chapterCache.set(id, processedChapter)
+    this.chapterCache.set(numId, processedChapter)
 
     return processedChapter
   }
@@ -74,12 +97,16 @@ export class Mobi {
     return undefined
   }
 
-  public getMetadata() {
+  public getMetadata(): MobiMetadata {
     return this.mobiFile.getMetadata()
   }
 
   constructor(private file: string | File, options: Options = {}) {
     this.imageSaveDir = options.imageSaveDir ?? './images'
+    this.fileName
+      = __BROWSER__
+        ? (this.file as File).name
+        : path.basename(this.file as string)
   }
 
   async innerLoadFile() {
@@ -120,7 +147,7 @@ export class Mobi {
       const buffer = Uint8Array.from(section, c => c.charCodeAt(0))
       const text = this.mobiFile.decode(buffer.buffer)
       const chapter: MobiChapter = {
-        id,
+        id: String(id),
         text,
         start,
         end,
@@ -186,15 +213,15 @@ export class Mobi {
       const childName = child['#name']
       if (childName === 'p' || childName === 'blockquote') {
         let subItem: MobiTocItem = {
-          title: '',
+          label: '',
           href: '',
         }
         if (child.a) {
           const a = child.a[0]
-          const title = a._
+          const label = a._
           const filepos = Number(a.$.filepos)
           subItem = {
-            title,
+            label,
             href: `filepos:${filepos}`,
           }
           toc.push(subItem)
@@ -223,7 +250,7 @@ export class Mobi {
   private recindexReg = /recindex=["']?(\d+)["']?/
   private mediarecindexReg = /mediarecindex=["']?(\d+)["']?/
   private fileposReg = /filepos=["']?(\d+)["']?/
-  private replace(html: string): ProcessedChapter {
+  private replace(html: string): MobiProcessedChapter {
     // image
     html = html.replace(
       /<img[^>]*>/g,
@@ -269,7 +296,7 @@ export class Mobi {
     }
   }
 
-  resolveHref(href: string): ResolvedHref | undefined {
+  resolveHref(href: string): MobiResolvedHref | undefined {
     const hrefmatch = href.match(/filepos:(\d+)/)
     if (!hrefmatch) {
       return undefined

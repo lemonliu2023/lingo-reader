@@ -61,7 +61,7 @@ const handleDrop = (e: DragEvent) => {
     <!-- file select button -->
     <label v-show="showSelectFileButton" for="fileInput" class="file-input-label">Select File</label>
     <!-- hidden file input -->
-    <input @change="handleFileChange" type="file" id="fileInput" class="file-input" accept=".epub">
+    <input @change="handleFileChange" type="file" id="fileInput" class="file-input" accept=".epub,.mobi,.azw3">
     <span class="info"><b>.epub</b> file are supported</span>
   </div>
 </template>

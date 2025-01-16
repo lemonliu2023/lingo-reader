@@ -31,7 +31,12 @@ export interface Link {
   rel: string
 }
 
-export interface Metadata {
+export interface EpubFileInfo {
+  fileName: string
+  mimetype: string
+}
+
+export interface EpubMetadata {
   title: string
   language: string
   description?: string
@@ -70,6 +75,7 @@ export interface ManifestItem {
 
 // idref, linear, id, properties attributes when parsing spine>itemref
 export type SpineItem = ManifestItem & { linear?: string }
+export type EpubSpine = SpineItem[]
 
 export interface GuideReference {
   title: string
@@ -83,14 +89,13 @@ export interface CollectionItem {
 }
 // for .ncx file
 export interface NavPoint {
-  depth: number
   label: string
   href: string
-  correspondId: string | undefined
+  id: string
   playOrder: string
+  children?: NavPoint[]
 }
-
-// export type NavMap = NavPoint[]
+export type EpubToc = NavPoint[]
 
 export interface PageTarget {
   label: string
@@ -117,21 +122,17 @@ export interface NavList {
   navTargets: NavTarget[]
 }
 
-// // navPoint in toc.ncx
-// export interface NavPoint {
-//   $: { id: string, playOrder: string }
-//   navLabel: any
-//   content: any
-//   navPoint: NavPoint[]
-// }
-// export type NavPoints = NavPoint[]
+export interface EpubCssPart {
+  id: string
+  href: string
+}
 
-export interface ProcessedChapter {
-  css: string[]
+export interface EpubProcessedChapter {
+  css: EpubCssPart[]
   html: string
 }
 
-export interface ResolvedHref {
+export interface EpubResolvedHref {
   id: string
   selector: string
 }

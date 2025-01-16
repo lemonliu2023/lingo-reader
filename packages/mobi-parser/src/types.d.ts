@@ -58,15 +58,16 @@ export type DecompressFunc = (data: Uint8Array) => Uint8Array
 export type LoadRecordFunc = (index: number) => ArrayBuffer
 
 export interface MobiChapter {
-  id: number
+  id: string
   text: string
   start: number
   end: number
   size: number
 }
+export type MobiSpine = MobiChapter[]
 
 export interface MobiTocItem {
-  title: string
+  label: string
   href: string
   children?: MobiTocItem[]
 }
@@ -80,11 +81,41 @@ export type IndexTable = IndexTableItem[]
 export type Cncx = Record<string, string>
 export interface IndexData { table: IndexTable, cncx: Cncx }
 
+export interface MobiMetadata {
+  identifier: string
+  title: string
+  author: string[]
+  publisher: string
+  language: string
+  published: string
+  description: string
+  subject: string[]
+  rights: string
+  contributor: string[]
+}
+
+export interface MobiFileInfo {
+  fileName: string
+}
+
+export interface MobiCssPart {
+  id: string
+  href: string
+}
+export interface MobiProcessedChapter {
+  html: string
+  css: MobiCssPart[]
+}
+
+export interface MobiResolvedHref {
+  id: string
+  selector: string
+}
+
 /**
  * azw3 types
  */
 export interface Azw3InitOptions {
-  // cssMountedId?: string
   imageSaveDir?: string
 }
 
@@ -107,13 +138,14 @@ export interface FragTableItem {
 export type FragTable = FragTableItem[]
 
 export interface Azw3Chapter {
-  id: number
+  id: string
   skel: SkelTableItem
   frags: FragTable
   fragEnd: number
   length: number
   totalLength: number
 }
+export type Azw3Spine = Azw3Chapter[]
 
 export interface NcxItem {
   index: number
@@ -132,7 +164,7 @@ export type Ncx = NcxItem[]
 export interface Azw3TocItem {
   label: string
   href: string
-  subitems?: Azw3TocItem[]
+  children?: Azw3TocItem[]
 }
 export type Azw3Toc = Azw3TocItem[]
 
@@ -143,16 +175,16 @@ export interface Azw3GuideItem {
 }
 export type Azw3Guide = Azw3GuideItem[]
 
-export interface CssPart {
-  id: number
+export interface Azw3CssPart {
+  id: string
   href: string
 }
-export interface ProcessedChapter {
+export interface Azw3ProcessedChapter {
   html: string
-  css: CssPart[]
+  css: Azw3CssPart[]
 }
 
-export interface ResolvedHref {
-  id: number
-  selector: string
-}
+export type Azw3ResolvedHref = MobiResolvedHref
+
+export type Azw3Metadata = MobiMetadata
+export type Azw3FileInfo = MobiFileInfo

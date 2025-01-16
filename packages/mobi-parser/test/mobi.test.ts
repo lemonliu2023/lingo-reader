@@ -15,7 +15,7 @@ describe('mobi class', () => {
     const spine = mobi.getSpine()
     expect(spine.length).toBe(33)
     const lastlastSpine = spine[spine.length - 2]
-    expect(lastlastSpine.id).toBe(31)
+    expect(lastlastSpine.id).toBe('31')
     expect(lastlastSpine.start).toBe(338161)
     expect(lastlastSpine.end).toBe(340617)
     expect(lastlastSpine.size).toBe(2440)
@@ -24,7 +24,7 @@ describe('mobi class', () => {
   it('getToc', () => {
     const toc = mobi.getToc()
     expect(toc.length).toBe(30)
-    expect(toc[toc.length - 1]).toEqual({ title: '后记', href: 'filepos:335070' })
+    expect(toc[toc.length - 1]).toEqual({ label: '后记', href: 'filepos:335070' })
   })
 
   it('loadChapter', () => {
@@ -41,14 +41,14 @@ describe('mobi class', () => {
   })
 
   it('load unexisted chapter', () => {
-    expect(mobi.loadChapter(50)).toBeUndefined()
+    expect(mobi.loadChapter('50')).toBeUndefined()
   })
 
   it('resolveHref', () => {
     const toc = mobi.getToc()
     const href = toc[2].href
     const resolvedHref = mobi.resolveHref(href)
-    expect(resolvedHref).toEqual({ id: 3, selector: '[id="filepos:8520"]' })
+    expect(resolvedHref).toEqual({ id: '3', selector: '[id="filepos:8520"]' })
   })
 
   it('resolve incorrect href', () => {
@@ -67,7 +67,7 @@ describe('mobi class', () => {
       title: '自造',
       author: ['陶勇'],
       publisher: 'www.huibooks.com',
-      language: ['zh'],
+      language: 'zh',
       published: '2021-11-30 16:00:00+00:00',
       description: '',
       subject: ['汇书网'],
@@ -109,7 +109,7 @@ describe('init mobi in browser', () => {
   })
 
   it('loadChapter in browser', () => {
-    const { html, css } = mobi.loadChapter(0)!
+    const { html, css } = mobi.loadChapter('0')!
     const htmlSrc = html.match(/src="(.+?)"/)![1]
     expect(htmlSrc.startsWith('blob')).toBe(true)
     expect(css.length).toBe(0)

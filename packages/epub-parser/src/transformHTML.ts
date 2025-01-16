@@ -1,6 +1,6 @@
 import { path } from '@blingo-reader/shared'
 import { readFileSync, writeFileSync } from './fsPolyfill'
-import type { ProcessedChapter } from './types'
+import type { EpubCssPart, EpubProcessedChapter } from './types'
 import { HREF_PREFIX } from './constant'
 
 const imageExtensionToMimeType: Record<string, string> = {
@@ -36,19 +36,22 @@ const imageExtensionToMimeType: Record<string, string> = {
   eot: 'font/eot',
 }
 
-const blobUrls: string[] = []
+const browserUrlCache = new Map<string, string>()
 
 function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
   const resourceName = path.joinPosix(htmlDir, src).replace('/', '_')
   let resourceSrc = path.resolve(resourceSaveDir, resourceName)
   if (__BROWSER__) {
+    if (browserUrlCache.has(resourceName)) {
+      return browserUrlCache.get(resourceName)!
+    }
     const ext = resourceName.split('.').pop()!
     const blobType = imageExtensionToMimeType[ext]
     const resource = new Uint8Array(readFileSync(resourceSrc))
     const blob = new Blob([resource], { type: blobType })
     resourceSrc = URL.createObjectURL(blob)
 
-    blobUrls.push(resourceSrc)
+    browserUrlCache.set(resourceName, resourceSrc)
   }
   return resourceSrc
 }
@@ -88,10 +91,10 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
 }
 
 // TODO: add test case
-export function transformHTML(html: string, htmlDir: string, resourceSaveDir: string): ProcessedChapter {
+export function transformHTML(html: string, htmlDir: string, resourceSaveDir: string): EpubProcessedChapter {
   // head
   const head = html.match(/<head[^>]*>([\s\S]*)<\/head>/i)
-  const css: string[] = []
+  const css: EpubCssPart[] = []
   if (head) {
     const links = head[1].match(/<link[^>]*>/g)!
     if (links) {
@@ -115,9 +118,14 @@ export function transformHTML(html: string, htmlDir: string, resourceSaveDir: st
 
           // get blob url in browser
           if (__BROWSER__) {
-            realPath = URL.createObjectURL(new Blob([fileContent], { type: 'text/css' }))
+            realPath
+              = browserUrlCache.get(cssName)
+              || URL.createObjectURL(new Blob([fileContent], { type: 'text/css' }))
           }
-          css.push(realPath)
+          css.push({
+            id: cssName,
+            href: realPath,
+          })
         }
       }
     }
@@ -138,9 +146,9 @@ export function transformHTML(html: string, htmlDir: string, resourceSaveDir: st
 
 export function revokeBlobUrls() {
   if (__BROWSER__) {
-    for (const url of blobUrls) {
+    browserUrlCache.forEach((url) => {
       URL.revokeObjectURL(url)
-    }
-    blobUrls.length = 0
+    })
+    browserUrlCache.clear()
   }
 }

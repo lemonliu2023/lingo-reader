@@ -2,6 +2,7 @@ import { path } from '@blingo-reader/shared'
 import type {
   CollectionItem,
   Contributor,
+  EpubSpine,
   GuideReference,
   Identifier,
   Link,
@@ -12,7 +13,6 @@ import type {
   NavTarget,
   PageList,
   PageTarget,
-  SpineItem,
   Subject,
 } from './types'
 import { camelCase } from './utils'
@@ -293,18 +293,18 @@ export function parseManifest(
  * Parse the spine element in the .opf file and read the toc file path in <spine> tag
  * @param spineAST <spine> xml ast
  * @param manifest manifest parsed from <manifest> tag
- * @returns { { tocPath: string, spine: SpineItem[] } } spine
+ * @returns { { tocPath: string, spine: EpubSpine } } spine
  */
 export function parseSpine(
   spineAST: Record<string, any>,
   manifest: Record<string, ManifestItem>,
-): { tocPath: string, spine: SpineItem[] } {
+): { tocPath: string, spine: EpubSpine } {
   let tocPath = ''
   if (spineAST.$?.toc) {
     tocPath = manifest[spineAST.$.toc].href || ''
   }
 
-  const spine: SpineItem[] = []
+  const spine: EpubSpine = []
   const itemrefs = spineAST.itemref
   if (!itemrefs) {
     throw new Error('The spine element must contain one or more itemref elements')
@@ -408,22 +408,28 @@ function walkNavMap(
   }
 
   for (const navPoint of navPoints) {
+    let element: NavPoint = {
+      label: '',
+      href: '',
+      id: '',
+      playOrder: '',
+    }
     if (navPoint.navLabel) {
       const href = path.joinPosix(ncxBaseDir, navPoint.content[0].$?.src)
       const hrefPath = href.split('#')[0]
-      const element: NavPoint = {
-        depth,
+      element = {
         label: navPoint.navLabel[0]?.text[0] || '',
         href: HREF_PREFIX + href,
-        correspondId: hrefToIdMap[hrefPath],
+        id: hrefToIdMap[hrefPath],
         playOrder: navPoint.$?.playOrder || '',
       }
       output.push(element)
     }
 
     if (navPoint.navPoint) {
+      element.children = []
       walkNavMap(
-        output,
+        element.children,
         navPoint.navPoint,
         hrefToIdMap,
         ncxBaseDir,

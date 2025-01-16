@@ -425,12 +425,12 @@ describe('parseNcx', async () => {
       hrefToIdMap,
       'OEBPS/',
     )
-    expect(navMap.length).toBe(4)
-    expect(navMap[3]).toEqual({
-      depth: 0,
+    expect(navMap.length).toBe(3)
+    expect(navMap[0].children!.length).toBe(1)
+    expect(navMap[2]).toEqual({
       label: 'Chapter 3',
       href: 'Epub:OEBPS/content2.html#ch_3',
-      correspondId: undefined,
+      id: undefined,
       playOrder: '',
     })
   })

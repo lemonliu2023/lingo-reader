@@ -16,7 +16,7 @@ describe('azw3 class', () => {
     expect(spine.length).toBe(32)
     const lastSpine = spine[spine.length - 1]
     expect(lastSpine).toEqual({
-      id: 31,
+      id: '31',
       skel: {
         index: 31,
         name: 'SKEL0000000031',
@@ -39,6 +39,7 @@ describe('azw3 class', () => {
     })
   })
 
+  // TODO: add test cases with children
   it('getToc', () => {
     const toc = azw3.getToc()
     expect(toc!.length).toBe(30)
@@ -46,7 +47,7 @@ describe('azw3 class', () => {
     expect(lastToc).toEqual({
       label: '后记',
       href: 'kindle:pos:fid:001S:off:0000000000',
-      subitems: undefined,
+      children: undefined,
     })
   })
 
@@ -64,11 +65,11 @@ describe('azw3 class', () => {
     // css href
     expect(css).toEqual([
       {
-        id: 2,
+        id: '0002',
         href: path.resolve('./images', '0002.css'),
       },
       {
-        id: 1,
+        id: '0001',
         href: path.resolve('./images', '0001.css'),
       },
     ])
@@ -79,7 +80,7 @@ describe('azw3 class', () => {
   })
 
   it('loadChapter when id not exist in spine', () => {
-    const chapter = azw3.loadChapter(100)
+    const chapter = azw3.loadChapter('100')
     expect(chapter).toBeUndefined()
   })
 
@@ -89,7 +90,7 @@ describe('azw3 class', () => {
     const href = toc![0].href
     const resolvedHref = azw3.resolveHref(href)
     expect(resolvedHref).toEqual({
-      id: 0,
+      id: '0',
       selector: '[id="calibre_pb_0"]',
     })
     // cache
@@ -97,7 +98,7 @@ describe('azw3 class', () => {
     expect(resolvedHref).toEqual(resolvedHref2)
     // uncached
     const uncachedHref = azw3.resolveHref('kindle:pos:fid:0000:off:0000000023')
-    expect(uncachedHref).toEqual({ id: 0, selector: '[aid="2"]' })
+    expect(uncachedHref).toEqual({ id: '0', selector: '[aid="2"]' })
   })
 
   it('resolveHref when href format is incorrect', () => {
@@ -126,7 +127,7 @@ describe('azw3 class', () => {
       title: '自造',
       author: ['陶勇'],
       publisher: 'www.huibooks.com',
-      language: ['zh'],
+      language: 'zh',
       published: '2021-11-30 16:00:00+00:00',
       description: '',
       subject: ['汇书网'],

@@ -1,17 +1,20 @@
+import type { EBookParser } from '@blingo-reader/shared'
 import { parsexml, path } from '@blingo-reader/shared'
 import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile } from './utils'
 import type {
   CollectionItem,
+  EpubFileInfo,
+  EpubMetadata,
+  EpubProcessedChapter,
+  EpubResolvedHref,
+  EpubSpine,
+  EpubToc,
   GuideReference,
   ManifestItem,
-  Metadata,
   NavList,
   NavPoint,
   PageList,
-  ProcessedChapter,
-  ResolvedHref,
-  SpineItem,
 } from './types'
 import {
   parseCollection,
@@ -46,10 +49,10 @@ export async function initEpubFile(epubPath: string | File, resourceRoot?: strin
  *  over to other functions for processing. Finally, the infomation extracted
  *  from epub file is stored in the form of EpubFile class attributes.
  */
-export class EpubFile {
+export class EpubFile implements EBookParser {
   private fileName: string = ''
   private mimeType: string = ''
-  public getFileInfo() {
+  public getFileInfo(): EpubFileInfo {
     return {
       fileName: this.fileName,
       mimetype: this.mimeType,
@@ -59,8 +62,8 @@ export class EpubFile {
   /**
    * <metadata> in .opf file
    */
-  private metadata?: Metadata
-  public getMetadata(): Metadata {
+  private metadata?: EpubMetadata
+  public getMetadata(): EpubMetadata {
     return this.metadata!
   }
 
@@ -75,8 +78,8 @@ export class EpubFile {
   /**
    * <spine> in .opf file
    */
-  private spine: SpineItem[] = []
-  public getSpine(): SpineItem[] {
+  private spine: EpubSpine = []
+  public getSpine(): EpubSpine {
     return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
   }
 
@@ -101,7 +104,7 @@ export class EpubFile {
    *  which is default value if there is no <navMap> in epub file
    */
   private navMap: NavPoint[] = []
-  public getToc(): NavPoint[] {
+  public getToc(): EpubToc {
     return this.navMap
   }
 
@@ -252,13 +255,13 @@ export class EpubFile {
     }
   }
 
-  private chapterCache = new Map<string, ProcessedChapter>()
+  private chapterCache = new Map<string, EpubProcessedChapter>()
   /**
    * replace <img> src absolute path or blob url
    * @param id the manifest item id of the chapter
    * @returns replaced html string
    */
-  public async loadChapter(id: string): Promise<ProcessedChapter> {
+  public async loadChapter(id: string): Promise<EpubProcessedChapter> {
     if (this.chapterCache.has(id)) {
       return this.chapterCache.get(id)!
     }
@@ -273,7 +276,7 @@ export class EpubFile {
     return transformed
   }
 
-  public resolveHref(href: string): ResolvedHref | undefined {
+  public resolveHref(href: string): EpubResolvedHref | undefined {
     if (!href.startsWith(HREF_PREFIX)) {
       return undefined
     }

@@ -122,13 +122,13 @@ describe('parse epubFile in node', async () => {
   // .ncx file
   it('getToc: .ncx navMap', () => {
     const navMap = epub.getToc()
-    expect(navMap.length).toBe(14)
-    expect(navMap[13]).toEqual({
-      depth: 1,
-      label: 'X—ALICE\'S EVIDENCE',
-      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00058',
-      correspondId: 'item32',
-      playOrder: '59',
+    expect(navMap.length).toBe(2)
+    expect(navMap[1].children!.length).toBe(11)
+    expect(navMap[0]).toEqual({
+      label: 'THE \"STORYLAND\" SERIES',
+      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00000',
+      id: 'item32',
+      playOrder: '1',
     })
   })
 
@@ -163,7 +163,7 @@ describe('parse epubFile in node', async () => {
     expect(srcs?.every(src => src.startsWith(cwd))).toBe(true)
     // css
     expect(css.length).toBe(3)
-    expect(css.every(cssPath => cssPath.startsWith(cwd))).toBe(true)
+    expect(css.every(css => css.href.startsWith(cwd))).toBe(true)
 
     // cache
     const { css: css2, html: html2 } = await epub.loadChapter('item32')
@@ -196,7 +196,7 @@ describe('parse epubFile in node', async () => {
 })
 
 describe('parse epubFile in browser', async () => {
-  let epub: EpubFile
+  let epub2: EpubFile
   beforeAll(async () => {
     // @ts-expect-error __BROWSER__ is for build process
     globalThis.__BROWSER__ = true
@@ -224,7 +224,7 @@ describe('parse epubFile in browser', async () => {
     // TODO: the parameter of initEpubFile should be a File object in browser env
     //  but here we use a string path for test, it can process File when we use it in browser
     // alice.epub file path
-    epub = await initEpubFile('./example/alice.epub')
+    epub2 = await initEpubFile('./example/alice.epub')
   })
 
   afterAll(() => {
@@ -233,7 +233,7 @@ describe('parse epubFile in browser', async () => {
   })
 
   it('loadChapter', async () => {
-    const { css, html } = await epub.loadChapter('item32')
+    const { css, html } = await epub2.loadChapter('item32')
     // html
     const imageTags = html.match(/<img[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
@@ -243,7 +243,7 @@ describe('parse epubFile in browser', async () => {
     expect(srcs?.every(src => src.startsWith('blob:'))).toBe(true)
     // css
     expect(css.length).toBe(3)
-    expect(css.every(cssPath => cssPath.startsWith('blob'))).toBe(true)
+    expect(css.every(css => css.href.startsWith('blob'))).toBe(true)
   })
 
   // simulate File
@@ -263,6 +263,6 @@ describe('parse epubFile in browser', async () => {
   })
 
   it('destroy', () => {
-    expect(() => epub.destroy()).not.toThrow()
+    expect(() => epub2.destroy()).not.toThrow()
   })
 })

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@blingo-reader/epub-parser": "workspace:^",
+    "@blingo-reader/mobi-parser": "workspace:^",
     "dompurify": "^3.2.3",
     "events": "^3.3.0",
     "pinia": "^2.2.6",
@@ -19,7 +20,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
-    "typescript": "~5.6.2",
+    "typescript": "~5.7.3",
     "vite": "^6.0.1",
     "vue-tsc": "^2.1.8"
   }
