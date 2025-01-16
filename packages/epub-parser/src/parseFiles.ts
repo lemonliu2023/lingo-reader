@@ -2,12 +2,12 @@ import { path } from '@blingo-reader/shared'
 import type {
   CollectionItem,
   Contributor,
+  EpubMetadata,
   EpubSpine,
   GuideReference,
   Identifier,
   Link,
   ManifestItem,
-  Metadata,
   NavList,
   NavPoint,
   NavTarget,
@@ -59,8 +59,8 @@ export function parseContainer(containerAST: any): string {
   and OPF 2.0 specification: https://idpf.org/epub/20/spec/OPF_2.0_final_spec.html
 */
 // opf.metadata
-export function parseMetadata(metadataAST: Record<string, any>): Metadata {
-  const metadata: Metadata = {
+export function parseMetadata(metadataAST: Record<string, any>): EpubMetadata {
+  const metadata: EpubMetadata = {
     title: '',
     language: '',
     identifier: {
