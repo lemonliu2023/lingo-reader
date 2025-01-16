@@ -6,6 +6,7 @@ export default antfu(
       'example/**',
       'packages/svg-render/test/uiviewer',
       'images/**',
+      'reader-html/src/main.ts',
     ],
   },
 )

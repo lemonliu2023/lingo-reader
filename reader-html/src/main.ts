@@ -1,11 +1,12 @@
 import { createApp } from 'vue'
 import './assets/global.css'
 import './assets/normalize.css'
-// for xml2js
-// import 'events'
 import router from './router'
 import pinia from './store'
 import App from './App.vue'
+
+window.process = window.process || {}
+window.process.cwd = () => '/'
 
 const app = createApp(App)
 
