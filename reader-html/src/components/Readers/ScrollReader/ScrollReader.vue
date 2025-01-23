@@ -187,6 +187,13 @@ const containerClick = (e: MouseEvent) => {
   margin: 0 0 0 5px;
 }
 
+.article-text * {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+}
+
 .article-text :deep(img) {
   /* display: block; */
   /* margin: auto; */

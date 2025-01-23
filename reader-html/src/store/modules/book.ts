@@ -9,7 +9,7 @@ import type { Azw3, Azw3Spine, Mobi, MobiSpine } from '@blingo-reader/mobi-parse
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | Mobi | Azw3 | undefined
   let spine: EpubSpine | MobiSpine | Azw3Spine = []
-  const chapterIndex = ref<number>(0)
+  const chapterIndex = ref<number>(6)
   const chapterNums = ref<number>(0)
   let fileInfo: Record<string, any> = {
     fileName: '',

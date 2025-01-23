@@ -29,6 +29,10 @@ export function withPx(value: number) {
   return `${value}px`
 }
 
+export function withPxImportant(value: number) {
+  return `${value}px !important`
+}
+
 export function useDomSize(domRef: Readonly<ShallowRef<HTMLElement | null>>) {
   const width = ref<number>(0)
   const height = ref<number>(0)

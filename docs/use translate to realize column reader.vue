@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBeforeUnmount } from "vue"
 import { useBookStore } from "../../../store"
+import { useDebounce, useThrottle, withPx } from "../../../utils"
 import {
   type Config,
   generateAdjusterConfig,
@@ -8,10 +9,8 @@ import {
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
-  generatePaddingConfig,
-  generateParaSpacingConfig,
+  generatePaddingConfig
 } from "../sharedLogic"
-import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils";
 
 const emits = defineEmits<{
   (event: 'infoDown'): void
@@ -43,7 +42,6 @@ const configList: Config[] = [
   generatePaddingConfig('paddingTop', paddingTop),
   generatePaddingConfig('paddingBottom', paddingBottom),
   generateLineHeightConfig(lineHeight),
-  generateParaSpacingConfig(pSpacing),
 ]
 onMounted(() => {
   emits('receiveConfig', configList)
@@ -56,7 +54,15 @@ onBeforeUnmount(() => {
  */
 const bookStore = useBookStore()
 let { chapterNums, getChapterHTML } = useBookStore()
-const currentChapterHTML = ref<string>('')
+const currentChapterHTML = ref<string>()
+
+// refs for layout
+const containerRef = useTemplateRef<HTMLElement>('containerRef')
+const articleTextRef = useTemplateRef<HTMLElement>('articleTextRef')
+const maxPageIndex = ref<number>(0)
+const index = ref<number>(0)
+const oneColumnWidth = ref<number>(0)
+const articleTranslateX = ref<number>(0)
 
 // load book
 onMounted(async () => {
@@ -68,34 +74,33 @@ onUnmounted(() => {
   document.removeEventListener('keydown', keyDownEvent)
 })
 
-// template refs
-const articleRef = useTemplateRef<HTMLElement>('articleRef')
-const delta = ref<number>(0)
-const maxPageIndex = ref<number>(0)
-const index = ref<number>(0)
-onUpdated(() => {
-  recaculatePage()
-})
+// recalculate page width and height, index ...
 const recaculatePage = () => {
-  if (!articleRef.value) return
-
-  const pageWidth = Number.parseFloat(
-    window.getComputedStyle(articleRef.value!).width
+  if (!articleTextRef.value) {
+    return
+  }
+  // the element width obtained from `ele.clientWidth` is an integer, 
+  //  it is obtained by rounding down the actual width. In this,
+  //  we use `window.getComputedStyle()` to get the more accurate width. And
+  //  if pursuing more precise values, we could use `ele.getBoundingClientRect()`
+  oneColumnWidth.value = Number.parseFloat(
+    window.getComputedStyle(articleTextRef.value!).width
   ) || 0
-  delta.value = pageWidth + columnGap.value
-
-  const articleScrollWidth = articleRef.value.scrollWidth
-  maxPageIndex.value = Math.floor(articleScrollWidth / pageWidth) - 1
+  maxPageIndex.value = Math.floor(
+    (
+      articleTextRef.value?.clientHeight!
+      /
+      (containerRef.value?.clientHeight! - paddingTop.value - paddingBottom.value)
+    )
+    / columns.value
+  )
 }
-const recaculateScroll = () => {
-  articleRef.value!.scrollTo({
-    top: 0,
-    left: index.value * delta.value,
-  })
+const recaculateTranslateX = () => {
+  articleTranslateX.value = -(oneColumnWidth.value + columnGap.value) * index.value * columns.value
 }
 const recaculate = () => {
   recaculatePage()
-  recaculateScroll()
+  recaculateTranslateX()
 }
 const recaculateWithDebounce = useDebounce(recaculate, 20)
 onUpdated(recaculate)
@@ -109,12 +114,11 @@ const nextPage = async () => {
       currentChapterHTML.value = await getChapterHTML()
       recaculatePage()
       index.value = 0
-      recaculateScroll()
+      articleTranslateX.value = 0
     }
-  }
-  else {
+  } else {
     index.value++
-    recaculateScroll()
+    recaculateTranslateX()
   }
 }
 const prevPage = async () => {
@@ -125,15 +129,14 @@ const prevPage = async () => {
       nextTick(() => {
         recaculatePage()
         index.value = Math.max(0, maxPageIndex.value)
-        recaculateScroll()
+        recaculateTranslateX()
       })
     }
   } else {
     index.value--
-    recaculateScroll()
+    recaculateTranslateX()
   }
 }
-
 const wheelEvent = useThrottle((e: WheelEvent) => {
   e.preventDefault()
   emits('infoDown')
@@ -156,68 +159,47 @@ const keyDownEvent = useDebounce((e: KeyboardEvent) => {
 }, 150)
 document.addEventListener('wheel', wheelEvent, { passive: false })
 document.addEventListener('keydown', keyDownEvent)
+
 </script>
 
 <template>
-  <div class="container" :style="{
-    fontFamily,
-    paddingLeft: withPxImportant(paddingLeft),
-    paddingRight: withPxImportant(paddingRight),
-    paddingTop: withPxImportant(paddingTop),
-    paddingBottom: withPxImportant(paddingBottom),
-
+  <div class="article-container" ref='containerRef' :style="{
+    columns, lineHeight, fontFamily,
+    fontSize: withPx(fontSize), columnGap: withPx(columnGap),
+    paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight),
+    paddingTop: withPx(paddingTop), paddingBottom: withPx(paddingBottom),
+    letterSpacing: withPx(letterSpacing), '--p-spacing': withPx(pSpacing),
   }">
-    <!-- nextPage and prevPage button -->
+    <!-- book text -->
+    <article ref="articleTextRef" v-if="currentChapterHTML" v-html="currentChapterHTML"
+      :style="{ 'transform': `translateX(${articleTranslateX}px)` }" class="article-text">
+    </article>
     <button @click.stop="nextPage" class="next-page-button">next page</button>
     <button @click.stop="prevPage" class="prev-page-button">prev page</button>
-
-    <!-- text -->
-    <article ref="articleRef" class="article" :style="{
-      columns, lineHeight,
-      fontSize: withPxImportant(fontSize),
-      columnGap: withPx(columnGap),
-      letterSpacing: withPx(letterSpacing),
-      '--p-spacing': withPx(pSpacing),
-    }">
-      <div v-html="currentChapterHTML" class="article-text"></div>
-
-      <!-- placeholder for making sure the scrolling logic working as expected -->
-      <div style="width: 100%; height: 100%;"></div>
-    </article>
   </div>
 </template>
 
 <style scoped>
 /* text */
-.container {
+.article-container {
   margin: 0;
   box-sizing: border-box;
   height: 100vh;
   width: 100vw;
+  /* column-fill: auto; */
   background-color: #f0f0f0;
   overflow: hidden;
   position: relative;
 }
 
-.article {
+.article-text {
+  display: block;
   box-sizing: border-box;
-  column-fill: auto;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  overflow-wrap: break-word;
-}
-
-.article-text * {
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  letter-spacing: inherit !important;
 }
 
 .article-text :deep(p) {
   text-indent: 2rem;
-  margin-bottom: var(--p-spacing, 0);
+  padding-bottom: var(--p-spacing, 0);
 }
 
 .article-text :deep(li p) {
@@ -275,7 +257,7 @@ document.addEventListener('keydown', keyDownEvent)
   background-color: #f0f0f0;
   border: 1px solid #000;
   border-radius: 5px;
-  opacity: 0.2;
+  opacity: 0;
 }
 
 .next-page-button:hover,

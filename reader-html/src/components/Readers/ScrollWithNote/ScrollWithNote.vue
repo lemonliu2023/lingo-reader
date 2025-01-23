@@ -228,6 +228,13 @@ const onMouseDown = (e: MouseEvent) => {
   opacity: 1;
 }
 
+.article-text * {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+}
+
 .article-text :deep(img) {
   /* make img fit to its parent */
   max-width: 100%;

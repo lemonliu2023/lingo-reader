@@ -7,6 +7,7 @@ export default antfu(
       'packages/svg-render/test/uiviewer',
       'images/**',
       'reader-html/src/main.ts',
+      'docs/*.{html,vue}',
     ],
   },
 )
