@@ -57,3 +57,20 @@ export function useDomSize(domRef: Readonly<ShallowRef<HTMLElement | null>>) {
 export function toFixedOne(val: number): number {
   return Number.parseFloat(val.toFixed(1))
 }
+
+type TemplateRef<T> = Readonly<ShallowRef<T | null>>
+export function useClickOutside(ele: TemplateRef<HTMLElement>, func: () => void) {
+  const clickOutside = (e: MouseEvent) => {
+    // click outside the element
+    if (!ele.value?.contains(e.target as Node)) {
+      func()
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', clickOutside)
+  })
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', clickOutside)
+  })
+}

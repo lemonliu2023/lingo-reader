@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue"
-import { withPx } from "../../utils"
+import { ref, useTemplateRef } from "vue"
+import { useClickOutside, withPx } from "../../utils"
 
 // Reading mode interface
 export interface Mode {
@@ -39,17 +39,9 @@ const toggleDropdown = () => {
 // TODO: extract logic that closing card when click outside to a hook
 // close drop-down menu when clicking outside
 const dropdownRef = useTemplateRef('dropdownRef')
-const handleClickOutside = (event: MouseEvent) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(<Node>event.target)) {
-    isDropdownOpen.value = false;
-  }
-}
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-onBeforeUnmount(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
+useClickOutside(dropdownRef, () => {
+  isDropdownOpen.value = false
+})
 </script>
 
 <template>

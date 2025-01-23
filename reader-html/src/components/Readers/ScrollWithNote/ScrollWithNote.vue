@@ -228,6 +228,7 @@ const onMouseDown = (e: MouseEvent) => {
   opacity: 1;
 }
 
+/* To remove default css set by inline style */
 .article-text * {
   font-family: inherit !important;
   font-size: inherit !important;

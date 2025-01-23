@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef, onBeforeUnmount } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import { Config } from '../../../components/Readers/sharedLogic'
 import DropDown from '../../../components/DropDown'
 import ValueAdjuster from '../../../components/ValueAdjuster/ValueAdjuster.vue'
+import { useClickOutside } from '../../../utils'
 
 defineProps<{
   config: Config[]
@@ -13,16 +14,8 @@ const tooglePannelShow = () => {
 }
 // TODO: extract logic that closing card when click outside to a hook
 const configArea = useTemplateRef('configArea')
-const hiddenIfClickOutside = (e: MouseEvent) => {
-  if (!configArea.value!.contains(e.target as Node)) {
-    showConfigPannel.value = false
-  }
-}
-onMounted(() => {
-  document.addEventListener('click', hiddenIfClickOutside)
-})
-onBeforeUnmount(() => {
-  document.removeEventListener('click', hiddenIfClickOutside)
+useClickOutside(configArea, () => {
+  showConfigPannel.value = false
 })
 
 </script>

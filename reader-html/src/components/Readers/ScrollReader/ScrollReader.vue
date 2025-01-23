@@ -189,6 +189,7 @@ const containerClick = (e: MouseEvent) => {
   margin: 0 0 0 5px;
 }
 
+/* To remove default css set by inline style */
 .article-text * {
   font-family: inherit !important;
   font-size: inherit !important;

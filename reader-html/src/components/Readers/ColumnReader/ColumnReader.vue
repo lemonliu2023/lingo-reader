@@ -208,6 +208,7 @@ document.addEventListener('keydown', keyDownEvent)
   overflow-wrap: break-word;
 }
 
+/* To remove default css set by inline style */
 .article-text * {
   font-family: inherit !important;
   font-size: inherit !important;
