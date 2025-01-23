@@ -80,8 +80,12 @@ const { width: containerWidth } = useDomSize(containerRef)
 /**
  * move drag bar
  */
-const paddingLeft = ref<number>(300)
-const paddingRight = ref<number>(300)
+const paddingLeft = ref<number>(200)
+const paddingRight = ref<number>(200)
+onMounted(() => {
+  paddingLeft.value = 0.2 * containerWidth.value
+  paddingRight.value = 0.2 * containerWidth.value
+})
 const isDragging = ref<boolean>(false)
 
 let startX = 0
@@ -161,8 +165,6 @@ const containerClick = (e: MouseEvent) => {
   box-sizing: border-box;
   font-family: 'Lucida Console', Courier, monospace;
   background-color: #f0f0f0;
-  padding-left: 300px;
-  padding-right: 300px;
 }
 
 .article-container button {
