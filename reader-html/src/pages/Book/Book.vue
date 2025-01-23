@@ -2,7 +2,7 @@
 import { ref, defineAsyncComponent, useTemplateRef } from "vue"
 import { useBookStore } from "../../store"
 import { useRouter } from "vue-router"
-import { flatToc, ReaderType } from "./Book"
+import { FlatedTocItem, flatToc, ReaderType } from "./Book"
 import DropDown from "../../components/DropDown"
 import { Config } from "../../components/Readers/sharedLogic"
 import ConfigPannel from "./components/ConfigPannel.vue"
@@ -78,6 +78,7 @@ const currentConfig = ref<Config[]>([])
  * book toc
  */
 const toc = flatToc(bookStore.getToc()!)
+// toc show or hide
 const showToc = ref<boolean>(false)
 const showTocToggle = () => {
   showToc.value = !showToc.value
@@ -86,6 +87,15 @@ const tocUiContent = useTemplateRef<HTMLElement>('tocUiContent')
 useClickOutside(tocUiContent, () => {
   showToc.value = false
 })
+// click toc item
+const selectedTocItem = ref<{ id: string, selector: string }>({ id: '', selector: '' })
+const tocItemClick = (item: FlatedTocItem) => {
+  const resolvedHref = bookStore.resolveHref(item.href)
+  if (resolvedHref) {
+    selectedTocItem.value = bookStore.resolveHref(item.href)!
+  }
+  infoBarDown()
+}
 
 </script>
 
@@ -122,9 +132,10 @@ useClickOutside(tocUiContent, () => {
         <img src="/toc.svg" alt="toc">
         <span>table of contents</span>
       </div>
-      <div :class="{'hide-toc': !showToc, }" @wheel.stop class="toc">
+      <div :class="{ 'hide-toc': !showToc, }" @wheel.stop.passive class="toc">
         <ul>
-          <li v-for="item in toc" :key="item.label" :style="{ paddingLeft: withPx(20 + item.level * 20) }">
+          <li @click="tocItemClick(item)" v-for="item in toc" :key="item.label"
+            :style="{ paddingLeft: withPx(20 + item.level * 20) }">
             <span>{{ item.label }}</span>
           </li>
         </ul>
@@ -135,11 +146,12 @@ useClickOutside(tocUiContent, () => {
     Reader show
    -->
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
-    <ColumnReader v-if="modeName === ReaderType.COLUMN" @receive-config="receiveConfig" @info-down="infoBarDown">
+    <ColumnReader v-if="modeName === ReaderType.COLUMN" :selected-toc-item="selectedTocItem"
+      @receive-config="receiveConfig" @info-down="infoBarDown">
     </ColumnReader>
-    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" @receive-config="receiveConfig" @info-down="infoBarDown">
+    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" :selected-toc-item="selectedTocItem" @receive-config="receiveConfig" @info-down="infoBarDown">
     </ScrollReader>
-    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" @receive-config="receiveConfig"
+    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" :selected-toc-item="selectedTocItem"  @receive-config="receiveConfig"
       @info-down="infoBarDown">
     </ScrollWithNote>
   </div>

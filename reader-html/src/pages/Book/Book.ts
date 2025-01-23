@@ -6,7 +6,7 @@ export enum ReaderType {
   SCROLL_WITH_NOTE = 'ScrollWithNote',
 }
 
-interface FlatedTocItem {
+export interface FlatedTocItem {
   label: string
   href: string
   level: number

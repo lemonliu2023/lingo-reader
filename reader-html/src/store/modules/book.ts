@@ -38,10 +38,9 @@ const useBookStore = defineStore('ebook', () => {
   }
 
   const chapterCache = new Map<string, string>()
-  const getChapterHTML = async () => {
-    const id = spine[chapterIndex.value].id
+  const getChapterHTMLFromId = async (id: string): Promise<string> => {
     if (chapterCache.has(id)) {
-      return chapterCache.get(id)
+      return chapterCache.get(id)!
     }
 
     const { html } = await book!.loadChapter(id)!
@@ -51,6 +50,16 @@ const useBookStore = defineStore('ebook', () => {
     })
     chapterCache.set(id, purifiedDom)
     return purifiedDom
+  }
+
+  const getChapterHTML = async () => {
+    const id = spine[chapterIndex.value].id
+    return await getChapterHTMLFromId(id)
+  }
+
+  const getChapterThroughId = async (id: string) => {
+    chapterIndex.value = spine.findIndex(item => item.id === id)
+    return await getChapterHTMLFromId(id)
   }
 
   const getToc = () => {
@@ -73,15 +82,21 @@ const useBookStore = defineStore('ebook', () => {
     return book !== undefined
   }
 
+  const resolveHref = (href: string) => {
+    return book!.resolveHref(href)
+  }
+
   return {
     chapterIndex,
     chapterNums,
     initBook,
     getChapterHTML,
+    getChapterThroughId,
     getToc,
     getFileName,
     reset,
     existBook,
+    resolveHref,
   }
 })
 

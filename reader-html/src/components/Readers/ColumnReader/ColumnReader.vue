@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBeforeUnmount } from "vue"
+import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBeforeUnmount, watch } from "vue"
 import { useBookStore } from "../../../store"
 import {
   type Config,
@@ -16,6 +16,9 @@ import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../util
 const emits = defineEmits<{
   (event: 'infoDown'): void
   (event: 'receiveConfig', configList: Config[]): void
+}>()
+const props = defineProps<{
+  selectedTocItem: { id: string, selector: string }
 }>()
 
 /**
@@ -62,6 +65,21 @@ const currentChapterHTML = ref<string>('')
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
 })
+
+// load book when select toc item
+watch(() => props.selectedTocItem, async (newV) => {
+  if (newV.id.length > 0) {
+    currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
+  }
+  if (newV.selector.length > 0) {
+    const eleLeft = articleRef.value?.querySelector(newV.selector)?.getBoundingClientRect().left
+    if (eleLeft) {
+      index.value = Math.floor(eleLeft / delta.value)
+      recaculateScroll()
+    }
+  }
+})
+
 onUnmounted(() => {
   window.removeEventListener('resize', recaculateWithDebounce)
   document.removeEventListener('wheel', wheelEvent)

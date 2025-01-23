@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue"
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue"
 import { useBookStore } from "../../../store"
 import { useDomSize, withPx } from "../../../utils"
 import Resizer from "../../Resizer/Resizer.vue"
@@ -17,6 +17,10 @@ const emits = defineEmits<{
   (e: 'infoDown'): void
   (event: 'receiveConfig', configList: Config[]): void
 }>()
+const props = defineProps<{
+  selectedTocItem: { id: string, selector: string }
+}>()
+
 const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const fontSize = ref<number>(16)
 const letterSpacing = ref<number>(0)
@@ -52,6 +56,16 @@ let { chapterNums, getChapterHTML } = useBookStore()
 const currentChapterHTML = ref<string>()
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
+})
+
+// load book when select toc item
+watch(() => props.selectedTocItem, async (newV) => {
+  if (newV.id.length > 0) {
+    currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
+  }
+  if (newV.selector.length > 0) {
+    containerRef.value!.querySelector(newV.selector)!.scrollIntoView()
+  }
 })
 
 /**

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, onMounted, onBeforeUnmount } from 'vue'
+import { ref, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useBookStore } from '../../../store'
 import { withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
@@ -16,6 +16,10 @@ const emits = defineEmits<{
   (e: 'info-down'): void
   (event: 'receiveConfig', configList: Config[]): void
 }>()
+const props = defineProps<{
+  selectedTocItem: { id: string, selector: string }
+}>()
+
 const fontSize = ref<number>(16)
 const letterSpacing = ref<number>(0)
 const lineHeight = ref<number>(2)
@@ -53,6 +57,17 @@ const currentChapterHTML = ref<string>()
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
 })
+
+// load book when select toc item
+watch(() => props.selectedTocItem, async (newV) => {
+  if (newV.id.length > 0) {
+    currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
+  }
+  if (newV.selector.length > 0) {
+    articleWrapRef.value!.querySelector(newV.selector)!.scrollIntoView()
+  }
+})
+
 const prevChapter = async () => {
   if (bookStore.chapterIndex > 0) {
     bookStore.chapterIndex--
