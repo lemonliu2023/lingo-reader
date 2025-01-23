@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent } from "vue"
+import { ref, defineAsyncComponent, useTemplateRef } from "vue"
 import { useBookStore } from "../../store"
 import { useRouter } from "vue-router"
-import { ReaderType } from "./Book"
+import { flatToc, ReaderType } from "./Book"
 import DropDown from "../../components/DropDown"
 import { Config } from "../../components/Readers/sharedLogic"
 import ConfigPannel from "./components/ConfigPannel.vue"
+import { useClickOutside, withPx } from "../../utils"
 
 const ColumnReader = defineAsyncComponent(
   () => import('../../components/Readers/ColumnReader/ColumnReader.vue')
@@ -72,10 +73,30 @@ const receiveConfig = (configs: Config[]): void => {
   currentConfig.value = configs
 }
 const currentConfig = ref<Config[]>([])
+
+/**
+ * book toc
+ */
+const toc = flatToc(bookStore.getToc()!)
+const showToc = ref<boolean>(false)
+const showTocToggle = () => {
+  showToc.value = !showToc.value
+}
+const tocUiContent = useTemplateRef<HTMLElement>('tocUiContent')
+useClickOutside(tocUiContent, () => {
+  showToc.value = false
+})
+
 </script>
 
 <template>
+  <!-- 
+   info bar
+   -->
   <div :class="{ 'top0': isInfoDown, 'topN80': !isInfoDown }" class="top-info-bar">
+    <!-- 
+      info bar left
+     -->
     <div class="top-info-bar-left">
       <!-- back button -->
       <div class="back" @click="back">
@@ -86,13 +107,33 @@ const currentConfig = ref<Config[]>([])
       <!-- configPanel -->
       <ConfigPannel :config="currentConfig"></ConfigPannel>
     </div>
+    <!-- 
+      info bar middle
+     -->
     <div :title="bookStore.getFileName()" class="top-info-bar-middle text-ellipses">
       {{ bookStore.getFileName() }}
     </div>
+    <!-- 
+      info bar right
+     -->
     <div class="top-info-bar-right">
-      <!-- TODO: add navMap -->
+      <!-- toc -->
+      <div ref="tocUiContent" @click="showTocToggle" class="toc-tag">
+        <img src="/toc.svg" alt="toc">
+        <span>table of contents</span>
+      </div>
+      <div :class="{'hide-toc': !showToc, }" @wheel.stop class="toc">
+        <ul>
+          <li v-for="item in toc" :key="item.label" :style="{ paddingLeft: withPx(20 + item.level * 20) }">
+            <span>{{ item.label }}</span>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
+  <!--
+    Reader show
+   -->
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
     <ColumnReader v-if="modeName === ReaderType.COLUMN" @receive-config="receiveConfig" @info-down="infoBarDown">
     </ColumnReader>
@@ -162,7 +203,60 @@ const currentConfig = ref<Config[]>([])
   font-weight: 400;
 }
 
+/*
+  * info bar right
+*/
 .top-info-bar-right {
   flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* tag */
+.top-info-bar-right .toc-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.top-info-bar-right .toc-tag img {
+  width: 25px;
+  height: 25px;
+}
+
+.top-info-bar-right .toc-tag {
+  font-size: 10px;
+  color: #666;
+  cursor: pointer;
+}
+
+/* content */
+.toc {
+  position: fixed;
+  top: 80px;
+  right: 0;
+  width: 400px;
+  height: calc(100% - 80px);
+  background-color: #f0f0f0;
+  overflow-y: scroll;
+  transition: right 0.1s;
+}
+
+.hide-toc {
+  right: -400px;
+}
+
+.toc ul {
+  border-left: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.toc li {
+  padding: 10px 5px;
+  cursor: pointer;
+}
+
+.toc li:hover {
+  background-color: #e5e5e5;
 }
 </style>

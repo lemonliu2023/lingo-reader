@@ -35,3 +35,13 @@ input[type="number"]{
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* clear default style of ul and li */
+ul, ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+li {
+  margin: 0;
+}

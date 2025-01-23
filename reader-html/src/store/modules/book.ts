@@ -37,13 +37,20 @@ const useBookStore = defineStore('ebook', () => {
     }
   }
 
-  // TODO: add cache
+  const chapterCache = new Map<string, string>()
   const getChapterHTML = async () => {
-    const { html } = await book!.loadChapter(spine[chapterIndex.value].id)!
+    const id = spine[chapterIndex.value].id
+    if (chapterCache.has(id)) {
+      return chapterCache.get(id)
+    }
+
+    const { html } = await book!.loadChapter(id)!
     // for security
-    return DOMPurify.sanitize(html, {
-      ALLOWED_URI_REGEXP: /^(blob|https)/gi,
+    const purifiedDom = DOMPurify.sanitize(html, {
+      ALLOWED_URI_REGEXP: /^(blob|https|Epub|filepos|kindle)/gi,
     })
+    chapterCache.set(id, purifiedDom)
+    return purifiedDom
   }
 
   const getToc = () => {

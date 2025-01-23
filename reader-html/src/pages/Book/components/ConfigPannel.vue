@@ -12,7 +12,7 @@ const showConfigPannel = ref<boolean>(false)
 const tooglePannelShow = () => {
   showConfigPannel.value = !showConfigPannel.value
 }
-// TODO: extract logic that closing card when click outside to a hook
+
 const configArea = useTemplateRef('configArea')
 useClickOutside(configArea, () => {
   showConfigPannel.value = false
