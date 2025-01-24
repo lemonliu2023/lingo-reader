@@ -3,7 +3,6 @@ import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBef
 import { useBookStore } from "../../../store"
 import {
   type Config,
-  findATag,
   generateAdjusterConfig,
   generateFontFamilyConfig,
   generateFontSizeConfig,
@@ -11,6 +10,7 @@ import {
   generateLineHeightConfig,
   generatePaddingConfig,
   generateParaSpacingConfig,
+  handleATagHref,
 } from "../sharedLogic"
 import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils"
 import type { ResolvedHref } from "@blingo-reader/shared"
@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
  * book
  */
 const bookStore = useBookStore()
-let { chapterNums, getChapterHTML } = useBookStore()
+let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 const currentChapterHTML = ref<string>('')
 
 // load book
@@ -73,11 +73,13 @@ const skipToChapter = async (newV: ResolvedHref) => {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
   if (newV.selector.length > 0) {
-    const eleLeft = articleRef.value?.querySelector(newV.selector)?.getBoundingClientRect().left
-    if (eleLeft) {
-      index.value = Math.floor(eleLeft / delta.value)
-      recaculateScroll()
-    }
+    nextTick(() => {
+      const eleLeft = articleRef.value?.querySelector(newV.selector)?.getBoundingClientRect().left
+      if (eleLeft) {
+        index.value = Math.floor(eleLeft / delta.value)
+        recaculateScroll()
+      }
+    })
   }
 }
 
@@ -85,21 +87,7 @@ const skipToChapter = async (newV: ResolvedHref) => {
 watch(() => props.selectedTocItem, skipToChapter)
 
 // handle a tag href, bind to article element
-const handleATagHref = (e: MouseEvent) => {
-  const aTag = findATag(e)
-
-  if (aTag) {
-    e.preventDefault()
-    e.stopPropagation()
-    const resolvedHref = bookStore.resolveHref(aTag.href)
-    if (resolvedHref) {
-      skipToChapter(resolvedHref)
-    }
-    else {
-      window.open(aTag.href, '_blank')
-    }
-  }
-}
+const handleATagHrefColumn = handleATagHref(resolveHref, skipToChapter)
 
 onUnmounted(() => {
   window.removeEventListener('resize', recaculateWithDebounce)
@@ -210,7 +198,7 @@ document.addEventListener('keydown', keyDownEvent)
     <button @click.stop="prevPage" class="prev-page-button">prev page</button>
 
     <!-- text -->
-    <article @click="handleATagHref" ref="articleRef" class="article" :style="{
+    <article @click="handleATagHrefColumn" ref="articleRef" class="article" :style="{
       columns, lineHeight,
       fontSize: withPxImportant(fontSize),
       columnGap: withPx(columnGap),

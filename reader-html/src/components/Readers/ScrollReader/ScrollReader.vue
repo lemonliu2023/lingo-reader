@@ -1,17 +1,17 @@
 <script setup lang='ts'>
-import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue"
+import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue"
 import { useBookStore } from "../../../store"
 import { useDomSize, withPx } from "../../../utils"
 import Resizer from "../../Resizer/Resizer.vue"
 import {
   type Config,
-  findATag,
   generateFontFamilyConfig,
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
   generatePaddingConfig,
-  generateParaSpacingConfig
+  generateParaSpacingConfig,
+  handleATagHref
 } from "../sharedLogic"
 import type { ResolvedHref } from "@blingo-reader/shared"
 
@@ -65,7 +65,9 @@ const skipToChapter = async (newV: ResolvedHref) => {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
   if (newV.selector.length > 0) {
-    containerRef.value!.querySelector(newV.selector)?.scrollIntoView()
+    nextTick(() => {
+      containerRef.value!.querySelector(newV.selector)!.scrollIntoView()
+    })
   }
 }
 
@@ -73,21 +75,7 @@ const skipToChapter = async (newV: ResolvedHref) => {
 watch(() => props.selectedTocItem, skipToChapter)
 
 // handle a tag href, bind to article element
-const handleATagHref = (e: MouseEvent) => {
-  const aTag = findATag(e)
-
-  if (aTag) {
-    e.preventDefault()
-    e.stopPropagation()
-    const resolvedHref = resolveHref(aTag.href)
-    if (resolvedHref) {
-      skipToChapter(resolvedHref)
-    }
-    else {
-      window.open(aTag.href, '_blank')
-    }
-  }
-}
+const handleATagHrefScroll = handleATagHref(resolveHref, skipToChapter)
 
 /**
  * chapter turning
@@ -175,7 +163,7 @@ const containerClick = (e: MouseEvent) => {
     <!-- book text -->
     <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
 
-    <article @click="handleATagHref" :style="{
+    <article @click="handleATagHrefScroll" :style="{
       fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft),
       paddingRight: withPx(textPaddingRight), paddingTop: withPx(textPaddingTop),
       paddingBottom: withPx(textPaddingBottom), fontSize: withPx(fontSize),

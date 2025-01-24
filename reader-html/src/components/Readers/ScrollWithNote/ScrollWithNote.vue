@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useBookStore } from '../../../store'
 import { withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
 import {
   type Config,
-  findATag,
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
   generatePaddingConfig,
-  generateParaSpacingConfig
+  generateParaSpacingConfig,
+  handleATagHref
 } from '../sharedLogic'
 import type { ResolvedHref } from '@blingo-reader/shared'
 
@@ -65,7 +65,9 @@ const skipToChapter = async (newV: ResolvedHref) => {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
   if (newV.selector.length > 0) {
-    articleWrapRef.value!.querySelector(newV.selector)!.scrollIntoView()
+    nextTick(() => {
+      articleWrapRef.value!.querySelector(newV.selector)!.scrollIntoView()
+    })
   }
 }
 
@@ -73,21 +75,7 @@ const skipToChapter = async (newV: ResolvedHref) => {
 watch(() => props.selectedTocItem, skipToChapter)
 
 // handle a tag href, bind to article element
-const handleATagHref = (e: MouseEvent) => {
-  const aTag = findATag(e)
-
-  if (aTag) {
-    e.preventDefault()
-    e.stopPropagation()
-    const resolvedHref = resolveHref(aTag.href)
-    if (resolvedHref) {
-      skipToChapter(resolvedHref)
-    }
-    else {
-      window.open(aTag.href, '_blank')
-    }
-  }
-}
+const handleATagHrefScrollNote = handleATagHref(resolveHref, skipToChapter)
 
 const prevChapter = async () => {
   if (bookStore.chapterIndex > 0) {
@@ -177,7 +165,7 @@ const onMouseDown = (e: MouseEvent) => {
     }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
-      <article @click="handleATagHref" class="article-text" v-html="currentChapterHTML">
+      <article @click="handleATagHrefScrollNote" class="article-text" v-html="currentChapterHTML">
       </article>
     </div>
   </div>

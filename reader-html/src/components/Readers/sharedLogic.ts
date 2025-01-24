@@ -85,7 +85,7 @@ export function generateParaSpacingConfig(pSpacing: Ref<number, number>) {
   return generateAdjusterConfig('pSpacing', Infinity, 0, 1, pSpacing)
 }
 
-export function findATag(e: MouseEvent): HTMLAnchorElement | undefined {
+function findATag(e: MouseEvent): HTMLAnchorElement | undefined {
   const composedPath = e.composedPath()
   const currentTarget = e.currentTarget
   for (const el of composedPath) {
@@ -100,21 +100,22 @@ export function findATag(e: MouseEvent): HTMLAnchorElement | undefined {
 }
 
 export function handleATagHref(
-  e: MouseEvent,
   resolveHref: (href: string) => ResolvedHref | undefined,
-  skipToChapter: (resolvedHref: ResolvedHref | undefined) => void,
+  skipToChapter: (resolvedHref: ResolvedHref) => Promise<void>,
 ) {
-  const aTag = findATag(e)
+  return (e: MouseEvent) => {
+    const aTag = findATag(e)
 
-  if (aTag) {
-    e.preventDefault()
-    e.stopPropagation()
-    const resolvedHref = resolveHref(aTag.href)
-    if (resolvedHref) {
-      skipToChapter(resolvedHref)
-    }
-    else {
-      window.open(aTag.href, '_blank')
+    if (aTag) {
+      e.preventDefault()
+      e.stopPropagation()
+      const resolvedHref = resolveHref(aTag.href)
+      if (resolvedHref) {
+        skipToChapter(resolvedHref)
+      }
+      else {
+        window.open(aTag.href, '_blank')
+      }
     }
   }
 }
