@@ -106,7 +106,8 @@ export function handleATagHref(
   return (e: MouseEvent) => {
     const aTag = findATag(e)
 
-    if (aTag) {
+    // there is no need jump when <a> don't have href
+    if (aTag?.href) {
       e.preventDefault()
       e.stopPropagation()
       const resolvedHref = resolveHref(aTag.href)
