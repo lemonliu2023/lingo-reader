@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import type { ResolvedHref } from '@blingo-reader/shared'
 import type { Mode } from '../DropDown'
 
 interface AdjusterConfig {
@@ -82,4 +83,38 @@ export function generatePaddingConfig(name: string, paddingOneDirection: Ref<num
 
 export function generateParaSpacingConfig(pSpacing: Ref<number, number>) {
   return generateAdjusterConfig('pSpacing', Infinity, 0, 1, pSpacing)
+}
+
+export function findATag(e: MouseEvent): HTMLAnchorElement | undefined {
+  const composedPath = e.composedPath()
+  const currentTarget = e.currentTarget
+  for (const el of composedPath) {
+    if (el === currentTarget) {
+      return undefined
+    }
+    if ((el as HTMLElement).tagName === 'A') {
+      return el as HTMLAnchorElement
+    }
+  }
+  return undefined
+}
+
+export function handleATagHref(
+  e: MouseEvent,
+  resolveHref: (href: string) => ResolvedHref | undefined,
+  skipToChapter: (resolvedHref: ResolvedHref | undefined) => void,
+) {
+  const aTag = findATag(e)
+
+  if (aTag) {
+    e.preventDefault()
+    e.stopPropagation()
+    const resolvedHref = resolveHref(aTag.href)
+    if (resolvedHref) {
+      skipToChapter(resolvedHref)
+    }
+    else {
+      window.open(aTag.href, '_blank')
+    }
+  }
 }

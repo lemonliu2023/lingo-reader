@@ -95,7 +95,7 @@ describe('parse epubFile in node', async () => {
     expect(spine.length).toBe(1)
     expect(spine[0]).toEqual({
       id: 'item32',
-      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
+      href: 'epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       mediaType: 'application/xhtml+xml',
       mediaOverlay: '',
       properties: '',
@@ -110,7 +110,7 @@ describe('parse epubFile in node', async () => {
     expect(guide).toEqual([{
       title: 'Cover Image',
       type: 'cover',
-      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
+      href: 'epub:19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
     }])
   })
 
@@ -126,7 +126,7 @@ describe('parse epubFile in node', async () => {
     expect(navMap[1].children!.length).toBe(11)
     expect(navMap[0]).toEqual({
       label: 'THE \"STORYLAND\" SERIES',
-      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00000',
+      href: 'epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#pgepubid00000',
       id: 'item32',
       playOrder: '1',
     })
@@ -139,7 +139,7 @@ describe('parse epubFile in node', async () => {
     expect(pageList.pageTargets[47]).toEqual({
       label: '[Pg 48]',
       value: '48',
-      href: 'Epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#Page_48',
+      href: 'epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm#Page_48',
       playOrder: '62',
       type: 'normal',
       correspondId: 'item32',
@@ -185,7 +185,7 @@ describe('parse epubFile in node', async () => {
   })
 
   it('resolveHref with no selector', () => {
-    const href = 'Epub:19033/www.gutenberg.org@files@19033@19033-#'
+    const href = 'epub:19033/www.gutenberg.org@files@19033@19033-#'
     const resolvedHref = epub.resolveHref(href)!
     expect(resolvedHref).toBeUndefined()
   })

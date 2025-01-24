@@ -5,6 +5,7 @@ import { useDomSize, withPx } from "../../../utils"
 import Resizer from "../../Resizer/Resizer.vue"
 import {
   type Config,
+  findATag,
   generateFontFamilyConfig,
   generateFontSizeConfig,
   generateLetterSpacingConfig,
@@ -12,6 +13,7 @@ import {
   generatePaddingConfig,
   generateParaSpacingConfig
 } from "../sharedLogic"
+import type { ResolvedHref } from "@blingo-reader/shared"
 
 const emits = defineEmits<{
   (e: 'infoDown'): void
@@ -52,21 +54,40 @@ onBeforeUnmount(() => {
  * book
  */
 const bookStore = useBookStore()
-let { chapterNums, getChapterHTML } = useBookStore()
+let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 const currentChapterHTML = ref<string>()
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
 })
 
-// load book when select toc item
-watch(() => props.selectedTocItem, async (newV) => {
+const skipToChapter = async (newV: ResolvedHref) => {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
   if (newV.selector.length > 0) {
-    containerRef.value!.querySelector(newV.selector)!.scrollIntoView()
+    containerRef.value!.querySelector(newV.selector)?.scrollIntoView()
   }
-})
+}
+
+// load book when select toc item
+watch(() => props.selectedTocItem, skipToChapter)
+
+// handle a tag href, bind to article element
+const handleATagHref = (e: MouseEvent) => {
+  const aTag = findATag(e)
+
+  if (aTag) {
+    e.preventDefault()
+    e.stopPropagation()
+    const resolvedHref = resolveHref(aTag.href)
+    if (resolvedHref) {
+      skipToChapter(resolvedHref)
+    }
+    else {
+      window.open(aTag.href, '_blank')
+    }
+  }
+}
 
 /**
  * chapter turning
@@ -154,7 +175,7 @@ const containerClick = (e: MouseEvent) => {
     <!-- book text -->
     <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
 
-    <article :style="{
+    <article @click="handleATagHref" :style="{
       fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft),
       paddingRight: withPx(textPaddingRight), paddingTop: withPx(textPaddingTop),
       paddingBottom: withPx(textPaddingBottom), fontSize: withPx(fontSize),

@@ -3,6 +3,7 @@ import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBef
 import { useBookStore } from "../../../store"
 import {
   type Config,
+  findATag,
   generateAdjusterConfig,
   generateFontFamilyConfig,
   generateFontSizeConfig,
@@ -11,7 +12,8 @@ import {
   generatePaddingConfig,
   generateParaSpacingConfig,
 } from "../sharedLogic"
-import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils";
+import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils"
+import type { ResolvedHref } from "@blingo-reader/shared"
 
 const emits = defineEmits<{
   (event: 'infoDown'): void
@@ -66,8 +68,7 @@ onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
 })
 
-// load book when select toc item
-watch(() => props.selectedTocItem, async (newV) => {
+const skipToChapter = async (newV: ResolvedHref) => {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
@@ -78,7 +79,27 @@ watch(() => props.selectedTocItem, async (newV) => {
       recaculateScroll()
     }
   }
-})
+}
+
+// load book when select toc item
+watch(() => props.selectedTocItem, skipToChapter)
+
+// handle a tag href, bind to article element
+const handleATagHref = (e: MouseEvent) => {
+  const aTag = findATag(e)
+
+  if (aTag) {
+    e.preventDefault()
+    e.stopPropagation()
+    const resolvedHref = bookStore.resolveHref(aTag.href)
+    if (resolvedHref) {
+      skipToChapter(resolvedHref)
+    }
+    else {
+      window.open(aTag.href, '_blank')
+    }
+  }
+}
 
 onUnmounted(() => {
   window.removeEventListener('resize', recaculateWithDebounce)
@@ -183,14 +204,13 @@ document.addEventListener('keydown', keyDownEvent)
     paddingRight: withPxImportant(paddingRight),
     paddingTop: withPxImportant(paddingTop),
     paddingBottom: withPxImportant(paddingBottom),
-
   }">
     <!-- nextPage and prevPage button -->
     <button @click.stop="nextPage" class="next-page-button">next page</button>
     <button @click.stop="prevPage" class="prev-page-button">prev page</button>
 
     <!-- text -->
-    <article ref="articleRef" class="article" :style="{
+    <article @click="handleATagHref" ref="articleRef" class="article" :style="{
       columns, lineHeight,
       fontSize: withPxImportant(fontSize),
       columnGap: withPx(columnGap),

@@ -5,12 +5,14 @@ import { withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
 import {
   type Config,
+  findATag,
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
   generatePaddingConfig,
   generateParaSpacingConfig
 } from '../sharedLogic'
+import type { ResolvedHref } from '@blingo-reader/shared'
 
 const emits = defineEmits<{
   (e: 'info-down'): void
@@ -50,7 +52,7 @@ const articleWrapRef = useTemplateRef('articleWrapRef')
  * book
  */
 const bookStore = useBookStore()
-let { chapterNums, getChapterHTML } = useBookStore()
+let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 
 const currentChapterHTML = ref<string>()
 
@@ -58,15 +60,34 @@ onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
 })
 
-// load book when select toc item
-watch(() => props.selectedTocItem, async (newV) => {
+const skipToChapter = async (newV: ResolvedHref) => {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
   if (newV.selector.length > 0) {
     articleWrapRef.value!.querySelector(newV.selector)!.scrollIntoView()
   }
-})
+}
+
+// load book when select toc item
+watch(() => props.selectedTocItem, skipToChapter)
+
+// handle a tag href, bind to article element
+const handleATagHref = (e: MouseEvent) => {
+  const aTag = findATag(e)
+
+  if (aTag) {
+    e.preventDefault()
+    e.stopPropagation()
+    const resolvedHref = resolveHref(aTag.href)
+    if (resolvedHref) {
+      skipToChapter(resolvedHref)
+    }
+    else {
+      window.open(aTag.href, '_blank')
+    }
+  }
+}
 
 const prevChapter = async () => {
   if (bookStore.chapterIndex > 0) {
@@ -156,7 +177,7 @@ const onMouseDown = (e: MouseEvent) => {
     }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
-      <article class="article-text" v-html="currentChapterHTML">
+      <article @click="handleATagHref" class="article-text" v-html="currentChapterHTML">
       </article>
     </div>
   </div>

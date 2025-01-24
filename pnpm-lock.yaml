@@ -108,6 +108,9 @@ importers:
       '@blingo-reader/mobi-parser':
         specifier: workspace:^
         version: link:../packages/mobi-parser
+      '@blingo-reader/shared':
+        specifier: workspace:^
+        version: link:../packages/shared
       dompurify:
         specifier: ^3.2.3
         version: 3.2.3

@@ -78,11 +78,10 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
 
   // a tag href
   str = str.replace(/<a[^>]*>/g, (aTag: string) => {
-    const href = aTag.match(/href="([^"]*)"/)
-    if (href) {
-      const hrefValue = href[1]
-      const transformedHref = path.joinPosix(htmlDir, hrefValue)
-      aTag = aTag.replace(hrefValue, HREF_PREFIX + transformedHref)
+    const href = aTag.match(/href="([^"]*)"/)?.[1]
+    if (href && !/^http|mailto/.test(href)) {
+      const transformedHref = path.joinPosix(htmlDir, href)
+      aTag = aTag.replace(href, HREF_PREFIX + transformedHref)
     }
     return aTag
   })

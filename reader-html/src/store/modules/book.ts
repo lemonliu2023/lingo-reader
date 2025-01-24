@@ -5,15 +5,15 @@ import { ref } from 'vue'
 import DOMPurify from 'dompurify'
 import { initAzw3File, initMobiFile } from '@blingo-reader/mobi-parser'
 import type { Azw3, Azw3Spine, Mobi, MobiSpine } from '@blingo-reader/mobi-parser'
+import type { FileInfo } from '@blingo-reader/shared'
 
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | Mobi | Azw3 | undefined
   let spine: EpubSpine | MobiSpine | Azw3Spine = []
-  const chapterIndex = ref<number>(6)
+  const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
-  let fileInfo: Record<string, any> = {
+  let fileInfo: FileInfo = {
     fileName: '',
-    mimetype: '',
   }
 
   const initBook = async (file: File) => {
@@ -76,6 +76,8 @@ const useBookStore = defineStore('ebook', () => {
     spine = []
     chapterIndex.value = 0
     chapterNums.value = 0
+    // clear chapter cache to avoid image conflict in different books
+    chapterCache.clear()
   }
 
   const existBook = (): boolean => {

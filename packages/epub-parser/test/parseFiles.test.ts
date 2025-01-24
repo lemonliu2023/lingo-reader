@@ -354,7 +354,7 @@ describe('parseSpine', async () => {
     expect(spine.length).toBe(3)
     expect(spine[2]).toEqual({
       id: 'c1-answerkey',
-      href: 'Epub:chapter1-answerkey.xhtml',
+      href: 'epub:chapter1-answerkey.xhtml',
       mediaType: 'application/xhtml+xml',
       properties: '',
       mediaOverlay: '',
@@ -380,7 +380,7 @@ describe('parseGuide', async () => {
     expect(guide[2]).toEqual({
       type: 'other.intro',
       title: 'Introduction',
-      href: 'Epub:19033/intro.html',
+      href: 'epub:19033/intro.html',
     })
   })
 
@@ -429,7 +429,7 @@ describe('parseNcx', async () => {
     expect(navMap[0].children!.length).toBe(1)
     expect(navMap[2]).toEqual({
       label: 'Chapter 3',
-      href: 'Epub:OEBPS/content2.html#ch_3',
+      href: 'epub:OEBPS/content2.html#ch_3',
       id: undefined,
       playOrder: '',
     })
@@ -448,7 +448,7 @@ describe('parseNcx', async () => {
     expect(pageList.pageTargets[2]).toEqual({
       label: '',
       value: '',
-      href: 'Epub:OEBPS/content3.html#p3',
+      href: 'epub:OEBPS/content3.html#p3',
       playOrder: '',
       type: '',
       correspondId: undefined,
@@ -479,7 +479,7 @@ describe('parseNcx', async () => {
     expect(navList.navTargets.length).toBe(3)
     expect(navList.navTargets[2]).toEqual({
       label: '',
-      href: 'Epub:OEBPS/content2.html#ill2',
+      href: 'epub:OEBPS/content2.html#ill2',
       correspondId: undefined,
     })
   })

@@ -315,7 +315,7 @@ export function parseSpine(
       const element = manifest[$.idref]
       spine.push({
         ...element,
-        href: `Epub:${element.href}`,
+        href: `epub:${element.href}`,
         // default to 'yes'
         linear: $.linear || 'yes',
       })

@@ -1,1 +1,1 @@
-export const HREF_PREFIX = 'Epub:'
+export const HREF_PREFIX = 'epub:'
