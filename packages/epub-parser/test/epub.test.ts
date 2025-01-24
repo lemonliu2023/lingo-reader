@@ -116,7 +116,8 @@ describe('parse epubFile in node', async () => {
 
   it('parseCollection: alice.epub has no collection', () => {
     const collection = epub.getCollection()
-    expect(collection.length).toBe(0)
+    expect(collection.length).toBe(1)
+    expect(collection[0].links[0]).toBe('19033/subjectIndex01.xhtml')
   })
 
   // .ncx file
@@ -148,7 +149,9 @@ describe('parse epubFile in node', async () => {
 
   it('getNavList: alice epub has no navList in toc.ncx', () => {
     const navList = epub.getNavList()
-    expect(navList).toBe(undefined)
+    expect(navList.label).toBe('List of Illustrations')
+    expect(navList.navTargets.length).toBe(1)
+    expect(navList.navTargets[0].href).toBe('epub:19033/content.html#ill1')
   })
 
   it('loadChapter', async () => {

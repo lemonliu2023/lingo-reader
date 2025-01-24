@@ -4,6 +4,10 @@ import { describe, expect, it } from 'vitest'
 import { createZipFile } from '../src/utils.ts'
 
 const aliceEpubNames = [
+  '19033/toc.ncx',
+  'META-INF/',
+  '19033/content.opf',
+  '19033/',
   'mimetype',
   'META-INF/container.xml',
   '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
@@ -38,8 +42,6 @@ const aliceEpubNames = [
   '19033/0.css',
   '19033/1.css',
   '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
-  '19033/toc.ncx',
-  '19033/content.opf',
 ]
 
 describe('createZipFile in Node', async () => {
@@ -54,7 +56,7 @@ describe('createZipFile in Node', async () => {
   })
 
   it('readFile', async () => {
-    const fileContent = await epubFile.readFile(aliceEpubNames[0])
+    const fileContent = await epubFile.readFile('mimetype')
     expect(fileContent).toEqual('application/epub+zip')
   })
 
