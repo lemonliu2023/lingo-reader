@@ -80,7 +80,7 @@ export class EpubFile implements EBookParser {
    */
   private spine: EpubSpine = []
   public getSpine(): EpubSpine {
-    return this.spine.length > 0 ? this.spine : Object.values(this.manifest)
+    return this.spine
   }
 
   /**

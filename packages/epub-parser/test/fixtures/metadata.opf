@@ -2,7 +2,7 @@
 <package xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dcterms="http://purl.org/dc/terms/"
   xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
-  <metadata>
+  <metadata1>
     <dc:rights>Public domain in the USA.</dc:rights>
     <dc:coverage>United States</dc:coverage>
     <dc:description>Alice's</dc:description>
@@ -47,5 +47,10 @@
     <link refines="#creator" rel="foaf:homepage" href="http://example.org/book-info/12389347" />
     <link refines="#creator02" rel="foaf:homepage" href="http://example.org/book-info/12389347" />
     <link rel="dcterms:description" href="description.html" media-type="text/html"/>
-  </metadata>
+  </metadata1>
+
+  <!-- has no <meta> -->
+  <metadata2>
+    <title>abc</title>
+  </metadata2>
 </package>

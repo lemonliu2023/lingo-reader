@@ -100,7 +100,7 @@ describe('parseMetadata', async () => {
   const metadataFilePath = path.resolve(fileURLToPath(import.meta.url), '../fixtures/metadata.opf')
   const fileContent = readFileSync(metadataFilePath, 'utf-8')
   const metadataAST = await parsexml(fileContent)
-  const metadata = parseMetadata(metadataAST.package.metadata[0])
+  const metadata = parseMetadata(metadataAST.package.metadata1[0])
 
   it('simple field', () => {
     expect(metadata.rights).toBe('Public domain in the USA.')
@@ -194,6 +194,11 @@ describe('parseMetadata', async () => {
       rel: 'dcterms:description',
       mediaType: 'text/html',
     })
+  })
+
+  it('metadata with no <meta> in <package>', async () => {
+    const metadata2 = parseMetadata(metadataAST.package.metadata2[0])
+    expect(metadata2.metas).toEqual({})
   })
 })
 
@@ -367,6 +372,21 @@ describe('parseSpine', async () => {
       () => parseSpine(spineAST.package.spine1[0], {}),
     ).toThrowError('The spine element must contain one or more itemref elements')
   })
+
+  it('toc path id is not found', () => {
+    const manifest = {
+      intro: {
+        id: 'intro',
+        href: 'intro.xhtml',
+        mediaType: 'application/xhtml+xml',
+        properties: '',
+        mediaOverlay: '',
+      },
+    }
+    const { tocPath, spine } = parseSpine(spineAST.package.spine2[0], manifest)
+    expect(tocPath).toBe('')
+    expect(spine.length).toBe(1)
+  })
 })
 
 describe('parseGuide', async () => {
@@ -428,7 +448,7 @@ describe('parseNcx', async () => {
     expect(navMap.length).toBe(3)
     expect(navMap[0].children!.length).toBe(1)
     expect(navMap[2]).toEqual({
-      label: 'Chapter 3',
+      label: '',
       href: 'epub:OEBPS/content2.html#ch_3',
       id: undefined,
       playOrder: '',

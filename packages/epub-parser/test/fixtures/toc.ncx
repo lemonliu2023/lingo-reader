@@ -30,7 +30,7 @@
     </navPoint>
     <navPoint class="h1" id="ncx-3">
       <navLabel>
-        <text>Chapter 3</text>
+        <!-- has no <text> -->
       </navLabel>
       <content src="content2.html#ch_3"/>            
     </navPoint>

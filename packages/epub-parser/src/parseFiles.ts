@@ -87,7 +87,7 @@ export function parseMetadata(metadataAST: Record<string, any>): EpubMetadata {
       case 'relation':
       case 'coverage':
       case 'rights': {
-        metadata[keyName] = elements[0]._ ?? elements[0] ?? ''
+        metadata[keyName] = elements[0]._ ?? elements[0]
         break
       }
 
@@ -301,7 +301,7 @@ export function parseSpine(
 ): { tocPath: string, spine: EpubSpine } {
   let tocPath = ''
   if (spineAST.$?.toc) {
-    tocPath = manifest[spineAST.$.toc].href || ''
+    tocPath = manifest[spineAST.$.toc]?.href ?? ''
   }
 
   const spine: EpubSpine = []
@@ -401,12 +401,7 @@ function walkNavMap(
   navPoints: any[],
   hrefToIdMap: Record<string, string>,
   ncxBaseDir: string,
-  depth: number = 0,
 ): void {
-  if (depth > 7) {
-    return
-  }
-
   for (const navPoint of navPoints) {
     let element: NavPoint = {
       label: '',
@@ -418,10 +413,10 @@ function walkNavMap(
       const href = path.joinPosix(ncxBaseDir, navPoint.content[0].$?.src)
       const hrefPath = href.split('#')[0]
       element = {
-        label: navPoint.navLabel[0]?.text[0] || '',
+        label: navPoint.navLabel[0].text?.[0] ?? '',
         href: HREF_PREFIX + href,
         id: hrefToIdMap[hrefPath],
-        playOrder: navPoint.$?.playOrder || '',
+        playOrder: navPoint.$?.playOrder ?? '',
       }
       output.push(element)
     }
@@ -433,7 +428,6 @@ function walkNavMap(
         navPoint.navPoint,
         hrefToIdMap,
         ncxBaseDir,
-        depth + 1,
       )
     }
   }

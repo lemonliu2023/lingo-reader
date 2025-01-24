@@ -11,4 +11,9 @@
   <!-- spine without itemref -->
   <spine1>
   </spine1>
+
+  <!-- toc id did not exist -->
+  <spine2 toc="ncx">
+    <itemref idref="intro"/>
+  </spine2>
 </package>
