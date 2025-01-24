@@ -36,7 +36,6 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
 }
 
-// TODO: extract logic that closing card when click outside to a hook
 // close drop-down menu when clicking outside
 const dropdownRef = useTemplateRef('dropdownRef')
 useClickOutside(dropdownRef, () => {

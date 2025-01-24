@@ -81,3 +81,38 @@ export class ZipFile {
 export function camelCase(str: string): string {
   return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
 }
+
+export const resourceExtensionToMimeType: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  bmp: 'image/bmp',
+  ico: 'image/x-icon',
+  tiff: 'image/tiff',
+  tif: 'image/tiff',
+  heic: 'image/heic',
+  avif: 'image/avif',
+  css: 'text/css',
+
+  // video
+  mp4: 'video/mp4',
+  mkv: 'video/mkv',
+  webm: 'video/webm',
+
+  // audio
+  mp3: 'audio/mp3',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+
+  // font
+  ttf: 'font/ttf',
+  otf: 'font/otf',
+  woff: 'font/woff',
+  woff2: 'font/woff2',
+  eot: 'font/eot',
+}
+
+export const savedResourceMediaTypePrefixes = new Set(Object.values(resourceExtensionToMimeType))

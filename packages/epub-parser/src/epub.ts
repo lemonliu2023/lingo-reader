@@ -1,7 +1,7 @@
 import type { EBookParser } from '@blingo-reader/shared'
 import { parsexml, path } from '@blingo-reader/shared'
 import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
-import { type ZipFile, createZipFile } from './utils'
+import { type ZipFile, createZipFile, savedResourceMediaTypePrefixes } from './utils'
 import type {
   CollectionItem,
   EpubFileInfo,
@@ -198,8 +198,10 @@ export class EpubFile implements EBookParser {
 
             this.hrefToIdMap[manifestItem.href] = manifestItem.id
 
+            // css and image|font|audio|video
             if (
-              manifestItem.mediaType.startsWith('image')
+              savedResourceMediaTypePrefixes.has(manifestItem.mediaType)
+              // exclude html and xhtml...
               || manifestItem.mediaType.startsWith('text/css')
             ) {
               const fileName: string = manifestItem.href.replace('/', '_')

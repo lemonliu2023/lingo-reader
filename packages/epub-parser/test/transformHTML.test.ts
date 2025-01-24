@@ -14,7 +14,7 @@ describe('transformHTML', () => {
   })
 
   it('replace a tag href', () => {
-    expect(transformHTML('<body><a href="a.html"></a><a href="https://www.baidu.com"></a></body>', 'temp', '')).toEqual({
+    expect(transformHTML(`<body><a href="a.html"></a><a href="https://www.baidu.com"></a></body>`, 'temp', '')).toEqual({
       css: [],
       html: '<a href="epub:temp/a.html"></a><a href="https://www.baidu.com"></a>',
     })

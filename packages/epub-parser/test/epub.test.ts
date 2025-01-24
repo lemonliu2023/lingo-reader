@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import fs from 'node:fs'
+import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { initEpubFile } from '../src'
@@ -65,7 +65,7 @@ describe('parse epubFile in node', async () => {
     const manifest = epub.getManifest()
 
     // 33 items in manifest
-    expect(Object.keys(manifest).length).toBe(33)
+    expect(Object.keys(manifest).length).toBe(34)
     expect(manifest.item1).toEqual({
       id: 'item1',
       href: '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
@@ -87,6 +87,8 @@ describe('parse epubFile in node', async () => {
       properties: '',
       mediaOverlay: '',
     })
+    expect(manifest.item33.id).toBe('item33')
+    expect(manifest.item33.href).toBe('19033/12997454.mp4')
   })
 
   it('parseSpine', () => {
@@ -157,7 +159,7 @@ describe('parse epubFile in node', async () => {
   it('loadChapter', async () => {
     const { css, html } = await epub.loadChapter('item32')
     // html
-    const imageTags = html.match(/<img[^>]*>/g)
+    const imageTags = html.match(/<(img|source)[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
       const src = imgTag.match(/src="([^"]*)"/)!
       return src[1]
@@ -167,6 +169,11 @@ describe('parse epubFile in node', async () => {
     // css
     expect(css.length).toBe(3)
     expect(css.every(css => css.href.startsWith(cwd))).toBe(true)
+
+    // url() in css should be replaced with absolute path
+    const cssFileContent = readFileSync(css[0].href).toString()
+    const matchedUrl = cssFileContent.match(/url\(([^)]*)\)/)![1]
+    expect(path.isAbsolute(matchedUrl)).toBe(true)
 
     // cache
     const { css: css2, html: html2 } = await epub.loadChapter('item32')
@@ -206,7 +213,7 @@ describe('parse epubFile in browser', async () => {
 
     const currentDir = path.dirname(fileURLToPath(import.meta.url))
     const epubPath = path.resolve(currentDir, '../../../example/alice.epub')
-    const fileReaderResult = fs.readFileSync(epubPath)
+    const fileReaderResult = readFileSync(epubPath)
 
     // simulate FileReader in browser
     class FileReader {
@@ -238,7 +245,7 @@ describe('parse epubFile in browser', async () => {
   it('loadChapter', async () => {
     const { css, html } = await epub2.loadChapter('item32')
     // html
-    const imageTags = html.match(/<img[^>]*>/g)
+    const imageTags = html.match(/<(img|source)[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
       const src = imgTag.match(/src="([^"]*)"/)!
       return src[1]
@@ -247,6 +254,11 @@ describe('parse epubFile in browser', async () => {
     // css
     expect(css.length).toBe(3)
     expect(css.every(css => css.href.startsWith('blob'))).toBe(true)
+
+    // url() in css should be replaced with blob url
+    const cssFileContent = await fetch(css[0].href).then(res => res.text())
+    const matchedUrl = cssFileContent.match(/url\(([^)]*)\)/)![1]
+    expect(matchedUrl.startsWith('blob')).toBe(true)
   })
 
   // simulate File

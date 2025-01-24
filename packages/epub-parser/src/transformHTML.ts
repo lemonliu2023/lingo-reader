@@ -2,39 +2,7 @@ import { path } from '@blingo-reader/shared'
 import { readFileSync, writeFileSync } from './fsPolyfill'
 import type { EpubCssPart, EpubProcessedChapter } from './types'
 import { HREF_PREFIX } from './constant'
-
-const imageExtensionToMimeType: Record<string, string> = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  gif: 'image/gif',
-  webp: 'image/webp',
-  svg: 'image/svg+xml',
-  bmp: 'image/bmp',
-  ico: 'image/x-icon',
-  tiff: 'image/tiff',
-  tif: 'image/tiff',
-  heic: 'image/heic',
-  avif: 'image/avif',
-  css: 'text/css',
-
-  // video
-  mp4: 'video/mp4',
-  mkv: 'video/mkv',
-  webm: 'video/webm',
-
-  // audio
-  mp3: 'audio/mp3',
-  wav: 'audio/wav',
-  ogg: 'audio/ogg',
-
-  // font
-  ttf: 'font/ttf',
-  otf: 'font/otf',
-  woff: 'font/woff',
-  woff2: 'font/woff2',
-  eot: 'font/eot',
-}
+import { resourceExtensionToMimeType } from './utils'
 
 const browserUrlCache = new Map<string, string>()
 
@@ -46,7 +14,7 @@ function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
       return browserUrlCache.get(resourceName)!
     }
     const ext = resourceName.split('.').pop()!
-    const blobType = imageExtensionToMimeType[ext]
+    const blobType = resourceExtensionToMimeType[ext]
     const resource = new Uint8Array(readFileSync(resourceSrc))
     const blob = new Blob([resource], { type: blobType })
     resourceSrc = URL.createObjectURL(blob)
@@ -90,7 +58,11 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
 }
 
 // TODO: add test case
-export function transformHTML(html: string, htmlDir: string, resourceSaveDir: string): EpubProcessedChapter {
+export function transformHTML(
+  html: string,
+  htmlDir: string,
+  resourceSaveDir: string,
+): EpubProcessedChapter {
   // head
   const head = html.match(/<head[^>]*>([\s\S]*)<\/head>/i)
   const css: EpubCssPart[] = []
