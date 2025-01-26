@@ -1,4 +1,4 @@
-import { readFileSync, unlink } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, unlink } from 'node:fs'
 import path from 'node:path'
 import type { EBookParser } from '@blingo-reader/shared'
 import type {
@@ -26,7 +26,6 @@ import type {
   Azw3CssPart,
   Azw3FileInfo,
   Azw3Guide,
-  Azw3InitOptions,
   Azw3Metadata,
   Azw3ProcessedChapter,
   Azw3ResolvedHref,
@@ -38,8 +37,8 @@ import type {
   SkelTable,
 } from './types'
 
-export async function initAzw3File(file: string | File, initOptions: Azw3InitOptions = {}) {
-  const azw3 = new Azw3(file, initOptions)
+export async function initAzw3File(file: string | File, resourceSaveDir?: string) {
+  const azw3 = new Azw3(file, resourceSaveDir)
   await azw3.innerLoadFile()
   await azw3.innerInit()
 
@@ -71,7 +70,7 @@ export class Azw3 implements EBookParser {
   private chapterCache = new Map<number, Azw3ProcessedChapter>()
 
   private idToChapter = new Map<number, Azw3Chapter>()
-  private imageSaveDir = './images'
+  private resourceSaveDir = './images'
 
   getFileInfo(): Azw3FileInfo {
     return {
@@ -90,7 +89,7 @@ export class Azw3 implements EBookParser {
 
     const coverImage = this.mobiFile.getCoverImage()
     if (coverImage) {
-      const url = saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+      const url = saveResource(coverImage.raw, coverImage.type, 'cover', this.resourceSaveDir)
       this.resourceCache.set('cover', url)
       return url
     }
@@ -105,12 +104,18 @@ export class Azw3 implements EBookParser {
     return this.toc
   }
 
-  constructor(private file: string | File, azw3InitOptions: Azw3InitOptions) {
-    this.imageSaveDir = azw3InitOptions.imageSaveDir ?? './images'
+  constructor(private file: string | File, resourceSaveDir: string = './images') {
     this.fileName
       = __BROWSER__
         ? (file as File).name
         : path.dirname(file as string)
+
+    this.resourceSaveDir = resourceSaveDir
+    if (!__BROWSER__) {
+      if (!existsSync(this.resourceSaveDir)) {
+        mkdirSync(this.resourceSaveDir, { recursive: true })
+      }
+    }
   }
 
   async innerLoadFile() {
@@ -365,7 +370,7 @@ export class Azw3 implements EBookParser {
         }
 
         // convert to blob url
-        const url = saveResource(blobData, type as keyof typeof MimeToExt, id, this.imageSaveDir)
+        const url = saveResource(blobData, type as keyof typeof MimeToExt, id, this.resourceSaveDir)
 
         this.resourceCache.set(matched, url)
         return url

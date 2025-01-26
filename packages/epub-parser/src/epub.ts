@@ -35,8 +35,8 @@ import { HREF_PREFIX } from './constant'
 */
 
 // wrapper for async constructor, because EpubFile class has async code
-export async function initEpubFile(epubPath: string | File, resourceRoot?: string): Promise<EpubFile> {
-  const epub = new EpubFile(epubPath, resourceRoot)
+export async function initEpubFile(epubPath: string | File, resourceSaveDir?: string): Promise<EpubFile> {
+  const epub = new EpubFile(epubPath, resourceSaveDir)
   await epub.loadEpub()
   await epub.parse()
   return epub
@@ -143,7 +143,7 @@ export class EpubFile implements EBookParser {
     else {
       this.fileName = epub.name
     }
-    // imageSaveDir must be an absolute path
+
     this.resourceSaveDir = resourceSaveDir
     if (!existsSync(this.resourceSaveDir)) {
       mkdirSync(this.resourceSaveDir, { recursive: true })

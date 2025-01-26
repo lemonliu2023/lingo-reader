@@ -1,13 +1,15 @@
 {
   "name": "@blingo-reader/epub-parser",
   "type": "module",
-  "version": "0.1.1",
-  "description": "An epub parser which generates multiple chapter contents from an epub file",
-  "author": "hhk-png <fangfangluo@qq.com>",
+  "version": "0.1.0",
+  "description": "An epub parser which can extract chapter contents from an epub file",
+  "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
   "keywords": [
     "epub",
-    "epub-parser"
+    "epub-parser",
+    "ebook",
+    "ebook-parser"
   ],
   "exports": {
     ".": {

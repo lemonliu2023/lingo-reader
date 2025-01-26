@@ -1,4 +1,4 @@
-import { readFileSync, unlink } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, unlink } from 'node:fs'
 import path from 'node:path'
 import type { EBookParser } from '@blingo-reader/shared'
 import { parsexml } from '@blingo-reader/shared'
@@ -20,12 +20,8 @@ import type {
   MobiTocItem,
 } from './types'
 
-interface Options {
-  imageSaveDir?: string
-}
-
-export async function initMobiFile(file: string | File, options?: Options) {
-  const mobi = new Mobi(file, options)
+export async function initMobiFile(file: string | File, resourceSaveDir?: string) {
+  const mobi = new Mobi(file, resourceSaveDir)
   await mobi.innerLoadFile()
   await mobi.innerInit()
 
@@ -43,7 +39,7 @@ export class Mobi implements EBookParser {
   private idToChapter = new Map<number, MobiChapter>()
   private toc: MobiToc = []
 
-  private imageSaveDir = './images'
+  private resourceSaveDir = './images'
   private chapterCache = new Map<number, MobiProcessedChapter>()
   private resourceCache = new Map<string, string>()
 
@@ -89,7 +85,7 @@ export class Mobi implements EBookParser {
 
     const coverImage = this.mobiFile.getCoverImage()
     if (coverImage) {
-      const coverUrl = saveResource(coverImage.raw, coverImage.type, 'cover', this.imageSaveDir)
+      const coverUrl = saveResource(coverImage.raw, coverImage.type, 'cover', this.resourceSaveDir)
 
       this.resourceCache.set('cover', coverUrl)
       return coverUrl
@@ -101,12 +97,18 @@ export class Mobi implements EBookParser {
     return this.mobiFile.getMetadata()
   }
 
-  constructor(private file: string | File, options: Options = {}) {
-    this.imageSaveDir = options.imageSaveDir ?? './images'
+  constructor(private file: string | File, resourceSaveDir: string = './images') {
     this.fileName
       = __BROWSER__
         ? (this.file as File).name
         : path.basename(this.file as string)
+
+    this.resourceSaveDir = resourceSaveDir
+    if (!__BROWSER__) {
+      if (!existsSync(this.resourceSaveDir)) {
+        mkdirSync(this.resourceSaveDir, { recursive: true })
+      }
+    }
   }
 
   async innerLoadFile() {
@@ -240,7 +242,7 @@ export class Mobi implements EBookParser {
     }
 
     const { type, raw } = this.mobiFile.loadResource(index - 1)
-    const resourceUrl = saveResource(raw, type, String(index), this.imageSaveDir)
+    const resourceUrl = saveResource(raw, type, String(index), this.resourceSaveDir)
 
     this.resourceCache.set(String(index), resourceUrl)
     return resourceUrl

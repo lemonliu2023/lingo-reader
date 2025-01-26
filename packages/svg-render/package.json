@@ -2,6 +2,7 @@
   "name": "@blingo-reader/svg-render",
   "type": "module",
   "version": "0.1.0",
+  "private": true,
   "description": "render text to svg",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",

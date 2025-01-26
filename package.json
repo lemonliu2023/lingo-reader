@@ -1,7 +1,7 @@
 {
-  "name": "blingo-reader",
   "type": "module",
   "version": "0.1.0",
+  "private": true,
   "packageManager": "pnpm@9.6.0",
   "description": "",
   "author": "hhk-png <fangfangluo3@qq.com>",

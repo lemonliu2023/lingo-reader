@@ -115,9 +115,6 @@ export interface MobiResolvedHref {
 /**
  * azw3 types
  */
-export interface Azw3InitOptions {
-  imageSaveDir?: string
-}
 
 export interface SkelTableItem {
   index: number
