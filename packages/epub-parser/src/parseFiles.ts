@@ -394,7 +394,6 @@ export function parseNavMap(
  * @param navPoints navPoint xml ast
  * @param hrefToIdMap map of href to manifest item id
  * @param ncxBaseDir base directory of the ncx file
- * @param depth depth of the navPoint
  */
 function walkNavMap(
   output: NavPoint[],

@@ -56,7 +56,7 @@ export class Azw3 implements EBookParser {
   private skelTable: SkelTable = []
   private fragTable: FragTable = []
   private chapters: Azw3Chapter[] = []
-  private toc: Azw3Toc | undefined = []
+  private toc: Azw3Toc = []
 
   private fragmentOffsets = new Map<number, number[]>()
   private fragmentSelectors = new Map<number, Map<number, string>>()
@@ -100,7 +100,7 @@ export class Azw3 implements EBookParser {
     return this.chapters
   }
 
-  getToc(): Azw3Toc | undefined {
+  getToc(): Azw3Toc {
     return this.toc
   }
 

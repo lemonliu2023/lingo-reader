@@ -33,12 +33,12 @@ export interface ResolvedHref {
 export type Metadata = Record<string, any>
 
 export interface EBookParser {
-  getFileInfo: () => FileInfo
-  getSpine: () => Spine | undefined
-  getToc: () => Toc | undefined
+  getSpine: () => Spine
   loadChapter: (id: string) => Promise<ProcessedChapter | undefined> | ProcessedChapter | undefined
-  resolveHref: (href: string) => ResolvedHref | undefined
+  getToc: () => Toc
   getMetadata: () => Metadata
+  getFileInfo: () => FileInfo
   getCover?: () => string
+  resolveHref: (href: string) => ResolvedHref | undefined
   destroy: () => void
 }
