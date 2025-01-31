@@ -2,13 +2,13 @@
   "name": "@blingo-reader/mobi-parser",
   "type": "module",
   "version": "0.1.0",
-  "description": "A mobi and azw3 parser",
+  "description": "A mobi and kf8 parser",
   "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
   "keywords": [
     "mobi",
     "mobi-parser",
-    "azw3",
+    "kf8",
     "azw-parser"
   ],
   "exports": {

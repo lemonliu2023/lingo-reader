@@ -75,7 +75,7 @@ export class MobiFile {
           // console.warn('Failed to parse kf8 header, fallback to mobi header')
         }
 
-        // console.warn('This seems to be a compatible file, which includes .azw3 and .mobi. '
+        // console.warn('This seems to be a compatible file, which includes .kf8 and .mobi. '
         // + 'We will parse it as a mobi file.',
         // )
       }

@@ -1,18 +1,18 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { type Azw3, initAzw3File } from '../src'
+import { type Kf8, initKf8File } from '../src'
 
-describe('azw3 class', () => {
-  let azw3: Azw3
+describe('kf8 class', () => {
+  let kf8: Kf8
   beforeAll(async () => {
     // @ts-expect-error globalThis.__BROWSER__
     globalThis.__BROWSER__ = false
-    azw3 = await initAzw3File('./example/taoyong.azw3')
+    kf8 = await initKf8File('./example/taoyong.azw3')
   })
 
   it('getSpine', () => {
-    const spine = azw3.getSpine()
+    const spine = kf8.getSpine()
     expect(spine.length).toBe(32)
     const lastSpine = spine[spine.length - 1]
     expect(lastSpine).toEqual({
@@ -41,7 +41,7 @@ describe('azw3 class', () => {
 
   // TODO: add test cases with children
   it('getToc', () => {
-    const toc = azw3.getToc()
+    const toc = kf8.getToc()
     expect(toc!.length).toBe(30)
     const lastToc = toc![toc!.length - 1]
     expect(lastToc).toEqual({
@@ -52,11 +52,11 @@ describe('azw3 class', () => {
   })
 
   it('loadChapter when id exist in spine', () => {
-    const spine = azw3.getSpine()
+    const spine = kf8.getSpine()
     const chapter = spine[0]
     // test cache
-    const { html, css } = azw3.loadChapter(chapter.id)!
-    const { html: html2, css: css2 } = azw3.loadChapter(chapter.id)!
+    const { html, css } = kf8.loadChapter(chapter.id)!
+    const { html: html2, css: css2 } = kf8.loadChapter(chapter.id)!
     expect(html).toBe(html2)
     expect(css).toEqual(css2)
     // html src should be replaced
@@ -80,37 +80,37 @@ describe('azw3 class', () => {
   })
 
   it('loadChapter when id not exist in spine', () => {
-    const chapter = azw3.loadChapter('100')
+    const chapter = kf8.loadChapter('100')
     expect(chapter).toBeUndefined()
   })
 
   it('resolveHref when href format is correct', () => {
-    const toc = azw3.getToc()
+    const toc = kf8.getToc()
     // kindle:pos:fid:0000:off:0000000000
     const href = toc![0].href
-    const resolvedHref = azw3.resolveHref(href)
+    const resolvedHref = kf8.resolveHref(href)
     expect(resolvedHref).toEqual({
       id: '0',
       selector: '[id="calibre_pb_0"]',
     })
     // cache
-    const resolvedHref2 = azw3.resolveHref(href)
+    const resolvedHref2 = kf8.resolveHref(href)
     expect(resolvedHref).toEqual(resolvedHref2)
     // uncached
-    const uncachedHref = azw3.resolveHref('kindle:pos:fid:0000:off:0000000023')
+    const uncachedHref = kf8.resolveHref('kindle:pos:fid:0000:off:0000000023')
     expect(uncachedHref).toEqual({ id: '0', selector: '[aid="2"]' })
   })
 
   it('resolveHref when href format is incorrect', () => {
-    const resolvedHref = azw3.resolveHref('wrong:href')
+    const resolvedHref = kf8.resolveHref('wrong:href')
     expect(resolvedHref).toBeUndefined()
     // chapter not exist
-    const resolvedHref2 = azw3.resolveHref('kindle:pos:fid:0032:off:0000000000')
+    const resolvedHref2 = kf8.resolveHref('kindle:pos:fid:0032:off:0000000000')
     expect(resolvedHref2).toBeUndefined()
   })
 
   it('getGuide', () => {
-    const guide = azw3.getGuide()
+    const guide = kf8.getGuide()
     expect(guide).toEqual([
       {
         label: 'Table of Contents',
@@ -121,7 +121,7 @@ describe('azw3 class', () => {
   })
 
   it('getMetadata', () => {
-    const metadata = azw3.getMetadata()
+    const metadata = kf8.getMetadata()
     expect(metadata).toEqual({
       identifier: '2681144926',
       title: '自造',
@@ -137,20 +137,20 @@ describe('azw3 class', () => {
   })
 
   it('getCover', () => {
-    const coverSrc = azw3.getCoverImage()
+    const coverSrc = kf8.getCoverImage()
     expect(coverSrc).toBe(path.resolve('./images', 'cover.jpg'))
     // for cache
-    const coverSrc2 = azw3.getCoverImage()
+    const coverSrc2 = kf8.getCoverImage()
     expect(coverSrc).toBe(coverSrc2)
   })
 
   it('destroy', () => {
-    expect(() => azw3.destroy()).not.toThrowError()
+    expect(() => kf8.destroy()).not.toThrowError()
   })
 })
 
-describe('init azw3 in browser', () => {
-  let azw3: Azw3
+describe('init kf8 in browser', () => {
+  let kf8: Kf8
   beforeAll(async () => {
     const fileBuffer = readFileSync('./example/taoyong.azw3')
     const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength)
@@ -162,7 +162,7 @@ describe('init azw3 in browser', () => {
         return arrayBuffer
       }
     }
-    azw3 = await initAzw3File(new File([], 'taoyong.azw3'))
+    kf8 = await initKf8File(new File([], 'taoyong.azw3'))
   })
   afterAll(() => {
     // @ts-expect-error globalThis.__BROWSER__
@@ -170,14 +170,14 @@ describe('init azw3 in browser', () => {
     // @ts-expect-error File mock
     delete globalThis.File
   })
-  it('azw3 class', () => {
-    expect(azw3).toBeDefined()
+  it('kf8 class', () => {
+    expect(kf8).toBeDefined()
   })
 
   it('loadChapter in browser', () => {
-    const spine = azw3.getSpine()
+    const spine = kf8.getSpine()
     const chapter = spine[0]
-    const { html, css } = azw3.loadChapter(chapter.id)!
+    const { html, css } = kf8.loadChapter(chapter.id)!
     // html src should be replaced
     const htmlSrc = html.match('src="(.+?)"')![1]
     expect(htmlSrc.startsWith('blob')).toBe(true)
@@ -189,6 +189,6 @@ describe('init azw3 in browser', () => {
   })
 
   it('destroy', () => {
-    expect(() => azw3.destroy()).not.toThrowError()
+    expect(() => kf8.destroy()).not.toThrowError()
   })
 })

@@ -3,13 +3,13 @@ import { initEpubFile } from '@blingo-reader/epub-parser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import DOMPurify from 'dompurify'
-import { initAzw3File, initMobiFile } from '@blingo-reader/mobi-parser'
-import type { Azw3, Azw3Spine, Mobi, MobiSpine } from '@blingo-reader/mobi-parser'
+import { initKf8File, initMobiFile } from '@blingo-reader/mobi-parser'
+import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@blingo-reader/mobi-parser'
 import type { FileInfo } from '@blingo-reader/shared'
 
 const useBookStore = defineStore('ebook', () => {
-  let book: EpubFile | Mobi | Azw3 | undefined
-  let spine: EpubSpine | MobiSpine | Azw3Spine = []
+  let book: EpubFile | Mobi | Kf8 | undefined
+  let spine: EpubSpine | MobiSpine | Kf8Spine = []
   const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
   let fileInfo: FileInfo = {
@@ -29,8 +29,8 @@ const useBookStore = defineStore('ebook', () => {
       chapterNums.value = spine.length
       fileInfo = book.getFileInfo()
     }
-    else if (file.name.endsWith('azw3')) {
-      book = await initAzw3File(file)
+    else if (file.name.endsWith('kf8')) {
+      book = await initKf8File(file)
       spine = book.getSpine()
       chapterNums.value = spine.length
       fileInfo = book.getFileInfo()

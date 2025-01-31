@@ -4,15 +4,15 @@
 
 # Introduction
 
-**blingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, and .**kf8** (**.azw3**) files, and provides a unified API.
+**blingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, and .**.azw3** (**.kf8**) files, and provides a unified API.
 
 In addition, you can also visit [https://hhk-png.github.io/blingo-reader/](https://hhk-png.github.io/blingo-reader/) to directly read eBooks. This website is developed based on this parsing library.
 
 # Usage in browser
 
 ```typescript
-let book: EpubFile | Mobi | Azw3 | undefined
-let spine: EpubSpine | MobiSpine | Azw3Spine = []
+let book: EpubFile | Mobi | Kf8 | undefined
+let spine: EpubSpine | MobiSpine | Kf8Spine = []
 let fileInfo: FileInfo = {
   fileName: '',
 }
@@ -28,8 +28,8 @@ async function initBook(file: File) {
     spine = book.getSpine()
     fileInfo = book.getFileInfo()
   }
-  else if (file.name.endsWith('azw3')) {
-    book = await initAzw3File(file)
+  else if (file.name.endsWith('kf8')) {
+    book = await initKf8File(file)
     spine = book.getSpine()
     fileInfo = book.getFileInfo()
   }
@@ -85,7 +85,7 @@ async function initBook(file: File): EpubFile {
 
 **@blingo-reader/epub-parser** exposes the `initEpubFile` method and the types associated with it. The usage described above is for the browser environment, where you need to pass in a `File` object, which can be obtained via an input element with `type="file"`. **@blingo-reader/epub-parser** also supports running in Node.js environment, but in this case, you need to pass the file path instead.
 
-The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser](./packages/epub-parser/README.md)，[mobi-parser]()，[azw3-parser]()。
+The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser](./packages/epub-parser/README.md)，[mobi-parser]()，[kf8-parser]()。
 
 ## getSpine: () => Spine
 

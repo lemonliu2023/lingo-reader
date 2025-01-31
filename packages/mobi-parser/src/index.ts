@@ -1,10 +1,10 @@
 export type * from './types.d.ts'
 
 /**
- * azw3 file
+ * kf8 file
  */
-export { initAzw3File } from './azw3'
-export type { Azw3 } from './azw3'
+export { initKf8File } from './kf8'
+export type { Kf8 } from './kf8'
 
 /**
  * mobi file

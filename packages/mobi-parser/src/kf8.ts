@@ -22,30 +22,30 @@ import {
 import { MobiFile } from './mobiFile'
 import { fdstHeader } from './headers'
 import type {
-  Azw3Chapter,
-  Azw3CssPart,
-  Azw3FileInfo,
-  Azw3Guide,
-  Azw3Metadata,
-  Azw3ProcessedChapter,
-  Azw3ResolvedHref,
-  Azw3Spine,
-  Azw3Toc,
-  Azw3TocItem,
   FragTable,
+  Kf8Chapter,
+  Kf8CssPart,
+  Kf8FileInfo,
+  Kf8Guide,
+  Kf8Metadata,
+  Kf8ProcessedChapter,
+  Kf8ResolvedHref,
+  Kf8Spine,
+  Kf8Toc,
+  Kf8TocItem,
   NcxItem,
   SkelTable,
 } from './types'
 
-export async function initAzw3File(file: string | File, resourceSaveDir?: string) {
-  const azw3 = new Azw3(file, resourceSaveDir)
-  await azw3.innerLoadFile()
-  await azw3.innerInit()
+export async function initKf8File(file: string | File, resourceSaveDir?: string) {
+  const kf8 = new Kf8(file, resourceSaveDir)
+  await kf8.innerLoadFile()
+  await kf8.innerInit()
 
-  return azw3
+  return kf8
 }
 
-export class Azw3 implements EBookParser {
+export class Kf8 implements EBookParser {
   private fileArrayBuffer!: ArrayBuffer
   private mobiFile!: MobiFile
 
@@ -55,8 +55,8 @@ export class Azw3 implements EBookParser {
   private fullRawLength: number = 0
   private skelTable: SkelTable = []
   private fragTable: FragTable = []
-  private chapters: Azw3Chapter[] = []
-  private toc: Azw3Toc = []
+  private chapters: Kf8Chapter[] = []
+  private toc: Kf8Toc = []
 
   private fragmentOffsets = new Map<number, number[]>()
   private fragmentSelectors = new Map<number, Map<number, string>>()
@@ -67,18 +67,18 @@ export class Azw3 implements EBookParser {
   private lastLoadedTail: number = -1
 
   private resourceCache = new Map<string, string>()
-  private chapterCache = new Map<number, Azw3ProcessedChapter>()
+  private chapterCache = new Map<number, Kf8ProcessedChapter>()
 
-  private idToChapter = new Map<number, Azw3Chapter>()
+  private idToChapter = new Map<number, Kf8Chapter>()
   private resourceSaveDir = './images'
 
-  getFileInfo(): Azw3FileInfo {
+  getFileInfo(): Kf8FileInfo {
     return {
       fileName: this.fileName,
     }
   }
 
-  getMetadata(): Azw3Metadata {
+  getMetadata(): Kf8Metadata {
     return this.mobiFile.getMetadata()
   }
 
@@ -96,11 +96,11 @@ export class Azw3 implements EBookParser {
     return undefined
   }
 
-  getSpine(): Azw3Spine {
+  getSpine(): Kf8Spine {
     return this.chapters
   }
 
-  getToc(): Azw3Toc {
+  getToc(): Kf8Toc {
     return this.toc
   }
 
@@ -181,13 +181,13 @@ export class Azw3 implements EBookParser {
 
       acc.push(chapter)
       return acc
-    }, [] as Azw3Chapter[])
+    }, [] as Kf8Chapter[])
     this.chapters = chapters
 
     // table of contents
     const ncx = this.mobiFile.getNCX()
     if (ncx) {
-      const map: (item: NcxItem) => Azw3TocItem = ({ label, pos, children }) => {
+      const map: (item: NcxItem) => Kf8TocItem = ({ label, pos, children }) => {
         const [fid, off] = pos
         const href = makePosURI(fid, off)
         const arr = this.fragmentOffsets.get(fid)
@@ -203,7 +203,7 @@ export class Azw3 implements EBookParser {
     }
   }
 
-  getGuide(): Azw3Guide | undefined {
+  getGuide(): Kf8Guide | undefined {
     const index = this.mobiFile.kf8Header!.guide
     if (index < 0xFFFFFFFF) {
       const loadRecord = this.mobiFile.loadRecord.bind(this.mobiFile)
@@ -243,7 +243,7 @@ export class Azw3 implements EBookParser {
     return this.rawTail.slice(start - rawTailStart, end - rawTailStart)
   }
 
-  private loadText(chapter: Azw3Chapter): string {
+  private loadText(chapter: Kf8Chapter): string {
     const { skel, frags, length } = chapter
     const raw = this.loadRaw(skel.offset, skel.offset + length)
     let skeleton = raw.slice(0, skel.length)
@@ -271,7 +271,7 @@ export class Azw3 implements EBookParser {
     return this.mobiFile.decode(skeleton.buffer)
   }
 
-  loadChapter(id: string): Azw3ProcessedChapter | undefined {
+  loadChapter(id: string): Kf8ProcessedChapter | undefined {
     const numId = Number.parseInt(id)
     if (Number.isNaN(numId)) {
       return undefined
@@ -309,7 +309,7 @@ export class Azw3 implements EBookParser {
     return undefined
   }
 
-  resolveHref(href: string): Azw3ResolvedHref | undefined {
+  resolveHref(href: string): Kf8ResolvedHref | undefined {
     // is external link
     if (/^(?!blob|kindle)\w+:/i.test(href)) {
       return undefined
@@ -378,9 +378,9 @@ export class Azw3 implements EBookParser {
     )
   }
 
-  private replace(str: string): Azw3ProcessedChapter {
+  private replace(str: string): Kf8ProcessedChapter {
     // css Part
-    const cssUrls: Azw3CssPart[] = []
+    const cssUrls: Kf8CssPart[] = []
     const head = str.match(/<head[^>]*>([\s\S]*)<\/head>/i)![1]
     const links = head.match(/<link[^>]*>/gi) ?? []
     for (const link of links) {

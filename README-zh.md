@@ -1,14 +1,14 @@
 # 简介
 
-**blingo-reader** 是一个用于解析电子书文件的库。目前支持解析 **.epub**、**.mobi** 和 **.kf8**（**.azw3**）格式的文件，并提供了一套统一的 API。
+**blingo-reader** 是一个用于解析电子书文件的库。目前支持解析 **.epub**、**.mobi** 和 **.azw3**（**.kf8**）格式的文件，并提供了一套统一的 API。
 
 此外，你还可以访问 https://hhk-png.github.io/blingo-reader/ 来直接阅读电子书。这个网站是基于该解析库开发的。
 
 # Usage in browser
 
 ```typescript
-let book: EpubFile | Mobi | Azw3 | undefined
-let spine: EpubSpine | MobiSpine | Azw3Spine = []
+let book: EpubFile | Mobi | Kf8 | undefined
+let spine: EpubSpine | MobiSpine | Kf8Spine = []
 let fileInfo: FileInfo = {
   fileName: '',
 }
@@ -24,8 +24,8 @@ async function initBook(file: File) {
     spine = book.getSpine()
     fileInfo = book.getFileInfo()
   }
-  else if (file.name.endsWith('azw3')) {
-    book = await initAzw3File(file)
+  else if (file.name.endsWith('kf8')) {
+    book = await initKf8File(file)
     spine = book.getSpine()
     fileInfo = book.getFileInfo()
   }
@@ -81,7 +81,7 @@ async function initBook(file: File): EpubFile {
 
 **@blingo-reader/epub-parser** 只暴露出了 initEpubFile 方法和与该方法相关的类型。上述是在浏览器中的使用方法，需要传入一个 File 对象，File 对象通过 type 为 file 的 input 标签获得。**@blingo-reader/epub-parser** 也支持在 node 环境下运行，只是此时要传入的参数是文件的地址。
 
-`initEpubFile` 的返回对象实现了 EBookParser 接口，并且也根据电子书文件的不同会提供额外的特定 api，可以查阅相应解析器的详细文档：[epub-parser](./packages/epub-parser/README-zh.md)，[mobi-parser]()，[azw3-parser]()。
+`initEpubFile` 的返回对象实现了 EBookParser 接口，并且也根据电子书文件的不同会提供额外的特定 api，可以查阅相应解析器的详细文档：[epub-parser](./packages/epub-parser/README-zh.md)，[mobi-parser]()，[kf8-parser]()。
 
 ## getSpine: () => Spine
 

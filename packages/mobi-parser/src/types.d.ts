@@ -113,7 +113,7 @@ export interface MobiResolvedHref {
 }
 
 /**
- * azw3 types
+ * kf8 types
  */
 
 export interface SkelTableItem {
@@ -134,7 +134,7 @@ export interface FragTableItem {
 }
 export type FragTable = FragTableItem[]
 
-export interface Azw3Chapter {
+export interface Kf8Chapter {
   id: string
   skel: SkelTableItem
   frags: FragTable
@@ -142,7 +142,7 @@ export interface Azw3Chapter {
   length: number
   totalLength: number
 }
-export type Azw3Spine = Azw3Chapter[]
+export type Kf8Spine = Kf8Chapter[]
 
 export interface NcxItem {
   index: number
@@ -158,30 +158,30 @@ export interface NcxItem {
 }
 export type Ncx = NcxItem[]
 
-export interface Azw3TocItem {
+export interface Kf8TocItem {
   label: string
   href: string
-  children?: Azw3TocItem[]
+  children?: Kf8TocItem[]
 }
-export type Azw3Toc = Azw3TocItem[]
+export type Kf8Toc = Kf8TocItem[]
 
-export interface Azw3GuideItem {
+export interface Kf8GuideItem {
   label: string
   type: string[]
   href: string
 }
-export type Azw3Guide = Azw3GuideItem[]
+export type Kf8Guide = Kf8GuideItem[]
 
-export interface Azw3CssPart {
+export interface Kf8CssPart {
   id: string
   href: string
 }
-export interface Azw3ProcessedChapter {
+export interface Kf8ProcessedChapter {
   html: string
-  css: Azw3CssPart[]
+  css: Kf8CssPart[]
 }
 
-export type Azw3ResolvedHref = MobiResolvedHref
+export type Kf8ResolvedHref = MobiResolvedHref
 
-export type Azw3Metadata = MobiMetadata
-export type Azw3FileInfo = MobiFileInfo
+export type Kf8Metadata = MobiMetadata
+export type Kf8FileInfo = MobiFileInfo
