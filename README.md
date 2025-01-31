@@ -1,10 +1,53 @@
-<center><a href="./README-zh.md">中文</a></center>
+<div align="center">
+  <a href="./README-zh.md">中文</a>
+</div>
 
 # Introduction
 
 **blingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, and .**kf8** (**.azw3**) files, and provides a unified API.
 
-In addition, you can also visit https://hhk-png.github.io/blingo-reader/ to directly read eBooks. This website is developed based on this parsing library.
+In addition, you can also visit [https://hhk-png.github.io/blingo-reader/](https://hhk-png.github.io/blingo-reader/) to directly read eBooks. This website is developed based on this parsing library.
+
+# Usage in browser
+
+```typescript
+let book: EpubFile | Mobi | Azw3 | undefined
+let spine: EpubSpine | MobiSpine | Azw3Spine = []
+let fileInfo: FileInfo = {
+  fileName: '',
+}
+
+async function initBook(file: File) {
+  if (file.name.endsWith('epub')) {
+    book = await initEpubFile(file)
+    spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+  else if (file.name.endsWith('mobi')) {
+    book = await initMobiFile(file)
+    spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+  else if (file.name.endsWith('azw3')) {
+    book = await initAzw3File(file)
+    spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+}
+await initBook()
+// toc
+console.log(book.getToc())
+
+for (let i = 0; i < spine.length; i++) {
+  const id = spine[i].id
+  // loadChapter
+  const chapter = book!.loadChapter(id)
+  console.log(chapter)
+}
+
+// destroy
+book!.destroy()
+```
 
 # Unified API
 
@@ -42,7 +85,7 @@ async function initBook(file: File): EpubFile {
 
 **@blingo-reader/epub-parser** exposes the `initEpubFile` method and the types associated with it. The usage described above is for the browser environment, where you need to pass in a `File` object, which can be obtained via an input element with `type="file"`. **@blingo-reader/epub-parser** also supports running in Node.js environment, but in this case, you need to pass the file path instead.
 
-The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser]()，[mobi-parser]()，[azw3-parser]()。
+The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser](./packages/epub-parser/README.md)，[mobi-parser]()，[azw3-parser]()。
 
 ## getSpine: () => Spine
 
@@ -71,7 +114,7 @@ interface ProcessedChapter {
 }
 ```
 
-In an EPUB file, a chapter is an HTML (or XHTML) file. Therefore, the processed chapter object consists of two parts: one is the HTML content string under the `<body>` tag, and the other is the CSS. The CSS is parsed from the `link` tag in the html file and provided as a blob URL, specifically in the `href` field of `CssPart`, along with an `id` corresponding to that URL. The blob URL of the CSS can be directly referenced by the `<link>` tag, or it can be fetched using the `Fetch` API to retrieve the CSS text for further processing, such as adding an ID of a DOM element before the CSS selector to implement scoped CSS.
+In an eBook file, a chapter is generally an HTML (or XHTML) file. Therefore, the processed chapter object consists of two parts: one is the HTML content string under the `<body>` tag, and the other is the CSS. The CSS is parsed from the `link` tag in the html file and provided as a blob URL, specifically in the `href` field of `CssPart`, along with an `id` corresponding to that URL. The blob URL of the CSS can be directly referenced by the `<link>` tag, or it can be fetched using the `Fetch` API to retrieve the CSS text for further processing, such as adding an ID of a DOM element before the CSS selector to implement scoped CSS.
 
 ## getToc: () => Toc
 

@@ -3,14 +3,14 @@ import { parsexml, path } from '@blingo-reader/shared'
 import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile, savedResourceMediaTypePrefixes } from './utils'
 import type {
-  CollectionItem,
+  EpubCollection,
   EpubFileInfo,
+  EpubGuide,
   EpubMetadata,
   EpubProcessedChapter,
   EpubResolvedHref,
   EpubSpine,
   EpubToc,
-  GuideReference,
   ManifestItem,
   NavList,
   NavPoint,
@@ -86,16 +86,16 @@ export class EpubFile implements EBookParser {
   /**
    * <guide> in .opf file
    */
-  private guide: GuideReference[] = []
-  public getGuide(): GuideReference[] {
+  private guide: EpubGuide = []
+  public getGuide(): EpubGuide {
     return this.guide
   }
 
   /**
    * <collection> in .opf file
    */
-  private collections: CollectionItem[] = []
-  public getCollection(): CollectionItem[] {
+  private collections: EpubCollection = []
+  public getCollection(): EpubCollection {
     return this.collections
   }
 

@@ -82,11 +82,14 @@ export interface GuideReference {
   type: string
   href: string
 }
+export type EpubGuide = GuideReference[]
 
 export interface CollectionItem {
   role: string
   links: string[]
 }
+export type EpubCollection = CollectionItem[]
+
 // for .ncx file
 export interface NavPoint {
   label: string

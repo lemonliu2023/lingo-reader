@@ -1,10 +1,10 @@
 import { path } from '@blingo-reader/shared'
 import type {
-  CollectionItem,
   Contributor,
+  EpubCollection,
+  EpubGuide,
   EpubMetadata,
   EpubSpine,
-  GuideReference,
   Identifier,
   Link,
   ManifestItem,
@@ -331,10 +331,10 @@ export function parseSpine(
  * Parse the guide element in the .opf file, similiar to <manifest>, <spine>...
  * @param guideAST <guide> xml ast
  * @param baseDir base directory of the .opf file
- * @returns { GuideReference[] } GuideReference[]
+ * @returns { EpubGuide } GuideReference[]
  */
-export function parseGuide(guideAST: Record<string, any>, baseDir: string): GuideReference[] {
-  const guide: GuideReference[] = []
+export function parseGuide(guideAST: Record<string, any>, baseDir: string): EpubGuide {
+  const guide: EpubGuide = []
   const references = guideAST.reference
   if (!references) {
     throw new Error('Within the package there may be one guide element, containing one or more reference elements.')
@@ -353,10 +353,10 @@ export function parseGuide(guideAST: Record<string, any>, baseDir: string): Guid
  * Parse the collection element in the .opf file, similiar to <guide>, <manifest>...
  * @param collectionAST <collection> xml ast
  * @param contentBaseDir base directory of the .opf file
- * @returns { CollectionItem[] } CollectionItem[]
+ * @returns { EpubCollection } CollectionItem[]
  */
-export function parseCollection(collectionAST: any[], contentBaseDir: string): CollectionItem[] {
-  const collections: CollectionItem[] = []
+export function parseCollection(collectionAST: any[], contentBaseDir: string): EpubCollection {
+  const collections: EpubCollection = []
   for (const collection of collectionAST) {
     const role = collection.$.role
     const links: string[] = []

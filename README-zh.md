@@ -4,6 +4,47 @@
 
 此外，你还可以访问 https://hhk-png.github.io/blingo-reader/ 来直接阅读电子书。这个网站是基于该解析库开发的。
 
+# Usage in browser
+
+```typescript
+let book: EpubFile | Mobi | Azw3 | undefined
+let spine: EpubSpine | MobiSpine | Azw3Spine = []
+let fileInfo: FileInfo = {
+  fileName: '',
+}
+
+async function initBook(file: File) {
+  if (file.name.endsWith('epub')) {
+    book = await initEpubFile(file)
+    spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+  else if (file.name.endsWith('mobi')) {
+    book = await initMobiFile(file)
+    spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+  else if (file.name.endsWith('azw3')) {
+    book = await initAzw3File(file)
+    spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+}
+await initBook()
+// toc
+console.log(book.getToc())
+
+for (let i = 0; i < spine.length; i++) {
+  const id = spine[i].id
+  // loadChapter
+  const chapter = book!.loadChapter(id)
+  console.log(chapter)
+}
+
+// destroy
+book!.destroy()
+```
+
 # Unified API
 
 针对不同电子书文件的，**blingo-reader** 提供了如下的统一的 api：
@@ -40,7 +81,7 @@ async function initBook(file: File): EpubFile {
 
 **@blingo-reader/epub-parser** 只暴露出了 initEpubFile 方法和与该方法相关的类型。上述是在浏览器中的使用方法，需要传入一个 File 对象，File 对象通过 type 为 file 的 input 标签获得。**@blingo-reader/epub-parser** 也支持在 node 环境下运行，只是此时要传入的参数是文件的地址。
 
-`initEpubFile` 的返回对象实现了 EBookParser 接口，并且也根据电子书文件的不同会提供额外的特定 api，可以查阅相应解析器的详细文档：[epub-parser]()，[mobi-parser]()，[azw3-parser]()。
+`initEpubFile` 的返回对象实现了 EBookParser 接口，并且也根据电子书文件的不同会提供额外的特定 api，可以查阅相应解析器的详细文档：[epub-parser](./packages/epub-parser/README-zh.md)，[mobi-parser]()，[azw3-parser]()。
 
 ## getSpine: () => Spine
 
@@ -69,7 +110,7 @@ interface ProcessedChapter {
 }
 ```
 
-在 epub 文件中，一个章节是一个 html(or xhtml)文件。因此处理后的章节对象包括两部分，一部分是 body 标签下的 html 正文字符串。另一部分是 css，该 css 从章节文件的 link 标签中解析出来，在此以 blob url 的形式给出，即 `CssPart` 中的 `href` 字段，并附带一个该 url 对应的 `id`。css 的 blob url 可以供 link 标签直接引用，也可以通过 fetch api 来获取 css 文本，然后做进一步的处理，比如在 css 选择器前面添加某个 dom 元素的 id，实现 scoped css。
+在电子书文件中，一般一个章节是一个 html(or xhtml)文件。因此处理后的章节对象包括两部分，一部分是 body 标签下的 html 正文字符串。另一部分是 css，该 css 从章节文件的 link 标签中解析出来，在此以 blob url 的形式给出，即 `CssPart` 中的 `href` 字段，并附带一个该 url 对应的 `id`。css 的 blob url 可以供 link 标签直接引用，也可以通过 fetch api 来获取 css 文本，然后做进一步的处理，比如在 css 选择器前面添加某个 dom 元素的 id，实现 scoped css。
 
 ## getToc: () => Toc | undefined
 
