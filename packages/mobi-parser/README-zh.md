@@ -1,3 +1,7 @@
+<div align="center">
+  <a href="https://github.com/hhk-png/blingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
+</div>
+
 mobi 和 kf8 文件的解析参考了 [https://github.com/johnfactotum/foliate-js/blob/main/mobi.js](https://github.com/johnfactotum/foliate-js/blob/main/mobi.js)
 
 # 简介

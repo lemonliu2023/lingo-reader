@@ -85,7 +85,7 @@ async function initBook(file: File): EpubFile {
 
 **@blingo-reader/epub-parser** exposes the `initEpubFile` method and the types associated with it. The usage described above is for the browser environment, where you need to pass in a `File` object, which can be obtained via an input element with `type="file"`. **@blingo-reader/epub-parser** also supports running in Node.js environment, but in this case, you need to pass the file path instead.
 
-The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser](./packages/epub-parser/README.md)，[mobi-parser]()，[kf8-parser]()。
+The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser](./packages/epub-parser/README.md)，[mobi-parser](./packages/mobi-parser/README.md)，[kf8-parser](./packages/mobi-parser/README.md)。
 
 ## getSpine: () => Spine
 

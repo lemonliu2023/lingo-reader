@@ -81,7 +81,7 @@ async function initBook(file: File): EpubFile {
 
 **@blingo-reader/epub-parser** 只暴露出了 initEpubFile 方法和与该方法相关的类型。上述是在浏览器中的使用方法，需要传入一个 File 对象，File 对象通过 type 为 file 的 input 标签获得。**@blingo-reader/epub-parser** 也支持在 node 环境下运行，只是此时要传入的参数是文件的地址。
 
-`initEpubFile` 的返回对象实现了 EBookParser 接口，并且也根据电子书文件的不同会提供额外的特定 api，可以查阅相应解析器的详细文档：[epub-parser](./packages/epub-parser/README-zh.md)，[mobi-parser]()，[kf8-parser]()。
+`initEpubFile` 的返回对象实现了 EBookParser 接口，并且也根据电子书文件的不同会提供额外的特定 api，可以查阅相应解析器的详细文档：[epub-parser](./packages/epub-parser/README-zh.md)，[mobi-parser](./packages/mobi-parser/README-zh.md)，[kf8-parser](./packages/mobi-parser/README-zh.md)。
 
 ## getSpine: () => Spine
 

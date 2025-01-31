@@ -1,3 +1,7 @@
+<div align="center">
+  <a href="https://github.com/hhk-png/blingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
+</div>
+
 # Usage in node
 
 ```typescript
