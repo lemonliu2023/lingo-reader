@@ -16,8 +16,8 @@
     "lint": "eslint . --cache",
     "tsc": "tsc --noEmit",
     "test": "vitest",
-    "test:browser": "vitest run --browser.enabled",
     "build": "pnpm run -C packages/shared build && pnpm run -C packages/epub-parser build && pnpm run -C packages/mobi-parser build",
+    "publish:ci": "pnpm -r publish --access public --no-git-checks",
     "prepare": "simple-git-hooks",
     "coverage": "vitest run --coverage"
   },
