@@ -28,8 +28,11 @@
   },
   "main": "./src/index.node.js",
   "module": "./src/index.node.mjs",
-  "browser": "./dist/index.browser.mjs",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "browser": "./dist/index.browser.mjs",
   "scripts": {
     "build": "rollup -c"
   },

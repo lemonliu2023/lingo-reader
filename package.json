@@ -17,6 +17,7 @@
     "tsc": "tsc --noEmit",
     "test": "vitest",
     "build": "pnpm run -C packages/shared build && pnpm run -C packages/epub-parser build && pnpm run -C packages/mobi-parser build",
+    "release": "bumpp",
     "publish:ci": "pnpm -r publish --access public --no-git-checks",
     "prepare": "simple-git-hooks",
     "coverage": "vitest run --coverage"
@@ -29,6 +30,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@types/node": "^22.10.2",
     "@vitest/coverage-v8": "^2.1.8",
+    "bumpp": "^10.0.1",
     "eslint": "^9.4.0",
     "lint-staged": "^15.2.5",
     "rollup": "^4.18.0",
