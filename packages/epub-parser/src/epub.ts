@@ -1,5 +1,5 @@
-import type { EBookParser } from '@blingo-reader/shared'
-import { parsexml, path } from '@blingo-reader/shared'
+import type { EBookParser } from '@lingo-reader/shared'
+import { parsexml, path } from '@lingo-reader/shared'
 import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile, savedResourceMediaTypePrefixes } from './utils'
 import type {

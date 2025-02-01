@@ -59,7 +59,7 @@ importers:
 
   packages/epub-parser:
     dependencies:
-      '@blingo-reader/shared':
+      '@lingo-reader/shared':
         specifier: workspace:^
         version: link:../shared
       jszip:
@@ -68,7 +68,7 @@ importers:
 
   packages/mobi-parser:
     dependencies:
-      '@blingo-reader/shared':
+      '@lingo-reader/shared':
         specifier: workspace:^
         version: link:../shared
       fflate:
@@ -93,7 +93,7 @@ importers:
 
   packages/svg-render:
     dependencies:
-      '@blingo-reader/shared':
+      '@lingo-reader/shared':
         specifier: workspace:^
         version: link:../shared
       image-size:
@@ -105,13 +105,13 @@ importers:
 
   reader-html:
     dependencies:
-      '@blingo-reader/epub-parser':
+      '@lingo-reader/epub-parser':
         specifier: workspace:^
         version: link:../packages/epub-parser
-      '@blingo-reader/mobi-parser':
+      '@lingo-reader/mobi-parser':
         specifier: workspace:^
         version: link:../packages/mobi-parser
-      '@blingo-reader/shared':
+      '@lingo-reader/shared':
         specifier: workspace:^
         version: link:../packages/shared
       dompurify:

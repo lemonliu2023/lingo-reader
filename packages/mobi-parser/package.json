@@ -1,17 +1,17 @@
 {
-  "name": "@blingo-reader/mobi-parser",
+  "name": "@lingo-reader/mobi-parser",
   "type": "module",
   "version": "0.1.0",
   "description": "A mobi and kf8 parser",
   "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
-  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "homepage": "https://github.com/hhk-png/lingo-reader#readme",
   "repository": {
     "type": "git",
-    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "url": "git@github.com:hhk-png/lingo-reader.git",
     "directory": "packages/mobi-parser"
   },
-  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
+  "bugs": "https://github.com/hhk-png/lingo-reader/issues",
   "keywords": [
     "mobi",
     "mobi-parser",
@@ -44,7 +44,7 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "@blingo-reader/shared": "workspace:^",
+    "@lingo-reader/shared": "workspace:^",
     "fflate": "^0.8.2"
   }
 }

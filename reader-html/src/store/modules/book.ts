@@ -1,11 +1,11 @@
-import type { EpubFile, EpubSpine } from '@blingo-reader/epub-parser'
-import { initEpubFile } from '@blingo-reader/epub-parser'
+import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
+import { initEpubFile } from '@lingo-reader/epub-parser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import DOMPurify from 'dompurify'
-import { initKf8File, initMobiFile } from '@blingo-reader/mobi-parser'
-import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@blingo-reader/mobi-parser'
-import type { FileInfo } from '@blingo-reader/shared'
+import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
+import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
+import type { FileInfo } from '@lingo-reader/shared'
 
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | Mobi | Kf8 | undefined

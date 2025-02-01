@@ -1,4 +1,4 @@
-import { path } from '@blingo-reader/shared'
+import { path } from '@lingo-reader/shared'
 import { readFileSync, writeFileSync } from './fsPolyfill'
 import type { EpubCssPart, EpubProcessedChapter } from './types'
 import { HREF_PREFIX } from './constant'

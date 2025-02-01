@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://github.com/hhk-png/blingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/hhk-png/lingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
   <a href="./README-zh.md">中文</a>
 </div>
 

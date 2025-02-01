@@ -7,9 +7,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "paths": {
-      "@blingo-reader/epub-parser/*": ["packages/epub-parser/src/*"],
-      "@blingo-reader/svg-render/*": ["packages/svg-render/src/*"],
-      "@blingo-reader/shared/*": ["packages/shared/src/*"]
+      "@lingo-reader/epub-parser/*": ["packages/epub-parser/src/*"],
+      "@lingo-reader/svg-render/*": ["packages/svg-render/src/*"],
+      "@lingo-reader/shared/*": ["packages/shared/src/*"]
     },
     "resolveJsonModule": true,
     "types": ["node"],

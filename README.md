@@ -4,9 +4,9 @@
 
 # Introduction
 
-**blingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, and .**.azw3** (**.kf8**) files, and provides a unified API.
+**lingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, and .**.azw3** (**.kf8**) files, and provides a unified API.
 
-In addition, you can also visit [https://hhk-png.github.io/blingo-reader/](https://hhk-png.github.io/blingo-reader/) to directly read eBooks. This website is developed based on this parsing library.
+In addition, you can also visit [https://hhk-png.github.io/lingo-reader/](https://hhk-png.github.io/lingo-reader/) to directly read eBooks. This website is developed based on this parsing library.
 
 # Usage in browser
 
@@ -51,7 +51,7 @@ book!.destroy()
 
 # Unified API
 
-For different eBook file formats, **blingo-reader** provides the following unified API:
+For different eBook file formats, **lingo-reader** provides the following unified API:
 
 ```typescript
 export interface EBookParser {
@@ -71,8 +71,8 @@ export interface EBookParser {
 The usage is as follows, taking the `epub-parser` as an example:
 
 ```typescript
-import type { EpubFile } from '@blingo-reader/epub-parser'
-import { initEpubFile } from '@blingo-reader/epub-parser'
+import type { EpubFile } from '@lingo-reader/epub-parser'
+import { initEpubFile } from '@lingo-reader/epub-parser'
 
 let book: EpubFile
 async function initBook(file: File): EpubFile {
@@ -83,7 +83,7 @@ async function initBook(file: File): EpubFile {
 }
 ```
 
-**@blingo-reader/epub-parser** exposes the `initEpubFile` method and the types associated with it. The usage described above is for the browser environment, where you need to pass in a `File` object, which can be obtained via an input element with `type="file"`. **@blingo-reader/epub-parser** also supports running in Node.js environment, but in this case, you need to pass the file path instead.
+**@lingo-reader/epub-parser** exposes the `initEpubFile` method and the types associated with it. The usage described above is for the browser environment, where you need to pass in a `File` object, which can be obtained via an input element with `type="file"`. **@lingo-reader/epub-parser** also supports running in Node.js environment, but in this case, you need to pass the file path instead.
 
 The object returned by `initEpubFile` implements the `EBookParser` interface, and depending on the type of eBook file, it also provides additional specific APIs. You can refer to the relevant parser's documentation for more details：[epub-parser](./packages/epub-parser/README.md)，[mobi-parser](./packages/mobi-parser/README.md)，[kf8-parser](./packages/mobi-parser/README.md)。
 
@@ -178,7 +178,7 @@ During file parsing, the HTML extracted from chapters is not security and could 
 ## TODO or Contribution：
 
 1. the UI of the homepage is ugly and needs to be adjusted.
-2. add a link to blingo-reader github on the homepage.
+2. add a link to lingo-reader github on the homepage.
 3. add a new way to open files. Enable users to open file via urls.
 4. the `xml2js` and `jszip` are very large. Find a way to reduce their size.
 5. picture preview

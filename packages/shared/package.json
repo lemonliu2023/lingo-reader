@@ -1,17 +1,17 @@
 {
-  "name": "@blingo-reader/shared",
+  "name": "@lingo-reader/shared",
   "type": "module",
   "version": "0.1.0",
   "description": "shared module of svg ebook reader",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
-  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "homepage": "https://github.com/hhk-png/lingo-reader#readme",
   "repository": {
     "type": "git",
-    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "url": "git@github.com:hhk-png/lingo-reader.git",
     "directory": "packages/shared"
   },
-  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
+  "bugs": "https://github.com/hhk-png/lingo-reader/issues",
   "keywords": [],
   "exports": {
     ".": {

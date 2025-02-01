@@ -1,4 +1,4 @@
-import { parsexml } from '@blingo-reader/shared'
+import { parsexml } from '@lingo-reader/shared'
 import { ContentType } from './parserTypes'
 import type {
   ChapterImage,

@@ -1,4 +1,4 @@
-import { path } from '@blingo-reader/shared'
+import { path } from '@lingo-reader/shared'
 import type {
   Contributor,
   EpubCollection,

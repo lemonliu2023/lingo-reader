@@ -13,7 +13,7 @@ import {
   handleATagHref,
 } from "../sharedLogic"
 import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils"
-import type { ResolvedHref } from "@blingo-reader/shared"
+import type { ResolvedHref } from "@lingo-reader/shared"
 
 const emits = defineEmits<{
   (event: 'infoDown'): void

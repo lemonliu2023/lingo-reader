@@ -4,8 +4,8 @@ import routes from './routes'
 
 const router = createRouter({
   routes,
-  // Now /blingo-reader/ is same to base option in vite.config.ts
-  history: createWebHashHistory('/blingo-reader/'),
+  // Now /lingo-reader/ is same to base option in vite.config.ts
+  history: createWebHashHistory('/lingo-reader/'),
 })
 
 // redirect to home if no book

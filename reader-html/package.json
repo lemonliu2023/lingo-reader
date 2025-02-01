@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@blingo-reader/epub-parser": "workspace:^",
-    "@blingo-reader/mobi-parser": "workspace:^",
-    "@blingo-reader/shared": "workspace:^",
+    "@lingo-reader/epub-parser": "workspace:^",
+    "@lingo-reader/mobi-parser": "workspace:^",
+    "@lingo-reader/shared": "workspace:^",
     "dompurify": "^3.2.3",
     "events": "^3.3.0",
     "pinia": "^2.2.6",

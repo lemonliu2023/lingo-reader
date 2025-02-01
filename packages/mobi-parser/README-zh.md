@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://github.com/hhk-png/blingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/hhk-png/lingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
 </div>
 
 mobi 和 kf8 文件的解析参考了 [https://github.com/johnfactotum/foliate-js/blob/main/mobi.js](https://github.com/johnfactotum/foliate-js/blob/main/mobi.js)
@@ -13,8 +13,8 @@ mobi 文件格式基于 pdb 文件格式，kf8(kf8)文件格式基于 mobi。因
 ## Usage in browser
 
 ```typescript
-import { initMobiFile } from '@blingo-reader/mobi-parser'
-import type { MobiSpine } from '@blingo-reader/mobi-parser'
+import { initMobiFile } from '@lingo-reader/mobi-parser'
+import type { MobiSpine } from '@lingo-reader/mobi-parser'
 
 function initMobi(file: File) {
   const mobi: Mobi = await initMobiFile(file)
@@ -31,8 +31,8 @@ function initMobi(file: File) {
 ## Usage in node
 
 ```typescript
-import { initMobiFile } from '@blingo-reader/mobi-parser'
-import type { MobiSpine } from '@blingo-reader/mobi-parser'
+import { initMobiFile } from '@lingo-reader/mobi-parser'
+import type { MobiSpine } from '@lingo-reader/mobi-parser'
 
 const mobi: Mobi = await initMobiFile('./example/taoyong.mobi')
 // spine
@@ -180,8 +180,8 @@ interface MobiResolvedHref {
 ## Usage in browser
 
 ```typescript
-import { initKf8File } from '@blingo-reader/mobi-parser'
-import type { Kf8Spine } from '@blingo-reader/mobi-parser'
+import { initKf8File } from '@lingo-reader/mobi-parser'
+import type { Kf8Spine } from '@lingo-reader/mobi-parser'
 
 function initMobi(file: File) {
   const mobi: Kf8 = await initKf8File(file)
@@ -198,8 +198,8 @@ function initMobi(file: File) {
 ## Usage in node
 
 ```typescript
-import { initKf8File } from '@blingo-reader/mobi-parser'
-import type { Kf8Spine } from '@blingo-reader/mobi-parser'
+import { initKf8File } from '@lingo-reader/mobi-parser'
+import type { Kf8Spine } from '@lingo-reader/mobi-parser'
 
 const mobi: Kf8 = await initKf8File('./example/taoyong.azw3')
 // spine

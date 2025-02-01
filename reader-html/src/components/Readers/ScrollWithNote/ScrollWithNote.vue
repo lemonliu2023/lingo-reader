@@ -12,7 +12,7 @@ import {
   generateParaSpacingConfig,
   handleATagHref
 } from '../sharedLogic'
-import type { ResolvedHref } from '@blingo-reader/shared'
+import type { ResolvedHref } from '@lingo-reader/shared'
 
 const emits = defineEmits<{
   (e: 'info-down'): void

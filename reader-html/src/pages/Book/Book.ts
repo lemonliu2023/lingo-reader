@@ -1,4 +1,4 @@
-import type { MobiToc } from '@blingo-reader/mobi-parser'
+import type { MobiToc } from '@lingo-reader/mobi-parser'
 
 export enum ReaderType {
   COLUMN = 'Column',

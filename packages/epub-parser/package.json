@@ -1,17 +1,17 @@
 {
-  "name": "@blingo-reader/epub-parser",
+  "name": "@lingo-reader/epub-parser",
   "type": "module",
   "version": "0.1.0",
   "description": "An epub parser which can extract chapter contents from an epub file",
   "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
-  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "homepage": "https://github.com/hhk-png/lingo-reader#readme",
   "repository": {
     "type": "git",
-    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "url": "git@github.com:hhk-png/lingo-reader.git",
     "directory": "packages/epub-parser"
   },
-  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
+  "bugs": "https://github.com/hhk-png/lingo-reader/issues",
   "keywords": [
     "epub",
     "epub-parser",
@@ -44,7 +44,7 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "@blingo-reader/shared": "workspace:^",
+    "@lingo-reader/shared": "workspace:^",
     "jszip": "^3.10.1"
   }
 }

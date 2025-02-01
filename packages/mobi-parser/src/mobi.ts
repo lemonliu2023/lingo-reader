@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, unlink } from 'node:fs'
 import path from 'node:path'
-import type { EBookParser } from '@blingo-reader/shared'
-import { parsexml } from '@blingo-reader/shared'
+import type { EBookParser } from '@lingo-reader/shared'
+import { parsexml } from '@lingo-reader/shared'
 import { saveResource } from './utils'
 import {
   concatTypedArrays,

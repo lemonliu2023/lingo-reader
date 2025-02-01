@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { ResolvedHref } from '@blingo-reader/shared'
+import type { ResolvedHref } from '@lingo-reader/shared'
 import type { Mode } from '../DropDown'
 
 interface AdjusterConfig {
