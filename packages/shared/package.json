@@ -5,6 +5,13 @@
   "description": "shared module of svg ebook reader",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
+  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "directory": "packages/shared"
+  },
+  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
   "keywords": [],
   "exports": {
     ".": {

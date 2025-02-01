@@ -5,6 +5,13 @@
   "description": "A mobi and kf8 parser",
   "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
+  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "directory": "packages/mobi-parser"
+  },
+  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
   "keywords": [
     "mobi",
     "mobi-parser",

@@ -6,6 +6,13 @@
   "description": "render text to svg",
   "author": "hhk-png <fangluoabc@163.com>",
   "license": "MIT",
+  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "directory": "packages/svg-render"
+  },
+  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
   "keywords": [
     "svg",
     "render"

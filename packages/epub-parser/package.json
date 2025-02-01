@@ -5,6 +5,13 @@
   "description": "An epub parser which can extract chapter contents from an epub file",
   "author": "hhk-png <fangfangluo3@qq.com>",
   "license": "MIT",
+  "homepage": "https://github.com/hhk-png/blingo-reader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hhk-png/blingo-reader.git",
+    "directory": "packages/epub-parser"
+  },
+  "bugs": "https://github.com/hhk-png/blingo-reader/issues",
   "keywords": [
     "epub",
     "epub-parser",
