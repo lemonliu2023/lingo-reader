@@ -136,9 +136,15 @@ importers:
         specifier: ^1.0.15
         version: 1.0.15
     devDependencies:
+      '@types/postcss-pxtorem':
+        specifier: ^6.1.0
+        version: 6.1.0
       '@vitejs/plugin-vue':
         specifier: ^5.1.4
         version: 5.2.1(vite@6.0.7(@types/node@22.10.2)(jiti@2.4.2)(terser@5.31.0)(yaml@2.4.3))(vue@3.5.13(typescript@5.7.3))
+      postcss-pxtorem:
+        specifier: ^6.1.0
+        version: 6.1.0(postcss@8.4.49)
       typescript:
         specifier: ~5.7.3
         version: 5.7.3
@@ -935,6 +941,9 @@ packages:
 
   '@types/path-browserify@1.0.3':
     resolution: {integrity: sha512-ZmHivEbNCBtAfcrFeBCiTjdIc2dey0l7oCGNGpSuRTy8jP6UVND7oUowlvDujBy8r2Hoa8bfFUOCiPWfmtkfxw==}
+
+  '@types/postcss-pxtorem@6.1.0':
+    resolution: {integrity: sha512-kHsYTjQgllOfhi3J+xunjMKUZ3APARV/JYeOOcIVLhvPVS162S8Ir8LsZwioFFyYCSnQp+aisupiSaRWVwKyDA==}
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
@@ -2462,6 +2471,11 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
+  postcss-pxtorem@6.1.0:
+    resolution: {integrity: sha512-ROODSNci9ADal3zUcPHOF/K83TiCgNSPXQFSbwyPHNV8ioHIE4SaC+FPOufd8jsr5jV2uIz29v1Uqy1c4ov42g==}
+    peerDependencies:
+      postcss: ^8.0.0
+
   postcss-selector-parser@6.1.0:
     resolution: {integrity: sha512-UMz42UD0UY0EApS0ZL9o1XnLhSTtvvvLe5Dc2H2O56fvRZi+KulDyf5ctDhhtYJBGKStV2FL1fy6253cmLgqVQ==}
     engines: {node: '>=4'}
@@ -3743,6 +3757,10 @@ snapshots:
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/path-browserify@1.0.3': {}
+
+  '@types/postcss-pxtorem@6.1.0':
+    dependencies:
+      postcss: 8.4.49
 
   '@types/resolve@1.20.2': {}
 
@@ -5456,6 +5474,10 @@ snapshots:
       fsevents: 2.3.2
 
   pluralize@8.0.0: {}
+
+  postcss-pxtorem@6.1.0(postcss@8.4.49):
+    dependencies:
+      postcss: 8.4.49
 
   postcss-selector-parser@6.1.0:
     dependencies:
