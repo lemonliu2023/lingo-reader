@@ -7,6 +7,6 @@ export default [
   {
     path: '/book',
     name: 'book',
-    component: () => import('../pages/Book//Book.vue'),
+    component: () => import('../pages/Book/Book.vue'),
   },
 ]

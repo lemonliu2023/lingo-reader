@@ -17,6 +17,7 @@ export default defineConfig({
         'ui',
         '**/dist/**',
         'docs/**',
+        'bump.config.ts',
       ],
     },
     testTimeout: 10_000,

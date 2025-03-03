@@ -14,7 +14,14 @@ const processFile = async (file: File) => {
 
 <template>
   <header class="header">
-    <span class="logo">Lingo Reader</span>
+    <div class="left">
+      <img class="logo" src="/logo.jpg" alt="logo">
+      <span class="lingo-reader">lingo reader</span>
+    </div>
+    <div class="middle"></div>
+    <div class="right">
+      <a href="https://github.com/hhk-png/lingo-reader" target="_blank" class="github" title="GitHub"></a>
+    </div>
   </header>
   <section class="section">
     <FileSelect @file-change="processFile"></FileSelect>
@@ -25,17 +32,60 @@ const processFile = async (file: File) => {
 .header {
   height: 64px;
   line-height: 64px;
-  padding-left: 20px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  display: flex;
+}
+
+.header .left {
+  height: 100%;
+  display: flex;
+  flex: 1 1;
+  padding-left: 5px;
 }
 
 .logo {
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #666;
-  letter-spacing: 0.05em;
-  /* text-shadow: 1px -2px 2px rgba(0, 0, 0, 0.3); */
+  display: inline-block;
+  height: 100%;
+}
+
+/* logo font style */
+@keyframes neonGlow {
+  0% {
+    text-shadow: 0 0 3px #00eaff, 0 0 8px #00eaff, 0 0 12px #00eaff;
+  }
+
+  50% {
+    text-shadow: 0 0 5px #00ffea, 0 0 12px #00ffea, 0 0 18px #00ffea;
+  }
+
+  100% {
+    text-shadow: 0 0 3px #00eaff, 0 0 8px #00eaff, 0 0 12px #00eaff;
+  }
+}
+
+.lingo-reader {
+  font-family: Comic Sans MS, sans-serif;
+  font-size: 32px;
+  font-weight: bold;
+  color: #00eaff;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  animation: neonGlow 1.5s infinite alternate;
+  display: inline-block;
+}
+
+.header .right {
+  flex: 0.3 1;
+  padding-top: 8px;
+}
+
+.github {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  background: url('/public/github.svg') no-repeat center center;
+  background-size: contain;
 }
 
 .section {
