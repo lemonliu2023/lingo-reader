@@ -8,7 +8,10 @@ import {
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
-  generatePaddingConfig,
+  generatePaddingBottomConfig,
+  generatePaddingLeftConfig,
+  generatePaddingRightConfig,
+  generatePaddingTopConfig,
   generateParaSpacingConfig,
   handleATagHref,
 } from "../sharedLogic"
@@ -39,14 +42,14 @@ const paddingBottom = ref<number>(10)
 const lineHeight = ref<number>(2)
 const configList: Config[] = [
   generateFontFamilyConfig(fontFamily),
-  generateAdjusterConfig('columns', 4, 1, 1, columns),
-  generateAdjusterConfig('columnGap', Infinity, 0, 2, columnGap),
+  generateAdjusterConfig('Columns / 列数', 4, 1, 1, columns),
+  generateAdjusterConfig('Column Gap / 列间距', Infinity, 0, 2, columnGap),
   generateFontSizeConfig(fontSize),
   generateLetterSpacingConfig(letterSpacing),
-  generatePaddingConfig('paddingLeft', paddingLeft),
-  generatePaddingConfig('paddingRight', paddingRight),
-  generatePaddingConfig('paddingTop', paddingTop),
-  generatePaddingConfig('paddingBottom', paddingBottom),
+  generatePaddingLeftConfig(paddingLeft),
+  generatePaddingRightConfig(paddingRight),
+  generatePaddingTopConfig(paddingTop),
+  generatePaddingBottomConfig(paddingBottom),
   generateLineHeightConfig(lineHeight),
   generateParaSpacingConfig(pSpacing),
 ]

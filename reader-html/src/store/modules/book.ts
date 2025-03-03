@@ -88,6 +88,10 @@ const useBookStore = defineStore('ebook', () => {
     return book!.resolveHref(href)
   }
 
+  const getMetadata = () => {
+    return undefined
+  }
+
   return {
     chapterIndex,
     chapterNums,
@@ -99,6 +103,7 @@ const useBookStore = defineStore('ebook', () => {
     reset,
     existBook,
     resolveHref,
+    getMetadata,
   }
 })
 

@@ -2,9 +2,43 @@
 import FileSelect from '../../components/FileSelect/FileSelect.vue'
 import { useRouter } from 'vue-router'
 import { useBookStore } from '../../store'
+import { useI18n } from 'vue-i18n'
+import { useLocaleStore } from '../../store'
+
 const router = useRouter()
 const bookStore = useBookStore()
+const localeStore = useLocaleStore()
 
+/**
+ * i18n
+ */
+const { locale } = useI18n()
+
+/**
+ * switch language
+ */
+const languageList = [
+  'English',
+  '中文'
+] as const
+// ensure synchronization with the store
+if (localeStore.currLanguage === '') {
+  localeStore.currLanguage = languageList[0]
+}
+const i18Map: Record<string, string> = {
+  'English': 'en',
+  '中文': 'zh'
+}
+const selectLanguage = (item: string) => {
+  localeStore.currLanguage = item
+  if (i18Map[item]) {
+    locale.value = i18Map[item]
+  }
+}
+
+/**
+ * select file
+ */
 const processFile = async (file: File) => {
   await bookStore.initBook(file)
   router.push('/book')
@@ -20,7 +54,20 @@ const processFile = async (file: File) => {
     </div>
     <div class="middle"></div>
     <div class="right">
+      <!-- github -->
       <a href="https://github.com/hhk-png/lingo-reader" target="_blank" class="github" title="GitHub"></a>
+      <!-- switch language -->
+      <div class="language-selector">
+        <span class="curr-language">
+          {{ localeStore.currLanguage }}
+        </span>
+        <!-- Current Language Display -->
+        <div class="language-dropdown">
+          <span v-for="item in languageList" :key="item" @click="selectLanguage(item)" class="language-item">
+            {{ item }}
+          </span>
+        </div>
+      </div>
     </div>
   </header>
   <section class="section">
@@ -78,6 +125,7 @@ const processFile = async (file: File) => {
 .header .right {
   flex: 0.3 1;
   padding-top: 8px;
+  display: flex;
 }
 
 .github {
@@ -86,6 +134,54 @@ const processFile = async (file: File) => {
   height: 50px;
   background: url('/public/github.svg') no-repeat center center;
   background-size: contain;
+}
+
+/* switch language */
+.language-selector {
+  position: relative;
+  border-radius: 5px;
+  cursor: pointer;
+  padding-left: 20px;
+  width: 60px;
+}
+
+/* switch icon */
+.curr-language {
+  display: block;
+  position: relative;
+}
+.curr-language::after {
+  position: absolute;
+  content: '⇄';
+  font-size: 8px;
+  top: 2px;
+  left: -8px;
+}
+
+.language-dropdown {
+  display: none;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #fff;
+  border-radius: 5px;
+  min-width: 150px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.language-dropdown .language-item {
+  display: block;
+  padding-left: 10px;
+  color: #333;
+  text-decoration: none;
+}
+
+.language-dropdown .language-item:hover {
+  background-color: #f0f0f0;
+}
+
+.language-selector:hover .language-dropdown {
+  display: block;
 }
 
 .section {

@@ -3,7 +3,7 @@ import type { MobiToc } from '@lingo-reader/mobi-parser'
 export enum ReaderType {
   COLUMN = 'Column',
   SCROLL = 'Scroll',
-  SCROLL_WITH_NOTE = 'ScrollWithNote',
+  SCROLL_WITH_NOTE = 'Scroll With Note',
 }
 
 export interface FlatedTocItem {

@@ -5,10 +5,14 @@ import { withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
 import {
   type Config,
+  generateFontFamilyConfig,
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
-  generatePaddingConfig,
+  generatePaddingBottomConfig,
+  generatePaddingLeftConfig,
+  generatePaddingRightConfig,
+  generatePaddingTopConfig,
   generateParaSpacingConfig,
   handleATagHref
 } from '../sharedLogic'
@@ -22,6 +26,7 @@ const props = defineProps<{
   selectedTocItem: { id: string, selector: string }
 }>()
 
+const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const fontSize = ref<number>(16)
 const letterSpacing = ref<number>(0)
 const lineHeight = ref<number>(2)
@@ -31,14 +36,15 @@ const textPaddingRight = ref<number>(1)
 const textPaddingTop = ref<number>(0)
 const textPaddingBottom = ref<number>(300)
 const configList: Config[] = [
+  generateFontFamilyConfig(fontFamily),
   generateFontSizeConfig(fontSize),
   generateLetterSpacingConfig(letterSpacing),
   generateLineHeightConfig(lineHeight),
   generateParaSpacingConfig(pSpacing),
-  generatePaddingConfig('textPaddingLeft', textPaddingLeft),
-  generatePaddingConfig('textPaddingRight', textPaddingRight),
-  generatePaddingConfig('textPaddingTop', textPaddingTop),
-  generatePaddingConfig('textPaddingBottom', textPaddingBottom),
+  generatePaddingLeftConfig(textPaddingLeft),
+  generatePaddingRightConfig(textPaddingRight),
+  generatePaddingTopConfig(textPaddingTop),
+  generatePaddingBottomConfig(textPaddingBottom),
 ]
 onMounted(() => {
   emits('receiveConfig', configList)
@@ -159,7 +165,7 @@ const onMouseDown = (e: MouseEvent) => {
     <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
     <!-- this -->
     <div :style="{
-      lineHeight, paddingLeft: withPx(textPaddingLeft), paddingRight: withPx(textPaddingRight),
+      fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft), paddingRight: withPx(textPaddingRight),
       paddingTop: withPx(textPaddingTop), paddingBottom: withPx(textPaddingBottom),
       flexBasis: withPx(articleBasis), '--p-spacing': withPx(pSpacing)
     }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">

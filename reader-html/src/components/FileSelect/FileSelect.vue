@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
 
 const { width, height } = defineProps<{
   width?: number
@@ -59,10 +65,14 @@ const handleDrop = (e: DragEvent) => {
       <p>Release the file for parsing</p>
     </div>
     <!-- file select button -->
-    <label v-show="showSelectFileButton" for="fileInput" class="file-input-label">Select File</label>
+    <label v-show="showSelectFileButton" for="fileInput" class="file-input-label">{{ t("selectFile") }}</label>
     <!-- hidden file input -->
     <input @change="handleFileChange" type="file" id="fileInput" class="file-input" accept=".epub,.mobi,.kf8,.kf8">
-    <span class="info"><b>.epub</b> <b>.mobi</b> <b>.azw3(.kf8)</b> file are supported</span>
+    <span class="info">
+      {{ t('supportedFileTypsPrefix') }}
+      <b>.epub</b> <b>.mobi</b> <b>.azw3(.kf8)</b>
+      {{ t('supportedFileTypsSuffix') }}
+    </span>
   </div>
 </template>
 

@@ -60,7 +60,7 @@ const handleChange = (e: Event) => {
   <div class="value-adjuster">
     <span v-if="label" :style="{width: labelWidth && withPx(labelWidth)}" class="label">{{ label + ':' }}</span>
     <button class="adjust-btn" @click.stop="decrease">-</button>
-    <input :value="inputValue" @change="handleChange" @keydown.stop="handleKeyDown" type="number"
+    <input :value="inputValue" @wheel.prevent @change="handleChange" @keydown.stop="handleKeyDown" type="number"
       class="value-display" />
     <button class="adjust-btn" @click.stop="increase">+</button>
   </div>
@@ -74,6 +74,7 @@ const handleChange = (e: Event) => {
 }
 
 .label {
+  flex: 1.5;
   font-size: 12px;
   font-family: sans-serif;
   margin-right: 5px;
@@ -96,7 +97,7 @@ const handleChange = (e: Event) => {
 }
 
 .value-display {
-  flex: 1;
+  flex: 1.2;
   /* if not set width to 0, the content html will exceed its parent element area 
   when the element width is large enough */
   width: 0;

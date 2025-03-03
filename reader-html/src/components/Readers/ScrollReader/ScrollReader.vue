@@ -9,7 +9,10 @@ import {
   generateFontSizeConfig,
   generateLetterSpacingConfig,
   generateLineHeightConfig,
-  generatePaddingConfig,
+  generatePaddingBottomConfig,
+  generatePaddingLeftConfig,
+  generatePaddingRightConfig,
+  generatePaddingTopConfig,
   generateParaSpacingConfig,
   handleATagHref
 } from "../sharedLogic"
@@ -39,10 +42,10 @@ const configList: Config[] = [
   generateLetterSpacingConfig(letterSpacing),
   generateLineHeightConfig(lineHeight),
   generateParaSpacingConfig(pSpacing),
-  generatePaddingConfig('textPaddingLeft', textPaddingLeft),
-  generatePaddingConfig('textPaddingRight', textPaddingRight),
-  generatePaddingConfig('textPaddingTop', textPaddingTop),
-  generatePaddingConfig('textPaddingBottom', textPaddingBottom),
+  generatePaddingLeftConfig(textPaddingLeft),
+  generatePaddingRightConfig(textPaddingRight),
+  generatePaddingTopConfig(textPaddingTop),
+  generatePaddingBottomConfig(textPaddingBottom),
 ]
 onMounted(() => {
   emits('receiveConfig', configList)

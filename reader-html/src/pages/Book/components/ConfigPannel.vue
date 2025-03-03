@@ -23,7 +23,7 @@ useClickOutside(configArea, () => {
 <template>
   <div @click.stop="tooglePannelShow" class="config" ref="configArea">
     <span class="tag"><img src="/config.svg" alt="config tag"></span>
-    <div @wheel.stop.passive.prevent v-show="showConfigPannel" class="config-pannel">
+    <div @wheel.stop.passive v-show="showConfigPannel" class="config-pannel">
       <div @click.stop v-if="!config.length" class="pannel-item">
         There is no configuration items provided by this reading mode.
       </div>
@@ -71,7 +71,7 @@ useClickOutside(configArea, () => {
 }
 
 .pannel-item {
-  flex: 1;
+  flex: 1 1 400px;
   padding: 10px;
 }
 </style>

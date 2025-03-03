@@ -71,6 +71,7 @@ useClickOutside(dropdownRef, () => {
 }
 
 .label {
+  flex: 1.5;
   flex-shrink: 0;
   font-size: 12px;
   font-family: sans-serif;
@@ -78,6 +79,7 @@ useClickOutside(dropdownRef, () => {
 }
 
 .dropdown {
+  flex: 1.8;
   cursor: pointer;
   border-radius: 4px;
   padding: 8px;
@@ -86,7 +88,6 @@ useClickOutside(dropdownRef, () => {
   display: flex;
   align-items: center;
   gap: 8px;
-
 }
 
 .mode-logo {

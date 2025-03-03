@@ -193,8 +193,6 @@ During file parsing, the HTML extracted from chapters is not security and could 
 
 ## TODO or Contribution：
 
-1. the UI of the homepage is ugly and needs to be adjusted.
-2. add a link to lingo-reader github on the homepage.
 3. add a new way to open files. Enable users to open file via urls.
 4. the `xml2js` and `jszip` are very large. Find a way to reduce their size.
 5. picture preview
@@ -202,4 +200,3 @@ During file parsing, the HTML extracted from chapters is not security and could 
 7. write blog to explain how to parse epub, mobi or kf8 file
 8. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.
 9. find test case
-10. i18

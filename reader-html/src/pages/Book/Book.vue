@@ -7,6 +7,7 @@ import DropDown from "../../components/DropDown"
 import { Config } from "../../components/Readers/sharedLogic"
 import ConfigPannel from "./components/ConfigPannel.vue"
 import { useClickOutside, withPx } from "../../utils"
+import { useI18n } from 'vue-i18n'
 
 const ColumnReader = defineAsyncComponent(
   () => import('../../components/Readers/ColumnReader/ColumnReader.vue')
@@ -20,6 +21,8 @@ const ScrollWithNote = defineAsyncComponent(
 
 const router = useRouter()
 const bookStore = useBookStore()
+
+const { t } = useI18n()
 
 /**
  * info bar show or hide
@@ -111,7 +114,7 @@ const tocItemClick = (item: FlatedTocItem) => {
       <!-- back button -->
       <div class="back" @click="back">
         <img src="/leftArrow.svg" alt="leftArrow">
-        <span>Back</span>
+        <span>{{ t('back') }}</span>
       </div>
       <DropDown class="bar-left-dropdown" :modes="readerModes" v-model:current-mode-name="modeName"></DropDown>
       <!-- configPanel -->
@@ -130,7 +133,7 @@ const tocItemClick = (item: FlatedTocItem) => {
       <!-- toc -->
       <div ref="tocUiContent" @click="showTocToggle" class="toc-tag">
         <img src="/toc.svg" alt="toc">
-        <span>table of contents</span>
+        <span>{{ t('tableOfContent') }}</span>
       </div>
       <div :class="{ 'hide-toc': !showToc, }" @wheel.stop.passive class="toc">
         <ul>
@@ -149,10 +152,11 @@ const tocItemClick = (item: FlatedTocItem) => {
     <ColumnReader v-if="modeName === ReaderType.COLUMN" :selected-toc-item="selectedTocItem"
       @receive-config="receiveConfig" @info-down="infoBarDown">
     </ColumnReader>
-    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" :selected-toc-item="selectedTocItem" @receive-config="receiveConfig" @info-down="infoBarDown">
+    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" :selected-toc-item="selectedTocItem"
+      @receive-config="receiveConfig" @info-down="infoBarDown">
     </ScrollReader>
-    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" :selected-toc-item="selectedTocItem"  @receive-config="receiveConfig"
-      @info-down="infoBarDown">
+    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" :selected-toc-item="selectedTocItem"
+      @receive-config="receiveConfig" @info-down="infoBarDown">
     </ScrollWithNote>
   </div>
 </template>
