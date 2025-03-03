@@ -3,9 +3,17 @@
   <a href="./README-zh.md">中文</a>
 </div>
 
+# Install
+
+```shell
+pnpm install @lingo-reader/epub-parser
+```
+
 # Usage in node
 
 ```typescript
+import { initEpubFile } from '@lingo-reader/epub-parser'
+
 const epub = await initEpubFile('./example/alice.epub')
 // fileInfo
 epub.getFileInfo()

@@ -8,9 +8,25 @@
 
 In addition, you can also visit [https://hhk-png.github.io/lingo-reader/](https://hhk-png.github.io/lingo-reader/) to directly read eBooks. This website is developed based on this parsing library.
 
+You can find detailed explanations of each parsing library in the corresponding subproject's `README.md` file: [epub-parser](./packages/epub-parser/README.md), [mobi-parser](./packages/mobi-parser/README.md), and [kf8-parser](./packages/mobi-parser/README.md).
+
+# Install
+
+```shell
+pnpm install @lingo-reader/epub-parser
+pnpm install @lingo-reader/mobi-parser # include parsers of mobi and azw3
+pnpm install @lingo-reader/shared # include types of unified API mentioned above
+```
+
 # Usage in browser
 
 ```typescript
+import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
+import { initEpubFile } from '@lingo-reader/epub-parser'
+import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
+import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
+import type { FileInfo } from '@lingo-reader/shared'
+
 let book: EpubFile | Mobi | Kf8 | undefined
 let spine: EpubSpine | MobiSpine | Kf8Spine = []
 let fileInfo: FileInfo = {

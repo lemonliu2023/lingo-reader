@@ -9,6 +9,12 @@ The parsing of MOBI and KF8 files is based on [this MOBI parsing implementation.
 
 The MOBI file format is based on the PDB file format, while the KF8 (Kindle Format 8) format is built on top of MOBI. Therefore, the parsing of both MOBI and KF8 is handled together in the `mobi-parser`.
 
+# Install
+
+```shell
+pnpm install @lingo-reader/mobi-parser
+```
+
 # MobiFile
 
 ## Usage in browser
