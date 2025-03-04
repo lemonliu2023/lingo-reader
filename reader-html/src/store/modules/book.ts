@@ -12,6 +12,7 @@ const useBookStore = defineStore('ebook', () => {
   let spine: EpubSpine | MobiSpine | Kf8Spine = []
   const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
+  const progressInChapter = ref<number>(0)
   let fileInfo: FileInfo = {
     fileName: '',
   }
@@ -95,6 +96,7 @@ const useBookStore = defineStore('ebook', () => {
   return {
     chapterIndex,
     chapterNums,
+    progressInChapter,
     initBook,
     getChapterHTML,
     getChapterThroughId,

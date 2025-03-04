@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useBookStore } from '../../../store'
-import { withPx } from '../../../utils'
+import { useDebounce, withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
 import {
   type Config,
@@ -64,7 +64,19 @@ const currentChapterHTML = ref<string>()
 
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
+  nextTick(() => {
+    // jump to the last read location
+    const scrollHeight = articleWrapRef.value!.scrollHeight
+    const targetPosition = bookStore.progressInChapter * scrollHeight
+    articleWrapRef.value!.scrollTo({ top: targetPosition });
+  })
 })
+
+// save read position
+const handleArticleScroll = useDebounce(() => {
+  const progress = articleWrapRef.value!.scrollTop / articleWrapRef.value!.scrollHeight
+  bookStore.progressInChapter = progress
+}, 500)
 
 const skipToChapter = async (newV: ResolvedHref) => {
   if (newV.id.length > 0) {
@@ -168,7 +180,8 @@ const onMouseDown = (e: MouseEvent) => {
       fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft), paddingRight: withPx(textPaddingRight),
       paddingTop: withPx(textPaddingTop), paddingBottom: withPx(textPaddingBottom),
       flexBasis: withPx(articleBasis), '--p-spacing': withPx(pSpacing)
-    }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef">
+    }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef"
+      @scroll="handleArticleScroll">
       <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
       <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
       <article @click="handleATagHrefScrollNote" class="article-text" v-html="currentChapterHTML">

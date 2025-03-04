@@ -69,11 +69,16 @@ const currentChapterHTML = ref<string>('')
 // load book
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
+  // jump to the last read location
+  nextTick(() => {
+    index.value = Math.floor(bookStore.progressInChapter * maxPageIndex.value)
+  })
 })
 
 const skipToChapter = async (newV: ResolvedHref) => {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
+    index.value = 0
   }
   if (newV.selector.length > 0) {
     nextTick(() => {
@@ -103,6 +108,11 @@ const articleRef = useTemplateRef<HTMLElement>('articleRef')
 const delta = ref<number>(0)
 const maxPageIndex = ref<number>(0)
 const index = ref<number>(0)
+watch(index, (newValue) => {
+  // save the last read location
+  // increasing newValue by 0.5 is to avoid progress decay when switching readers
+  bookStore.progressInChapter = (newValue + 0.5) / maxPageIndex.value
+})
 onUpdated(() => {
   recaculatePage()
 })
@@ -199,6 +209,8 @@ document.addEventListener('keydown', keyDownEvent)
     <!-- nextPage and prevPage button -->
     <button @click.stop="nextPage" class="next-page-button">next page</button>
     <button @click.stop="prevPage" class="prev-page-button">prev page</button>
+    <!-- !!!maybe error -->
+    <span class="progress">{{ index + 1 }} / {{ maxPageIndex === -1 ? 1 : maxPageIndex + 1 }}</span>
 
     <!-- text -->
     <article @click="handleATagHrefColumn" ref="articleRef" class="article" :style="{
@@ -316,5 +328,13 @@ document.addEventListener('keydown', keyDownEvent)
 .prev-page-button {
   right: auto;
   left: 0;
+}
+
+.progress {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%);
+  opacity: 0.5;
 }
 </style>

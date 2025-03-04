@@ -1,7 +1,7 @@
 <script setup lang='ts'>
-import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue"
+import { nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue"
 import { useBookStore } from "../../../store"
-import { useDomSize, withPx } from "../../../utils"
+import { useDebounce, useDomSize, withPx } from "../../../utils"
 import Resizer from "../../Resizer/Resizer.vue"
 import {
   type Config,
@@ -61,6 +61,25 @@ let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 const currentChapterHTML = ref<string>()
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
+  nextTick(() => {
+    // jump to the last read location
+    const scrollHeight = containerRef.value!.scrollHeight
+    const targetPosition = bookStore.progressInChapter * scrollHeight
+    window.scrollTo({ top: targetPosition });
+    // ??? cannot work, why?
+    // containerRef.value!.scrollTop = targetPosition
+  })
+})
+
+// save read position
+const saveReadPos = useDebounce(() => {
+  const progress = document.documentElement?.scrollTop / document.documentElement.scrollHeight
+  bookStore.progressInChapter = progress
+}, 500)
+window.addEventListener('scroll', saveReadPos)
+// if you don't clear the events on the window, there will be strange bug
+onUnmounted(() => {
+  window.removeEventListener('scroll', saveReadPos)
 })
 
 const skipToChapter = async (newV: ResolvedHref) => {
