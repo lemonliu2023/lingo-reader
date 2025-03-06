@@ -196,7 +196,8 @@ During file parsing, the HTML extracted from chapters is not security and could 
 3. add a new way to open files. Enable users to open file via urls.
 4. the `xml2js` and `jszip` are very large. Find a way to reduce their size.
 5. picture preview
-6. write documentation include epub-parser, mobi-parser, reader-html
 7. write blog to explain how to parse epub, mobi or kf8 file
 8. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.
 9. find test case
+10. config panel i18n
+11. The problem of progress decay when switching reader mode

@@ -88,6 +88,7 @@ export class EpubFile implements EBookParser {
    */
   private guide: EpubGuide = []
   public getGuide(): EpubGuide {
+    // ??? maybe return manifest when there is no <guide> in .opf file
     return this.guide
   }
 

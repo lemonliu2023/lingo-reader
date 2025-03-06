@@ -187,8 +187,6 @@ export class Mobi implements EBookParser {
       this.parseNavMap(tocAst.wrapper.children, toc)
       this.toc = toc
     }
-
-    // TODO: fileposList for resolveHref selector
   }
 
   private findTocChapter(referenceStr: string): MobiChapter | undefined {
