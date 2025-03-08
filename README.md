@@ -201,3 +201,6 @@ During file parsing, the HTML extracted from chapters is not security and could 
 9. find test case
 10. config panel i18n
 11. The problem of progress decay when switching reader mode
+11. find a way to replace xml2js with other package (fast-xml-parser)
+12. cycle color components
+13. i18n

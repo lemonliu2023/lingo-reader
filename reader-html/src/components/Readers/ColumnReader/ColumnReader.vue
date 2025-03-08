@@ -113,9 +113,7 @@ watch(index, (newValue) => {
   // increasing newValue by 0.5 is to avoid progress decay when switching readers
   bookStore.progressInChapter = (newValue + 0.5) / maxPageIndex.value
 })
-onUpdated(() => {
-  recaculatePage()
-})
+
 const recaculatePage = () => {
   if (!articleRef.value) return
 

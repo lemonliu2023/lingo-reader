@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import DOMPurify from 'dompurify'
 import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
 import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
-import type { FileInfo } from '@lingo-reader/shared'
+import type { FileInfo, ResolvedHref, Toc } from '@lingo-reader/shared'
 
 const useBookStore = defineStore('ebook', () => {
   let book: EpubFile | Mobi | Kf8 | undefined
@@ -30,7 +30,7 @@ const useBookStore = defineStore('ebook', () => {
       chapterNums.value = spine.length
       fileInfo = book.getFileInfo()
     }
-    else if (file.name.endsWith('kf8')) {
+    else if (file.name.endsWith('kf8') || file.name.endsWith('azw3')) {
       book = await initKf8File(file)
       spine = book.getSpine()
       chapterNums.value = spine.length
@@ -63,7 +63,7 @@ const useBookStore = defineStore('ebook', () => {
     return await getChapterHTMLFromId(id)
   }
 
-  const getToc = () => {
+  const getToc = (): Toc => {
     return book!.getToc()
   }
 
@@ -77,6 +77,7 @@ const useBookStore = defineStore('ebook', () => {
     spine = []
     chapterIndex.value = 0
     chapterNums.value = 0
+    progressInChapter.value = 0
     // clear chapter cache to avoid image conflict in different books
     chapterCache.clear()
   }
@@ -85,7 +86,7 @@ const useBookStore = defineStore('ebook', () => {
     return book !== undefined
   }
 
-  const resolveHref = (href: string) => {
+  const resolveHref = (href: string): ResolvedHref | undefined => {
     return book!.resolveHref(href)
   }
 
