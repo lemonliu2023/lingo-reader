@@ -81,13 +81,15 @@ const skipToChapter = async (newV: ResolvedHref) => {
     index.value = 0
   }
   if (newV.selector.length > 0) {
-    nextTick(() => {
+    let timer: ReturnType<typeof setTimeout>
+    timer = setTimeout(() => {
       const eleLeft = articleRef.value?.querySelector(newV.selector)?.getBoundingClientRect().left
       if (eleLeft) {
-        index.value = Math.floor(eleLeft / delta.value)
-        recaculateScroll()
+        recaculate()
+        index.value = Math.min(Math.floor(eleLeft / delta.value), maxPageIndex.value)
       }
-    })
+      clearTimeout(timer)
+    }, 0)
   }
 }
 
@@ -137,6 +139,15 @@ const recaculate = () => {
 }
 const recaculateWithDebounce = useDebounce(recaculate, 20)
 onUpdated(recaculate)
+onMounted(() => {
+  // the layout of content is not completed in one cycle, 
+  //  so set 100ms timeout to recaculate some ref
+  let timer: ReturnType<typeof setTimeout>
+  timer = setTimeout(() => {
+    recaculate()
+    clearTimeout(timer)
+  }, 100)
+})
 window.addEventListener('resize', recaculateWithDebounce)
 
 // page turning
@@ -282,6 +293,7 @@ document.addEventListener('keydown', keyDownEvent)
 
 .article-text :deep(pre) {
   background-color: rgba(204, 201, 194, 0.3);
+  overflow: hidden;
 }
 
 /* allow text in code to wrap */
