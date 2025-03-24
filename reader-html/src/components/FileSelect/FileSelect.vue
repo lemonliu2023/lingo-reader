@@ -106,8 +106,8 @@ const handleDrop = (e: DragEvent) => {
     <!-- get file through input and url -->
     <div class="get-file-container">
       <div class="tabs">
-        <span @click="showSelectFile">Select File</span>
-        <span @click="showUrlLoad">Load Via URL</span>
+        <span @click="showSelectFile" :class="{'active': isShowSelectFile}">{{ t('selectFile') }}</span>
+        <span @click="showUrlLoad" :class="{'active': !isShowSelectFile}">{{ t('loadViaUrl') }}</span>
       </div>
 
       <!-- file select -->
@@ -121,8 +121,8 @@ const handleDrop = (e: DragEvent) => {
       <!-- url load -->
       <div v-if="!isShowSelectFile" class="get-file-content">
         <div class="url-load-area">
-          <input v-model="fileUrl" type="url" class="url-input" placeholder="Enter the file URL" />
-          <button @click="loadFileThroughtUrl" class="url-load-btn">Loading URL Files</button>
+          <input v-model="fileUrl" type="url" class="url-input" :placeholder="t('enterUrl')" />
+          <button @click="loadFileThroughtUrl" class="url-load-btn">{{ t('loadUrlFile') }}</button>
         </div>
         <div class="progress">
           <span class="progress-text">{{ progressText }}</span>
@@ -197,7 +197,7 @@ const handleDrop = (e: DragEvent) => {
   border-radius: 6px 6px 0 0;
   font-weight: 600;
   color: #333;
-  transition: background-color 0.1s, box-shadow 0.1s, transform 0.1s;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
 }
 
 .tabs span:hover {
@@ -207,6 +207,10 @@ const handleDrop = (e: DragEvent) => {
 
 .tabs span:active {
   transform: scale(0.95);
+}
+
+.tabs span.active {
+  background-color: #f1f1f1;
 }
 
 .get-file-container .get-file-content {

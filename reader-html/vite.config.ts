@@ -33,7 +33,7 @@ export default defineConfig({
               const name = packageName.slice(0, packageName.indexOf('@', position))
               // if different sub packages hava same return name,
               //  they will be bundled to one file
-              return `vendor-${name}`
+              return `${name}`
             }
           }
         },

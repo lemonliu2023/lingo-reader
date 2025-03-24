@@ -1,5 +1,8 @@
 {
   "selectFile": "Select File",
+  "loadViaUrl": "Load via URL",
+  "enterUrl": "Enter URL",
+  "loadUrlFile": "Loading URL File",
   "supportedFileTypsPrefix": "",
   "supportedFileTypsSuffix": " file are supported",
   "back": "Back",
