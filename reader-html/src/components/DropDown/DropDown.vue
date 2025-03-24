@@ -122,6 +122,8 @@ useClickOutside(dropdownRef, () => {
   top: 100%;
   left: 0;
   width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
   border-radius: 4px;
   background: #fefefe;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

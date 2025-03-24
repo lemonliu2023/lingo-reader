@@ -191,15 +191,13 @@ This method is used to clear blob URLs and other resources created during the fi
 
 During file parsing, the HTML extracted from chapters is not security and could be vulnerable to XSS attacks. The parsing library does not handle this issue directly, but the vulnerability is mitigated in the upper-level `reader-html` application by using [DOMPurify](https://github.com/cure53/DOMPurify).
 
-## TODO or Contribution：
+## TODO：
 
 7. write blog to explain how to parse epub, mobi or kf8 file
-3. add a new way to open files. Enable users to open file via urls.
 1. inline xml2js parser
 
 later:
 9. find test case
 13. textarea focus
 12. cycle color components
-5. picture preview
 8. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.

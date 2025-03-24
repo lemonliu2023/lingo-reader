@@ -56,6 +56,28 @@ export function generateSelectionConfig(
 const fontFamilyList: string[] = [
   `'Lucida Console', Courier, monospace`,
   `'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif`,
+  `'Tahoma', 'Geneva', sans-serif`,
+  `'Verdana', 'Geneva', sans-serif`,
+  `'Georgia', 'Times New Roman', Times, serif`,
+  `'Trebuchet MS', Helvetica, sans-serif`,
+  `'Courier New', Courier, monospace`,
+  `'Impact', 'Charcoal', sans-serif`,
+  `'Comic Sans MS', cursive, sans-serif`,
+  `'Lucida Sans', 'Lucida Grande', sans-serif`,
+  `'Palatino Linotype', 'Book Antiqua', Palatino, serif`,
+  `'Arial', Helvetica, sans-serif`,
+  `'Times', 'Times New Roman', serif`,
+  `'Consolas', 'Monaco', monospace`,
+  `'Microsoft YaHei', '微软雅黑', 'Heiti SC', '黑体', sans-serif`,
+  `'PingFang SC', '苹方', 'Heiti', '黑体', sans-serif`,
+  `'SimSun', '宋体', 'Times New Roman', serif`,
+  `'SimHei', '黑体', sans-serif`,
+  `'KaiTi', '楷体', serif`,
+  `'FangSong', '仿宋', serif`,
+  `'Microsoft JhengHei', '微软正黑体', 'Heiti', sans-serif`,
+  `'STHeiti', '华文黑体', sans-serif`,
+  `'STKaiti', '华文楷体', serif`,
+  `'STSong', '华文宋体', serif`,
 ]
 export function generateFontFamilyConfig(fontFamily: Ref<string, string>) {
   return generateSelectionConfig(
