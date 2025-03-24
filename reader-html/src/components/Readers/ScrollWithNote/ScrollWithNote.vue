@@ -17,6 +17,12 @@ import {
   handleATagHref
 } from '../sharedLogic'
 import type { ResolvedHref } from '@lingo-reader/shared'
+import { useI18n } from 'vue-i18n'
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
 
 const emits = defineEmits<{
   (e: 'info-down'): void
@@ -168,7 +174,7 @@ const onMouseDown = (e: MouseEvent) => {
 </script>
 
 <template>
-  <button @click.stop="swap" class="swap-button">swap</button>
+  <button @click.stop="swap" class="swap-button">{{ t("swap") }}</button>
   <div :style="{ fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
     :class="{ 'flex-row-reverse': isReverse }" @click="(e) => containerClick(e)" class="article-container">
     <div :style="{ flexBasis: withPx(noteBasis) }" class="note">
@@ -182,8 +188,8 @@ const onMouseDown = (e: MouseEvent) => {
       flexBasis: withPx(articleBasis), '--p-spacing': withPx(pSpacing)
     }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef"
       @scroll="handleArticleScroll">
-      <button @click.stop="prevChapter" class="button prev-chapter">prev chapter</button>
-      <button @click.stop="nextChapter" class="button next-chapter">next chapter</button>
+      <button @click.stop="prevChapter" class="button prev-chapter">{{ t('prevChapter') }}</button>
+      <button @click.stop="nextChapter" class="button next-chapter">{{ t('nextChapter') }}</button>
       <article @click="handleATagHrefScrollNote" class="article-text" v-html="currentChapterHTML">
       </article>
     </div>
@@ -269,6 +275,7 @@ const onMouseDown = (e: MouseEvent) => {
 .prev-chapter:hover,
 .next-chapter:hover {
   opacity: 1;
+  background-color: white;
 }
 
 /* To remove default css set by inline style */

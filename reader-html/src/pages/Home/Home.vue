@@ -49,7 +49,9 @@ const processFile = async (file: File) => {
 <template>
   <header class="header">
     <div class="left">
-      <img class="logo" src="/logo.jpg" alt="logo">
+      <div class="logo">
+        <img class="logo-image" src="/logo.jpg" alt="logo">
+      </div>
       <span class="lingo-reader">lingo reader</span>
     </div>
     <div class="middle"></div>
@@ -90,7 +92,11 @@ const processFile = async (file: File) => {
 }
 
 .logo {
-  display: inline-block;
+  height: 64px;
+  width: 64px;
+}
+
+.logo-image {
   height: 100%;
 }
 

@@ -59,42 +59,42 @@ const fontFamilyList: string[] = [
 ]
 export function generateFontFamilyConfig(fontFamily: Ref<string, string>) {
   return generateSelectionConfig(
-    'Font Family / 字体类型',
+    'fontFamily',
     fontFamilyList.map(val => ({ name: val })),
     fontFamily,
   )
 }
 
 export function generateFontSizeConfig(fontSize: Ref<number, number>) {
-  return generateAdjusterConfig('FontSize / 字体大小', 50, 5, 1, fontSize)
+  return generateAdjusterConfig('fontSize', 50, 5, 1, fontSize)
 }
 
 export function generateLetterSpacingConfig(letterSpacing: Ref<number, number>) {
-  return generateAdjusterConfig('Letter Spacing / 字间距', 10, 0, 0.5, letterSpacing)
+  return generateAdjusterConfig('letterSpacing', 10, 0, 0.5, letterSpacing)
 }
 
 export function generateLineHeightConfig(lineHeight: Ref<number, number>) {
-  return generateAdjusterConfig('Line Height / 行高', 10, 0, 0.1, lineHeight)
+  return generateAdjusterConfig('lineHeight', 10, 0, 0.1, lineHeight)
 }
 
 export function generatePaddingLeftConfig(paddingOneDirection: Ref<number, number>) {
-  return generateAdjusterConfig('Padding Left / 左边距', Infinity, -Infinity, 2, paddingOneDirection)
+  return generateAdjusterConfig('paddingLeft', Infinity, -Infinity, 2, paddingOneDirection)
 }
 
 export function generatePaddingRightConfig(paddingOneDirection: Ref<number, number>) {
-  return generateAdjusterConfig('Padding Right / 右边距', Infinity, -Infinity, 2, paddingOneDirection)
+  return generateAdjusterConfig('paddingRight', Infinity, -Infinity, 2, paddingOneDirection)
 }
 
 export function generatePaddingTopConfig(paddingOneDirection: Ref<number, number>) {
-  return generateAdjusterConfig('Padding Top / 上边距', Infinity, -Infinity, 2, paddingOneDirection)
+  return generateAdjusterConfig('paddingTop', Infinity, -Infinity, 2, paddingOneDirection)
 }
 
 export function generatePaddingBottomConfig(paddingOneDirection: Ref<number, number>) {
-  return generateAdjusterConfig('Padding Bottom / 下边距', Infinity, -Infinity, 2, paddingOneDirection)
+  return generateAdjusterConfig('paddingBottom', Infinity, -Infinity, 2, paddingOneDirection)
 }
 
 export function generateParaSpacingConfig(pSpacing: Ref<number, number>) {
-  return generateAdjusterConfig('Para Spacing / 段间距', Infinity, 0, 1, pSpacing)
+  return generateAdjusterConfig('paraSpacing', Infinity, 0, 1, pSpacing)
 }
 
 function findATag(e: MouseEvent): HTMLAnchorElement | undefined {

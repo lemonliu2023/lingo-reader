@@ -17,6 +17,12 @@ import {
 } from "../sharedLogic"
 import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils"
 import type { ResolvedHref } from "@lingo-reader/shared"
+import { useI18n } from 'vue-i18n'
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
 
 const emits = defineEmits<{
   (event: 'infoDown'): void
@@ -42,8 +48,8 @@ const paddingBottom = ref<number>(10)
 const lineHeight = ref<number>(2)
 const configList: Config[] = [
   generateFontFamilyConfig(fontFamily),
-  generateAdjusterConfig('Columns / 列数', 4, 1, 1, columns),
-  generateAdjusterConfig('Column Gap / 列间距', Infinity, 0, 2, columnGap),
+  generateAdjusterConfig('columns', 4, 1, 1, columns),
+  generateAdjusterConfig('columnGap', Infinity, 0, 2, columnGap),
   generateFontSizeConfig(fontSize),
   generateLetterSpacingConfig(letterSpacing),
   generatePaddingLeftConfig(paddingLeft),
@@ -184,7 +190,6 @@ const prevPage = async () => {
 }
 
 const wheelEvent = useThrottle((e: WheelEvent) => {
-  e.preventDefault()
   emits('infoDown')
   if (e.deltaY > 0) {
     nextPage()
@@ -203,7 +208,7 @@ const keyDownEvent = useDebounce((e: KeyboardEvent) => {
   }
   emits('infoDown')
 }, 150)
-document.addEventListener('wheel', wheelEvent, { passive: false })
+document.addEventListener('wheel', wheelEvent, { passive: true })
 document.addEventListener('keydown', keyDownEvent)
 </script>
 
@@ -216,8 +221,8 @@ document.addEventListener('keydown', keyDownEvent)
     paddingBottom: withPxImportant(paddingBottom),
   }">
     <!-- nextPage and prevPage button -->
-    <button @click.stop="nextPage" class="next-page-button">next page</button>
-    <button @click.stop="prevPage" class="prev-page-button">prev page</button>
+    <button @click.stop="nextPage" class="next-page-button">{{ t('nextPage') }}</button>
+    <button @click.stop="prevPage" class="prev-page-button">{{ t('prevPage') }}</button>
     <!-- !!!maybe error -->
     <span class="progress">{{ index + 1 }} / {{ maxPageIndex === -1 ? 1 : maxPageIndex + 1 }}</span>
 

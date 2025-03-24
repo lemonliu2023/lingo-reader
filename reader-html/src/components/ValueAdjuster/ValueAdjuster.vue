@@ -74,11 +74,10 @@ const handleChange = (e: Event) => {
 }
 
 .label {
-  flex: 1.5;
   font-size: 12px;
   font-family: sans-serif;
   margin-right: 5px;
-  /* width: 100px; */
+  text-align: center;
 }
 
 .adjust-btn {
@@ -97,7 +96,7 @@ const handleChange = (e: Event) => {
 }
 
 .value-display {
-  flex: 1.2;
+  flex: 1;
   /* if not set width to 0, the content html will exceed its parent element area 
   when the element width is large enough */
   width: 0;

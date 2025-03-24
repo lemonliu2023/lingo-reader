@@ -17,6 +17,12 @@ import {
   handleATagHref
 } from "../sharedLogic"
 import type { ResolvedHref } from "@lingo-reader/shared"
+import { useI18n } from 'vue-i18n'
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
 
 const emits = defineEmits<{
   (e: 'infoDown'): void
@@ -177,10 +183,10 @@ const containerClick = (e: MouseEvent) => {
   <div @click="containerClick" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
     :class="{ 'user-select-none': isDragging }" class="article-container" ref='containerRef'>
     <button @click.stop="nextChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
-      next chapter
+      {{ t('nextChapter') }}
     </button>
     <button @click.stop="prevChapter" :style="{ right: withPx(containerWidth - paddingLeft) }" class="button">
-      previous chapter
+      {{ t('prevChapter') }}
     </button>
     <!-- book text -->
     <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>

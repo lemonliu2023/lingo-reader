@@ -193,14 +193,13 @@ During file parsing, the HTML extracted from chapters is not security and could 
 
 ## TODO or Contribution：
 
-3. add a new way to open files. Enable users to open file via urls.
-4. the `xml2js` and `jszip` are very large. Find a way to reduce their size.
-5. picture preview
-7. write blog to explain how to parse epub, mobi or kf8 file
-8. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.
-9. find test case
 10. config panel i18n
-11. The problem of progress decay when switching reader mode
-11. find a way to replace xml2js with other package (fast-xml-parser)
+7. write blog to explain how to parse epub, mobi or kf8 file
+3. add a new way to open files. Enable users to open file via urls.
+1. inline xml2js parser
+
+9. find test case
+13. textarea focus
 12. cycle color components
-13. i18n
+5. picture preview
+8. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.

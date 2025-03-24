@@ -4,6 +4,13 @@ import { Config } from '../../../components/Readers/sharedLogic'
 import DropDown from '../../../components/DropDown'
 import ValueAdjuster from '../../../components/ValueAdjuster/ValueAdjuster.vue'
 import { useClickOutside } from '../../../utils'
+import { useI18n } from "vue-i18n"
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
+
 
 defineProps<{
   config: Config[]
@@ -29,11 +36,11 @@ useClickOutside(configArea, () => {
       </div>
       <div @click.stop v-for="item in config" class="pannel-item">
         <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
-        <DropDown v-if="item.type === 'selection'" :key="item.name + '-selection'" :label="item.name"
-          :modes="item.selectOptions" v-model:current-mode-name="item.value" :label-width="120"></DropDown>
+        <DropDown v-if="item.type === 'selection'" :key="item.name + '-selection'" :label="t(item.name)"
+          :modes="item.selectOptions" v-model:current-mode-name="item.value" :label-width="150"></DropDown>
         <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
-        <ValueAdjuster v-else-if="item.type === 'adjuster'" :key="item.name + '-adjuster'" :label="item.name"
-          :max="item.max" :min="item.min" :delta="item.delta" v-model="item.value" :label-width="120">
+        <ValueAdjuster v-else-if="item.type === 'adjuster'" :key="item.name + '-adjuster'" :label="t(item.name)"
+          :max="item.max" :min="item.min" :delta="item.delta" v-model="item.value" :label-width="150">
         </ValueAdjuster>
       </div>
     </div>

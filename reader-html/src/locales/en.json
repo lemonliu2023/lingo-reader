@@ -3,5 +3,21 @@
   "supportedFileTypsPrefix": "",
   "supportedFileTypsSuffix": " file are supported",
   "back": "Back",
-  "tableOfContent": "Table Of Content"
+  "tableOfContent": "Table Of Content",
+  "nextPage": "next page",
+  "prevPage": "previous page",
+  "nextChapter": "next chapter",
+  "prevChapter": "previous chapter",
+  "swap": "swap",
+  "fontFamily": "Font Family",
+  "fontSize": "Font Size",
+  "letterSpacing": "Letter Spacing",
+  "lineHeight": "Line Height",
+  "paraSpacing": "Paragraph Spacing",
+  "paddingLeft": "Padding Left",
+  "paddingRight": "Padding Right",
+  "paddingTop": "Padding Top",
+  "paddingBottom": "Padding Bottom",
+  "columns": "Columns",
+  "columnGap": "Column Gap"
 }

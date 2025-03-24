@@ -50,7 +50,7 @@ useClickOutside(dropdownRef, () => {
     <div class="dropdown" @click="toggleDropdown">
       <img v-if="currentMode.logo" :src="currentMode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
       <span class="text-ellipses">{{ currentMode.name }}</span>
-      <i class="arrow" :class="{ open: isDropdownOpen }"></i>
+      <i class="arrow" :class="{ 'open': isDropdownOpen }"></i>
     </div>
     <!-- drop down menu -->
     <ul v-show="isDropdownOpen" class="dropdown-menu">
@@ -71,15 +71,15 @@ useClickOutside(dropdownRef, () => {
 }
 
 .label {
-  flex: 1.5;
   flex-shrink: 0;
   font-size: 12px;
   font-family: sans-serif;
   margin-right: 5px;
+  text-align: center;
 }
 
 .dropdown {
-  flex: 1.8;
+  flex: 1;
   cursor: pointer;
   border-radius: 4px;
   padding: 8px;
