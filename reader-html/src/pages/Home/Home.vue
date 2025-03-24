@@ -156,6 +156,7 @@ const processFile = async (file: File) => {
   display: block;
   position: relative;
 }
+
 .curr-language::after {
   position: absolute;
   content: '⇄';

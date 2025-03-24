@@ -18,6 +18,7 @@ p {
 button {
   border: none;
   outline: none;
+  background-color: transparent;
 }
 
 input::-webkit-outer-spin-button,

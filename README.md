@@ -193,11 +193,11 @@ During file parsing, the HTML extracted from chapters is not security and could 
 
 ## TODO or Contribution：
 
-10. config panel i18n
 7. write blog to explain how to parse epub, mobi or kf8 file
 3. add a new way to open files. Enable users to open file via urls.
 1. inline xml2js parser
 
+later:
 9. find test case
 13. textarea focus
 12. cycle color components
