@@ -1,6 +1,12 @@
+type InfoType = 'unknown' | 'progress'
+export interface ProgressInfo {
+  type: InfoType
+  val: number
+}
+
 export async function streamDownload(
   url: string,
-  onProgress?: (val: string) => void,
+  onProgress?: (val: ProgressInfo) => void,
 ): Promise<File> {
   if (url.length === 0) {
     throw new Error('URL is empty')
@@ -15,7 +21,9 @@ export async function streamDownload(
   if (!response.body) {
     throw new Error('Response body is null')
   }
-  const contentLength = response.headers.get('Content-Length') || 'unknown'
+
+  const contentLengthStr = response.headers.get('Content-Length')
+  const contentLength = contentLengthStr ? Number.parseInt(contentLengthStr) : -1
   let loadedSize = 0
 
   const reader = response.body.getReader()
@@ -28,11 +36,17 @@ export async function streamDownload(
         loadedSize += value?.byteLength || 0
 
         if (onProgress) {
-          if (contentLength === 'unknown') {
-            onProgress(`${loadedSize}B/unknown`)
+          if (contentLength === -1) {
+            onProgress({
+              type: 'unknown',
+              val: loadedSize,
+            })
           }
           else {
-            onProgress(`${(loadedSize / Number.parseInt(contentLength)).toFixed(2)}%`)
+            onProgress({
+              type: 'progress',
+              val: loadedSize / contentLength,
+            })
           }
         }
 
@@ -43,7 +57,8 @@ export async function streamDownload(
   })
 
   const blob = await new Response(stream).blob()
-  const file = new File([blob], 'temp', { type: blob.type })
+  const fileName = url.split('/').pop() || 'temp'
+  const file = new File([blob], fileName, { type: blob.type })
 
   return file
 }

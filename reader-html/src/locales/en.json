@@ -1,7 +1,7 @@
 {
   "selectFile": "Select File",
   "loadViaUrl": "Load via URL",
-  "enterUrl": "Enter URL",
+  "enterUrl": "Enter URL (Or click the button below)",
   "loadUrlFile": "Loading URL File",
   "supportedFileTypsPrefix": "",
   "supportedFileTypsSuffix": " file are supported",

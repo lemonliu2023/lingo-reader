@@ -36,6 +36,9 @@ const useBookStore = defineStore('ebook', () => {
       chapterNums.value = spine.length
       fileInfo = book.getFileInfo()
     }
+    else {
+      throw new Error('Unsupported file type')
+    }
   }
 
   const chapterCache = new Map<string, string>()

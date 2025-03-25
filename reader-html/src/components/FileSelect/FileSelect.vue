@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { streamDownload } from './FileSelect';
+import { streamDownload } from './FileSelect'
 
 /**
  * i18n
@@ -46,25 +46,30 @@ const handleFileChange = (e: Event) => {
 // url load
 const fileUrl = ref<string>('')
 const progressText = ref<string>('0%')
-const progressBar = ref<number>(0)
+const progressBarWidth = ref<number>(0)
 const loadFileThroughtUrl = async () => {
-  if (!fileUrl.value) {
-    return
+  if (fileUrl.value.length === 0) {
+    fileUrl.value = '/lingo-reader/alice.epub'
   }
   try {
     const file = await streamDownload(
       fileUrl.value,
-      (p: string) => {
-        progressText.value = p
-        progressBar.value = parseFloat(p) * 100
+      (p) => {
+        if (p.type === 'progress') {
+          progressText.value = (p.val * 100).toFixed(2)
+          progressBarWidth.value = Number.parseFloat(p.val.toFixed(2)) * 100
+        } else if (p.type === 'unknown') {
+          progressText.value = p.val + ''
+          progressBarWidth.value = 100
+        }
       }
     )
     processFile(file)
   }
   catch (e) {
-    console.log(e)
-    progressText.value = 'Error'
-    progressBar.value = 0
+    console.error(e)
+    progressText.value = 'Load Error'
+    progressBarWidth.value = 100
   }
 }
 
@@ -126,7 +131,7 @@ const handleDrop = (e: DragEvent) => {
         </div>
         <div class="progress">
           <span class="progress-text">{{ progressText }}</span>
-          <div :style="{ width: `${progressBar}%` }" class="progress-bar"></div>
+          <div :style="{ width: `${progressBarWidth}%` }" class="progress-bar"></div>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 {
   "selectFile": "选择文件",
   "loadViaUrl": "通过 URL 加载文件",
-  "enterUrl": "输入文件 URL",
+  "enterUrl": "输入文件 URL (或者直接点击下方按钮)",
   "loadUrlFile": "加载",
   "supportedFileTypsPrefix": "目前支持",
   "supportedFileTypsSuffix": "文件",
