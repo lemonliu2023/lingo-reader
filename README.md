@@ -194,7 +194,6 @@ During file parsing, the HTML extracted from chapters is not security and could 
 ## TODO：
 
 7. write blog to explain how to parse epub, mobi or kf8 file
-1. inline xml2js parser
 
 later:
 9. find test case

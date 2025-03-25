@@ -24,7 +24,6 @@ function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
   return resourceSrc
 }
 
-// TODO: add test case
 function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: string) {
   // resource src: src in <img>, <video>, <audio>, <source> tag
   str = str.replace(/<(img|video|audio|source)[^>]*>/g, (imgTag) => {
@@ -57,7 +56,6 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
   return str
 }
 
-// TODO: add test case
 export function transformHTML(
   html: string,
   htmlDir: string,
