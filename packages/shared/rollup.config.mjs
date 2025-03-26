@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url'
-
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import dts from 'rollup-plugin-dts'
@@ -16,7 +15,15 @@ function replace(opts) {
   })
 }
 
-const external = ['path-browserify', 'xml2js']
+function resolve(opts) {
+  return nodeResolve({
+    ...opts,
+    preferBuiltins: true,
+    resolveOnly: ['events'],
+  })
+}
+
+const external = ['path-browserify', 'sax', 'events']
 
 function commonjsAndEsmConfig(input, output) {
   return {
@@ -40,7 +47,7 @@ function commonjsAndEsmConfig(input, output) {
         __BROWSER__: JSON.stringify(false),
       }),
       esbuild(),
-      nodeResolve(),
+      resolve(),
       commonjs(),
     ],
   }
@@ -64,7 +71,7 @@ function browserConfig(input, output) {
         __BROWSER__: JSON.stringify(true),
       }),
       esbuild(),
-      nodeResolve(),
+      resolve(),
       commonjs(),
     ],
   }
@@ -73,7 +80,7 @@ function browserConfig(input, output) {
 function dtsConfig(input, output) {
   return {
     input,
-    external,
+    external: [...external, 'buffer'],
     output: [
       {
         file: output,

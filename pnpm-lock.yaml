@@ -77,19 +77,22 @@ importers:
 
   packages/shared:
     dependencies:
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
-      xml2js:
-        specifier: ^0.6.2
-        version: 0.6.2
+      sax:
+        specifier: ^1.4.1
+        version: 1.4.1
     devDependencies:
       '@types/path-browserify':
         specifier: ^1.0.3
         version: 1.0.3
-      '@types/xml2js':
-        specifier: ^0.4.14
-        version: 0.4.14
+      '@types/sax':
+        specifier: ^1.2.7
+        version: 1.2.7
 
   packages/svg-render:
     dependencies:
@@ -945,14 +948,14 @@ packages:
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
+  '@types/sax@1.2.7':
+    resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
+
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
   '@types/unist@2.0.10':
     resolution: {integrity: sha512-IfYcSBWE3hLpBg8+X2SEa8LVkJdJEkT2Ese2aaLs3ptGdVtABxndrMaxuFlQ1qdFf9Q5rDvDpxI3WwgvKFAsQA==}
-
-  '@types/xml2js@0.4.14':
-    resolution: {integrity: sha512-4YnrRemBShWRO2QjvUin8ESA41rH+9nQGLUGZV/1IDhi3SL9OhdpNC/MrulTWuptXKwhx/aDxE7toV0f/ypIXQ==}
 
   '@typescript-eslint/eslint-plugin@7.11.0':
     resolution: {integrity: sha512-P+qEahbgeHW4JQ/87FuItjBj8O3MYv5gELDzr8QaQ7fsll1gSMTYb6j87MYyxwf3DtD7uGFB9ShwgmCJB5KmaQ==}
@@ -3118,14 +3121,6 @@ packages:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
 
-  xml2js@0.6.2:
-    resolution: {integrity: sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==}
-    engines: {node: '>=4.0.0'}
-
-  xmlbuilder@11.0.1:
-    resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
-    engines: {node: '>=4.0'}
-
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
@@ -3753,14 +3748,14 @@ snapshots:
 
   '@types/resolve@1.20.2': {}
 
+  '@types/sax@1.2.7':
+    dependencies:
+      '@types/node': 22.10.2
+
   '@types/trusted-types@2.0.7':
     optional: true
 
   '@types/unist@2.0.10': {}
-
-  '@types/xml2js@0.4.14':
-    dependencies:
-      '@types/node': 22.10.2
 
   '@typescript-eslint/eslint-plugin@7.11.0(@typescript-eslint/parser@7.16.1(eslint@9.4.0)(typescript@5.7.3))(eslint@9.4.0)(typescript@5.7.3)':
     dependencies:
@@ -6095,13 +6090,6 @@ snapshots:
 
   xml-name-validator@5.0.0:
     optional: true
-
-  xml2js@0.6.2:
-    dependencies:
-      sax: 1.4.1
-      xmlbuilder: 11.0.1
-
-  xmlbuilder@11.0.1: {}
 
   xmlchars@2.2.0:
     optional: true
