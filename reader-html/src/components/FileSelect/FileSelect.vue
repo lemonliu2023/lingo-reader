@@ -103,6 +103,7 @@ const handleDrop = (e: DragEvent) => {
 <template>
   <div @dragenter.prevent="handleDragEnter" @dragover.prevent="handleDragOver" @dragleave.prevent="handleDragLeave"
     @drop.prevent="handleDrop" :style="{ width: width + 'rem', height: height + 'rem' }" class="file-upload-container">
+    <p style="line-height: 1.5;font-family: Arial, Helvetica, sans-serif;">{{ t('tip') }}</p>
     <!-- drag overlay -->
     <div v-show="isDragging" class="drag-overlay">
       <p>Release the file for parsing</p>
