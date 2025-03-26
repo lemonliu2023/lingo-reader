@@ -409,7 +409,7 @@ function walkNavMap(
       playOrder: '',
     }
     if (navPoint.navLabel) {
-      const href = path.joinPosix(ncxBaseDir, navPoint.content[0].$?.src)
+      const href = path.joinPosix(ncxBaseDir, decodeURIComponent(navPoint.content[0].$?.src))
       const hrefPath = href.split('#')[0]
       element = {
         label: navPoint.navLabel[0].text?.[0] ?? '',

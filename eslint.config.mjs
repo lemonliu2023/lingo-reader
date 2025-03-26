@@ -8,6 +8,7 @@ export default antfu(
       'images/**',
       'reader-html/src/main.ts',
       'docs/*.{html,vue}',
+      'packages/shared/src/xml2js-parser.ts',
     ],
   },
 )
