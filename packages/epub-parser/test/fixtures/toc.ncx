@@ -32,7 +32,7 @@
       <navLabel>
         <!-- has no <text> -->
       </navLabel>
-      <content src="content2.html#ch_3"/>            
+      <content src="%2ccontent2.html#ch_3"/>            
     </navPoint>
   </navMap>
 

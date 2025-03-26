@@ -285,7 +285,11 @@ export class Mobi implements EBookParser {
     html = html.replace(
       /<a[^>]*>/g,
       (matched: string) => {
-        const filepos = matched.match(this.fileposReg)![1]
+        const fileposMatch = matched.match(this.fileposReg)
+        if (!fileposMatch) {
+          return matched
+        }
+        const filepos = fileposMatch[1]
         return matched.replace(this.fileposReg, `href="filepos:${filepos}"`)
       },
     )

@@ -94,7 +94,10 @@ const skipToChapter = async (newV: ResolvedHref) => {
   }
   if (newV.selector.length > 0) {
     nextTick(() => {
-      containerRef.value!.querySelector(newV.selector)!.scrollIntoView()
+      const targetEle = containerRef.value!.querySelector(newV.selector)
+      if (targetEle) {
+        targetEle.scrollIntoView()
+      }
     })
   }
 }

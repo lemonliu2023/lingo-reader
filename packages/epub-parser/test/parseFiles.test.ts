@@ -449,7 +449,7 @@ describe('parseNcx', async () => {
     expect(navMap[0].children!.length).toBe(1)
     expect(navMap[2]).toEqual({
       label: '',
-      href: 'epub:OEBPS/content2.html#ch_3',
+      href: 'epub:OEBPS/,content2.html#ch_3',
       id: undefined,
       playOrder: '',
     })
