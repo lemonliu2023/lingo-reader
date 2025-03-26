@@ -43,6 +43,22 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
     return imgTag
   })
 
+  // svg <image> tag
+  str = str.replace(/<image[^>]*>/g, (imgTag) => {
+    let hrefMatch = imgTag.match(/xlink:href="([^"]*)"/)
+    if (!hrefMatch) {
+      hrefMatch = imgTag.match(/href="([^"]*)"/)
+    }
+
+    if (hrefMatch) {
+      const imageSrc = getResourceUrl(hrefMatch[1], htmlDir, resourceSaveDir)
+      imgTag = imgTag.replace(hrefMatch[1], imageSrc)
+      imgTag = imgTag.replace('xlink:href', 'href')
+    }
+
+    return imgTag
+  })
+
   // a tag href
   str = str.replace(/<a[^>]*>/g, (aTag: string) => {
     const href = aTag.match(/href="([^"]*)"/)?.[1]

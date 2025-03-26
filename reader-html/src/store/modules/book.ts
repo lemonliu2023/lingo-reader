@@ -51,6 +51,7 @@ const useBookStore = defineStore('ebook', () => {
     // for security
     const purifiedDom = DOMPurify.sanitize(html, {
       ALLOWED_URI_REGEXP: /^(blob|https|Epub|filepos|kindle)/gi,
+      // TODO: DOMPurify will remove width and height attr of <image>
     })
     chapterCache.set(id, purifiedDom)
     return purifiedDom
