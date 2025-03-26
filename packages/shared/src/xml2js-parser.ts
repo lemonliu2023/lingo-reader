@@ -1,3 +1,6 @@
+/**
+ * The code comes from https://github.com/Leonidas-from-XIV/node-xml2js/blob/master/src/parser.coffee
+ */
 import { EventEmitter } from 'node:events'
 import type { Buffer } from 'node:buffer'
 import type { SAXParser } from 'sax'

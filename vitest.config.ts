@@ -18,7 +18,6 @@ export default defineConfig({
         '**/dist/**',
         'docs/**',
         'bump.config.ts',
-        'packages/shared/src/xml2js-parser.ts',
       ],
     },
     testTimeout: 10_000,

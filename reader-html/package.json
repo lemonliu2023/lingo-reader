@@ -13,7 +13,6 @@
     "@lingo-reader/mobi-parser": "workspace:^",
     "@lingo-reader/shared": "workspace:^",
     "dompurify": "^3.2.3",
-    "events": "^3.3.0",
     "pinia": "^2.2.6",
     "vue": "^3.5.12",
     "vue-i18n": "10",
