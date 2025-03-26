@@ -320,6 +320,11 @@ document.addEventListener('keydown', keyDownEvent)
   /* Force line breaks in words */
 }
 
+.article-text :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+  word-wrap: break-word;
+}
 
 /* prev and next page button */
 .next-page-button,

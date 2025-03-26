@@ -313,4 +313,10 @@ const onMouseDown = (e: MouseEvent) => {
 .article-text :deep(figure) {
   text-align: center;
 }
+
+.article-text :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+  word-wrap: break-word;
+}
 </style>
