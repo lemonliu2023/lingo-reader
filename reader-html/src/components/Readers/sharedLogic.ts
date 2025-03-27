@@ -149,6 +149,7 @@ export function handleATagHref(
         skipToChapter(resolvedHref)
       }
       else {
+        console.warn(`Can't resolve href: ${aTag.href}`)
         window.open(aTag.href, '_blank')
       }
     }
