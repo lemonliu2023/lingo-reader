@@ -62,7 +62,8 @@ export class ZipFile {
 
   public async readResource(name: string): Promise<Uint8Array> {
     if (!this.hasFile(name)) {
-      throw new Error(`${name} file was not exit in ${this.filePath}`)
+      console.warn(`${name} file was not exit in ${this.filePath}, return an empty uint8 array`)
+      return new Uint8Array()
     }
     const fileName = this.getFileName(name)!
     const file = await this.jsZip.file(fileName)!.async('uint8array')

@@ -1,6 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createZipFile } from '../src/utils.ts'
 
 const aliceEpubNames = [
@@ -73,7 +73,11 @@ describe('createZipFile in Node', async () => {
   })
 
   it('readImage if file not exit', async () => {
-    await expect(epubFile.readResource('not-exist')).rejects.toThrow()
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
+    const res = await epubFile.readResource('not-exist')
+    expect(res.length).toBe(0)
+    expect(warnSpy).toBeCalled()
+    warnSpy.mockRestore()
   })
 })
 
