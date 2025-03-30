@@ -2,7 +2,7 @@ import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
 import { initEpubFile } from '@lingo-reader/epub-parser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import DOMPurify from 'dompurify'
+// import DOMPurify from 'dompurify'
 import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
 import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
 import type { FileInfo, ResolvedHref, Toc } from '@lingo-reader/shared'
@@ -47,12 +47,12 @@ const useBookStore = defineStore('ebook', () => {
       return chapterCache.get(id)!
     }
 
-    const { html } = await book!.loadChapter(id)!
+    const { html: purifiedDom } = await book!.loadChapter(id)!
     // for security
-    const purifiedDom = DOMPurify.sanitize(html, {
-      ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
-      ADD_URI_SAFE_ATTR: ['width', 'height'],
-    })
+    // const purifiedDom = DOMPurify.sanitize(html, {
+    //   ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
+    //   ADD_URI_SAFE_ATTR: ['width', 'height'],
+    // })
     chapterCache.set(id, purifiedDom)
     return purifiedDom
   }

@@ -450,7 +450,7 @@ export function parsePageList(
   }
   const output: PageTarget[] = []
   for (const pageTarget of pageList.pageTarget) {
-    const src = path.joinPosix(ncxBaseDir, pageTarget.content[0].$?.src)
+    const src = path.joinPosix(ncxBaseDir, decodeURIComponent(pageTarget.content[0].$?.src))
     const href = src.split('#')[0]
     const $ = pageTarget.$
 
@@ -491,7 +491,7 @@ export function parseNavList(
 
   const navTargets: NavTarget[] = []
   for (const navTarget of navList.navTarget) {
-    const src = path.joinPosix(ncxBaseDir, navTarget.content[0].$?.src)
+    const src = path.joinPosix(ncxBaseDir, decodeURIComponent(navTarget.content[0].$?.src))
     const href = src.split('#')[0]
 
     const element: NavTarget = {
