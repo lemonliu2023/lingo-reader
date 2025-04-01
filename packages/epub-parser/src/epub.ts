@@ -205,7 +205,7 @@ export class EpubFile implements EBookParser {
               // exclude html and xhtml...
               || manifestItem.mediaType.startsWith('text/css')
             ) {
-              const fileName: string = manifestItem.href.replace('/', '_')
+              const fileName: string = manifestItem.href.replace(/\//g, '_')
               const filePath = path.resolve(this.resourceSaveDir, fileName)
               this.savedResourcePath.push(filePath)
               writeFileSync(
