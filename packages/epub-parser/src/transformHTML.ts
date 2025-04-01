@@ -7,7 +7,7 @@ import { resourceExtensionToMimeType } from './utils'
 const browserUrlCache = new Map<string, string>()
 
 function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
-  const resourceName = path.joinPosix(htmlDir, src).replace('/', '_')
+  const resourceName = path.joinPosix(htmlDir, src).replace('\/', '_')
   let resourceSrc = path.resolve(resourceSaveDir, resourceName)
   if (__BROWSER__) {
     if (browserUrlCache.has(resourceName)) {
@@ -85,7 +85,7 @@ export function transformHTML(
         if (linkHref.endsWith('.css')) {
           // css file path
           const cssFilePath = path.joinPosix(htmlDir, linkHref)
-          const cssName = cssFilePath.replace('/', '_')
+          const cssName = cssFilePath.replace('\/', '_')
           let realPath = path.resolve(resourceSaveDir, cssName)
 
           // replace url() in css and save css file
