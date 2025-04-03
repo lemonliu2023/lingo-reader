@@ -169,12 +169,15 @@ export function parseMetadata(metadataAST: Record<string, any>): EpubMetadata {
         }
         const property = camelCase($.property)
         if ('contributor' in element) {
+          // element is Contributor
           element[property as keyof Contributor] ||= meta._
         }
         else if ('subject' in element) {
+          // element is Subject
           element[property as keyof Subject] ||= meta._
         }
         else if ('id' in element) {
+          // element is Identifier
           element[property as keyof Identifier] ||= meta._
           element.scheme = element.scheme || $.scheme
         }

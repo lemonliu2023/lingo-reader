@@ -1,54 +1,92 @@
-<div align="center">
-  <a href="https://github.com/hhk-png/lingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
-</div>
+<h2 align="center">
+  <a target="_blank" href="https://github.com/hhk-png/lingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
+</h2>
 
-# Install
+epub文件格式用于存储电子书的内容，在其内部存储有书籍的各章节内容，与规定如何按顺序读取这些章节内容的相关文件。
+
+epub实际上是一个zip文件，电子书内容的构建基于html和css，理论上也可以包括js。将epub文件的后缀改变为zip之后解压缩，点击章节对应的html/xhtml文件，就可以直接查阅对应的章节内容。只是此时各章节之间的排序为乱序，并且如果某些章节或者资源进行了加密，通过前面说的转换为zip文件打开的方式就会失败。
+
+在进行epub文件的解析时，**(1).** 一部分是解析文件中的 `container.xml`、`.opf`、`.ncx` 文件，这些文件中包括书籍的元信息（书名、作者、发布日期等）、资源信息（图片等在epub文件中的路径）、按顺序显示的章节文件信息（Spine）等。**(2).** 另一部分是处理章节中的资源路径，章节文件中对资源的引用路径只能用于文件内部，因此需要将其处理成在展示的环境下可以使用的路径，浏览器环境下会处理成bloburl，node环境下会处理成文件系统中的绝对路径。**(3).** 除此之外，还需要处理epub文件的加密、签名、权限等内容，分别对应`encryption.xml`、`signatures.xml`、`rights.xml` 文件，这些文件与 `container.xml` 文件一样，统一存放在 `/META-INF/` 文件夹下，且文件名固定。`@lingo-reader/epub-parser` 目前支持了前两部分功能，第三部分过段时间就可以支持，也就是说目前可以正常解析未加密的epub文件。
+
+epub 文件的解析参考了 [EPUB 3.3](https://www.w3.org/TR/epub-33/#sec-pkg-metadata) 和 [Open Packaging Format (OPF) 2.0.1 v1.0](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1) 两个规范。提供的API尽可能地将文件提供的信息暴漏出来。
+
+## Install
 
 ```shell
 pnpm install @lingo-reader/epub-parser
 ```
 
-# Usage in node
+## Usage in node
 
 ```typescript
 import { initEpubFile } from '@lingo-reader/epub-parser'
 
 const epub = await initEpubFile('./example/alice.epub')
-// fileInfo
-epub.getFileInfo()
 
-// metadata
-epub.getMetadata()!
+const spine = epub.getSpine()
+const fileInfo = epub.getFileInfo()
+
+// 加载第一章，html为处理后的html章节字符串，
+// css为章节的css文件，在node中以绝对路径给出，
+// 可以直接读取
+const { html, css } = epub.loadChapter(spine[0].id)
 
 // ...
 // ...
 ```
 
-# Usage in browser
+## Usage in browser
 
 ```ts
-function initEpub(file: File) {
-  const epub = await initEpubFile(file)
-  // fileInfo
-  epub.getFileInfo()
+import { initEpubFile } from '@lingo-reader/epub-parser'
 
-  // metadata
-  epub.getMetadata()!
+async function initEpub(file: File) {
+  const epub = await initEpubFile(file)
+
+  const spine = epub.getSpine()
+  const fileInfo = epub.getFileInfo()
+
+  // 加载第一章，html为处理后的html章节字符串，
+  // css为章节的css文件，在浏览器环境下以blob url给出，
+  // 可以通过fetch获取
+  const { html, css } = epub.loadChapter(spine[0].id)
 }
 
 // ...
 // ...
 ```
 
-在 `src/index.ts` 中，向外暴漏出了 `initEpubFile` 方法和一些相关的类型，还有一个内部链接的前缀。
-
-epub 内部章节的跳转通过 a 标签的 href，为了将内部跳转链接与外部链接相区分，并方便处理内部跳转逻辑，内部跳转链接在前面会添加一个 `epub:` 前缀。对该类链接的处理放在 ui 层，`epub-parser` 只提供返回对应章节的 html 和选择器的功能。
-
-# EpubFile
-
-epub 文件的解析参考了 [EPUB 3.3](https://www.w3.org/TR/epub-33/#sec-pkg-metadata) 和 [Open Packaging Format (OPF) 2.0.1 v1.0](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1) 两个规范。该文件的解析对象暴露出来的方法如下：
+## initEpubFile
 
 ```typescript
+import { initEpubFile } from '@lingo-reader/epub-parser'
+import type { EpubFile } from '@lingo-reader/epub-parser'
+/*
+type initEpubFile = (epubPath: string | File, resourceSaveDir?: string): => Promise<EpubFile>
+*/
+
+const epub: EpubFile = await initEpubFile(file)
+```
+
+`@lingo-reader/epub-parser` 主要向外暴漏了一个 `initEpubFile` API。将文件路径或者文件的File对象输入其中后，就可以得到一个已经初始化的EpubFile对象，包括读取元信息、Spine的各种信息的API。
+
+**参数：**
+
+- `epubPath: string | File`：文件路径或者文件的File对象。
+- `resourceSaveDir?: string`：可选参数，主要应用在node环境下，为图片等资源的保存路径。
+
+**返回值：**
+
+- `Promise<EpubFile>`：初始化后的EpubFile对象，为一个Promise。
+
+## EpubFile
+
+EpubFile 暴露出来的方法如下：
+
+```typescript
+import { EpubFile } from '@lingo-reader/epub-parser'
+import { EBookParser } from '@lingo-reader/shared'
+
 declare class EpubFile implements EBookParser {
   getFileInfo(): EpubFileInfo
   getMetadata(): EpubMetadata
@@ -65,7 +103,26 @@ declare class EpubFile implements EBookParser {
 }
 ```
 
-## getFileInfo(): EpubFileInfo
+### getFileInfo(): EpubFileInfo
+
+```typescript
+import type { EpubFileInfo } from '@lingo-reader/epub-parser'
+/*
+type getFileInfo = () => EpubFileInfo
+*/
+
+const fileInfo: EpubFileInfo = epub.getFileInfo()
+```
+
+EpubFileInfo 目前包括两个属性，`fileName` 为文件名，`mimetype` 为epub文件的文件类型，从 `/mimetype` 文件中读取，但固定为 `application/epub+zip`。
+
+**参数：**
+
+- none
+
+**返回值：**
+
+- `EpubFileInfo`：
 
 ```typescript
 interface EpubFileInfo {
@@ -74,43 +131,28 @@ interface EpubFileInfo {
 }
 ```
 
-返回的对象中除了 `fileName` 文件名以外，还有一个 mimetype，mimetype 固定为 `application/epub+zip` 字符串。
+### getMetadata(): EpubMetadata
 
-## getMetadata(): EpubMetadata;
+书籍中记录的元信息。
 
 ```typescript
-// id表示资源的唯一标识符，scheme为用来指定生成或分配该标识符的系统或权威机构
-interface Identifier {
-  id: string
-  identifierType?: string
-  scheme?: string
-}
+import type { EpubMetadata } from '@lingo-reader/epub-parser'
+/*
+type getMetadata = () => EpubFileInfo
+*/
 
-interface Contributor {
-  contributor: string
-  fileAs?: string
-  role?: string
+const metadata: EpubMetadata = epub.getMetadata()
+```
 
-  // append in <meta>
-  scheme?: string
-  alternateScript?: string
-}
+**参数：**
 
-interface Subject {
-  subject: string
-  authority?: string
-  term?: string
-}
+- none
 
-interface Link {
-  href: string
-  hreflang?: string
-  id?: string
-  mediaType?: string
-  properties?: string
-  rel: string
-}
+**返回值：**
 
+- `EpubMetadata`：
+
+```typescript
 interface EpubMetadata {
   // 书名
   title: string
@@ -132,8 +174,10 @@ interface EpubMetadata {
   coverage?: string
   // 版权声明
   rights?: string
-  // 包括书籍的创建时间，发布时间，更新时间等，具体的字段需要查看其opf:event
+  // 包括书籍的创建时间，发布时间，更新时间等，
+  // 具体的字段需要查看其opf:event,比如 modification、
   date?: Record<string, string>
+
   identifier: Identifier
   packageIdentifier: Identifier
   creator?: Contributor[]
@@ -145,11 +189,113 @@ interface EpubMetadata {
 }
 ```
 
-## getManifest(): Record<string, ManifestItem>;
+#### identifier: Identifier
+
+id表示资源的唯一标识符，scheme为用来指定生成或分配该标识符的系统或权威机构，比如ISBN、DOI。identifierType 说明 `id` 所使用的标识符类型，类似scheme。
+
+```typescript
+interface Identifier {
+  id: string
+  scheme?: string
+  identifierType?: string
+}
+```
+
+#### packageIdentifier: Identifier
+
+实际上也是一个Identifier。通常在package标签中，通过unique-identifier引用，unique-identifier的值为对应元素的id。
+
+```xml
+<package unique-identifier="id">
+
+<dc:identifier id="id" opf:scheme="URI">uuid:19c0c5cb-002b-476f-baa7-fcf510414f95</dc:identifier>
+
+</package>
+```
+
+#### creator?: Contributor[]
+
+描述各个贡献者。
+
+```typescript
+interface Contributor {
+  // 贡献者名字
+  contributor: string
+  // 名字的排序格式
+  fileAs?: string
+  // 贡献者所担任的角色
+  role?: string
+
+  // role或者alternateScript所使用的编码方案，
+  // 也可以是语言，比如英语、中文
+  scheme?: string
+  // 贡献者名字的其他书写方式
+  alternateScript?: string
+}
+```
+
+#### subject?: Subject[]
+
+书籍所属的主题。
+
+```typescript
+interface Subject {
+  // 主题，比如小说、散文等。
+  subject: string
+  // 代码或标识符的来源机构
+  authority?: string
+  // 关联主题代码
+  term?: string
+}
+```
+
+#### links?: Link[]
+
+提供额外的关联资源或外部链接
+
+```typescript
+interface Link {
+  // 指向资源的 URL 或路径
+  href: string
+  // 资源的语言
+  hreflang?: string
+  // id
+  id?: string
+  // 资源的 MIME 类型（如 image/jpeg、application/xml）
+  mediaType?: string
+  // 附加属性
+  properties?: string
+  // 该链接的用途或功能。
+  rel: string
+}
+```
+
+### getManifest(): Record<string, ManifestItem>
+
+描述书籍内资源，html文件、图片等。
+
+```typescript
+import { getManifest } from '@lingo-reader/epub-parser'
+import type { ManifestItem } from '@lingo-reader/epub-parser'
+/*
+type getMetadata = () => Record<string, ManifestItem>
+*/
+
+// 键为 id
+const manifest: Record<string, ManifestItem> = epub.getManifest()
+```
+
+**参数：**
+
+- none
+
+**返回值：**
+
+- `Record<string, ManifestItem>`：
 
 ```typescript
 interface ManifestItem {
-  // 资源的唯一标识
+  // 资源的唯一标识，也作为
   id: string
   // 资源在 epub(zip) 文件中的路径
   href: string
@@ -164,18 +310,56 @@ interface ManifestItem {
 }
 ```
 
-获取 epub 文件中的所有的资源，包括章节的 html 文件、图像、音视频等。
+### getSpine(): EpubSpine
 
-## getSpine(): EpubSpine
+spine 中列出了所有需要按顺序显示的章节文件。
+
+`SpineItem` 中 `linear` 代表是否是电子书中的一个线性部分，值可以为 `yes` 或者 `no`。
+
+```typescript
+import { getSpine } from '@lingo-reader/epub-parser'
+import type { EpubSpine } from '@lingo-reader/epub-parser'
+/*
+type getSpine = () => EpubSpine
+*/
+
+const spine: EpubSpine = epub.getSpine()
+```
+
+**参数：**
+
+- none
+
+**返回值：**
+
+- `EpubSpine`：
 
 ```typescript
 type SpineItem = ManifestItem & { linear?: string }
 type EpubSpine = SpineItem[]
 ```
 
-spine 中列出了所有需要按顺序显示的章节文件。`SpineItem` 中 `linear` 代表是否是电子书中的一个线性部分，值可以为 `yes` 或者 `no`。
+### getGuide(): EpubGuide
 
-## getGuide(): GuideReference[]
+书籍的预览章节，也可以取 spine 中的前几个章节来替代。
+
+```typescript
+import { getGuide } from '@lingo-reader/epub-parser'
+import type { EpubGuide } from '@lingo-reader/epub-parser'
+/*
+type getGuide = () => EpubGuide
+*/
+
+const guide: EpubGuide = epub.getGuide()
+```
+
+**参数：**
+
+- none
+
+**返回值：**
+
+- `EpubGuide`：
 
 ```typescript
 interface GuideReference {
@@ -188,9 +372,27 @@ interface GuideReference {
 type EpubGuide = GuideReference[]
 ```
 
-书籍的预览章节，也可以取 spine 中的前几个章节来替代。
+### getCollection(): EpubCollection
 
-## getCollection(): EpubCollection
+`.opf` 文件中 \<collection\>标签下的内容，用来指定一个 EPUB 文件是否属于某个特定的集合，例如一个系列、类别或特定的出版物组。
+
+```typescript
+import { getCollection } from '@lingo-reader/epub-parser'
+import type { EpubCollection } from '@lingo-reader/epub-parser'
+/*
+type getCollection = () => EpubCollection
+*/
+
+const collection: EpubCollection = epub.getCollection()
+```
+
+**参数：**
+
+- none
+
+**返回值：**
+
+- `EpubCollection`：
 
 ```typescript
 interface CollectionItem {
@@ -202,15 +404,33 @@ interface CollectionItem {
 type EpubCollection = CollectionItem[]
 ```
 
-`.opf` 文件中 <collection>标签下的内容，用来指定一个 EPUB 文件是否属于某个特定的集合，例如一个系列、类别或特定的出版物组。
+### getToc(): EpubToc
 
-## getToc(): EpubToc
+此处的 toc 为 `.ncx` 文件中的 `navMap` 下的内容。
+
+```typescript
+import { getToc } from '@lingo-reader/epub-parser'
+import type { EpubToc } from '@lingo-reader/epub-parser'
+/*
+type getToc = () => EpubToc
+*/
+
+const toc: EpubToc = epub.getToc()
+```
+
+**参数：**
+
+- none
+
+**返回值：**
+
+- `EpubToc`：
 
 ```typescript
 interface NavPoint {
   // 目录项名称
   label: string
-  // 资源在epub文件中的路径
+  // 资源在epub文件中的路径，已经被处理成了特定的形式，可以使用resolveHref来解析
   href: string
   // 章节的id
   id: string
@@ -222,13 +442,12 @@ interface NavPoint {
 type EpubToc = NavPoint[]
 ```
 
-此处的 toc 为 `.ncx` 文件中的 `navMap` 下的内容。
-
-## getPageList(): PageList
+### getPageList(): PageList
 
 ```typescript
 interface PageTarget {
   label: string
+  // 页码
   value: string
   href: string
   playOrder: string
@@ -243,7 +462,7 @@ interface PageList {
 
 查看 [https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2)，其中的 `correspondId` 为资源的 id，其他都和规范中相对应。
 
-## getNavList(): NavList
+### getNavList(): NavList
 
 ```typescript
 interface NavTarget {
@@ -259,9 +478,27 @@ interface NavList {
 
 查看 [https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2)，其中的 `correspondId` 为资源的 id，`label` 为 `navLabel.text` 中的内容，`href` 为资源在 epub 文件中的路径。
 
-## loadChapter(id: string): Promise<EpubProcessedChapter>
+### loadChapter(id: string): Promise\<EpubProcessedChapter>
 
 `loadChapter` 的参数是章节的 id，返回值为处理后的章节对象。如果返回值为 `undefined`，说明没有该章节。
+
+```typescript
+const spine = epub.getSpine()
+const fileInfo = epub.getFileInfo()
+
+// 加载第一章，html为处理后的html章节字符串，
+// css为章节的css文件，在node中以绝对路径给出，
+// 可以直接读取
+const { html, css } = epub.loadChapter(spine[0].id)
+```
+
+**参数：**
+
+- `id: string`：章节的id。
+
+**返回值：**
+
+- `Promise<EpubProcessedChapter>`：处理后的章节对象
 
 ```typescript
 interface EpubCssPart {
@@ -274,9 +511,27 @@ interface EpubProcessedChapter {
 }
 ```
 
-在 epub 电子书文件中，一般一个章节是一个 xhtml(or html)文件。因此处理后的章节对象包括两部分，一部分是 body 标签下的 html 正文字符串。另一部分是 css，该 css 从章节文件的 link 标签中解析出来，在此以 blob url 的形式给出，即 `EpubCssPart` 中的 `href` 字段，并附带一个该 url 对应的 `id`。css 的 blob url 可以供 link 标签直接引用，也可以通过 fetch api 来获取 css 文本，然后做进一步的处理。
+在 epub 电子书文件中，一般一个章节是一个 xhtml(or html)文件。因此处理后的章节对象包括两部分，一部分是 body 标签下的 html 正文字符串。另一部分是 css，该 css 从章节文件的 link 标签中解析出来，在此以 blob url 的形式给出（node环境下是文件系统的绝对路径），即 `EpubCssPart` 中的 `href` 字段，并附带一个该 url 对应的 `id`。css 的 blob url 可以供 link 标签直接引用，也可以通过 fetch api （node环境下使用绝对路径）来获取 css 文本，然后做进一步的处理。
 
-## resolveHref(href: string): EpubResolvedHref | undefined
+epub 内部章节的跳转通过 a 标签的 href，为了将内部跳转链接与外部链接相区分，并方便处理内部跳转逻辑，内部跳转链接在前面会添加一个 `epub:` 前缀。使用下面的resolveHref可以解析。对该类链接的处理放在 ui 层，`epub-parser` 只提供返回对应章节的 html 和选择器的功能。
+
+### resolveHref(href: string): EpubResolvedHref | undefined
+
+用于处理书籍中转到其他章节的内部链接。`resolveHref` 将内部链接解析成内部章节的 id 和书籍 html 中的选择器。如果传入的是外部链接或者是一个不存在的内部链接，会返回 undefined，外部链接比如https://www.example.com。
+
+```typescript
+const toc: EpubToc = epub.getToc()
+// id 为章节的id，selector为dom选择器，比如 `[id="ididid"]`
+const { id, selector } = epub.resolveHref(toc[0].href)
+```
+
+**参数：**
+
+- `href: string`：内部资源路径。
+
+**返回值：**
+
+- `EpubResolvedHref | undefined`：处理后的内部链接，为undefined表示该资源路径不合法。
 
 ```typescript
 interface EpubResolvedHref {
@@ -285,8 +540,6 @@ interface EpubResolvedHref {
 }
 ```
 
-用于处理书籍中转到其他章节的内部链接。`resolveHref` 将内部链接解析成内部章节的 id 和书籍 html 中的选择器。如果传入的是外部链接或者是一个不存在的内部链接，会返回 undefined，外部链接比如https://www.example.com。
+### destroy(): void
 
-## destroy(): void
-
-用于清除在文件解析过程中创建的 blob url 等，防止内存泄漏。
+用于清除在文件解析过程中创建的 blob url 等，防止内存泄漏。node环境下会删除对应的文件。
