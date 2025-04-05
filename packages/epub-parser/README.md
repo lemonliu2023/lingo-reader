@@ -1,55 +1,95 @@
-<div align="center">
+<h1 align="center">
   <a href="https://github.com/hhk-png/lingo-reader">Home Page</a>&nbsp;&nbsp;&nbsp;
   <a href="./README-zh.md">中文</a>
-</div>
+</h1>
 
-# Install
+The EPUB file format is used to store ebook content, containing both the book's chapter materials and files specifying how these chapters should be sequentially read.
+
+An EPUB file is essentially a `.zip` archive. Its content structure is built using HTML and CSS, and can theoretically include JavaScript as well. By changing the file extension to `.zip` and extracting the contents, you can directly view chapter content by opening the corresponding HTML/XHTML files. However, the chapters will appear in random order. If certain chapters or resources are encrypted, this zip extraction method will fail.
+
+**When parsing EPUB files:**
+**(1)** The first step involves parsing files like `container.xml`, `.opf`, and `.ncx`, which contain metadata (title, author, publication date, etc.), resource information (paths to images and other assets within the EPUB), and sequential chapter display information (Spine).
+**(2)** The second step handles resource paths within chapters. References to resources in chapter files are only valid internally, so they must be converted to paths usable in the display environment—either as blob URLs in browsers or absolute filesystem paths in Node.js.
+**(3)** Additionally, EPUB encryption, signatures, and permissions (managed via `encryption.xml`, `signatures.xml`, and `rights.xml` respectively) need processing. Like `container.xml`, these files reside in the `/META-INF/` directory with fixed filenames. Currently, `@lingo-reader/epub-parser` supports the first two functionalities, with the third (encryption handling) coming soon—meaning it currently works with unencrypted EPUBs.
+
+The parser follows the [EPUB 3.3](https://www.w3.org/TR/epub-33/#sec-pkg-metadata) and [Open Packaging Format (OPF) 2.0.1 v1.0](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1) specifications. Its API aims to expose all available file information comprehensively.
+
+## Install
 
 ```shell
 pnpm install @lingo-reader/epub-parser
 ```
 
-# Usage in node
+## Usage in node
 
 ```typescript
 import { initEpubFile } from '@lingo-reader/epub-parser'
 
 const epub = await initEpubFile('./example/alice.epub')
-// fileInfo
-epub.getFileInfo()
 
-// metadata
-epub.getMetadata()!
+const spine = epub.getSpine()
+const fileInfo = epub.getFileInfo()
 
-// ...
+// Load the first chapter:
+// - html: Processed chapter HTML string
+// - css: Chapter CSS files (absolute paths in Node.js, directly readable)
+const { html, css } = epub.loadChapter(spine[0].id)
+
 // ...
 ```
 
-# Usage in browser
+## Usage in browser
 
 ```ts
-function initEpub(file: File) {
-  const epub = await initEpubFile(file)
-  // fileInfo
-  epub.getFileInfo()
+import { initEpubFile } from '@lingo-reader/epub-parser'
 
-  // metadata
-  epub.getMetadata()!
+async function initEpub(file: File) {
+  const epub = await initEpubFile(file)
+
+  const spine = epub.getSpine()
+  const fileInfo = epub.getFileInfo()
+
+  // Load the first chapter:
+  // - html: Processed chapter HTML string
+  // - css: Chapter CSS files (provided as blob URLs, fetchable)
+  const { html, css } = epub.loadChapter(spine[0].id)
 }
 
 // ...
-// ...
 ```
 
-In the `src/index.ts` file, the `initEpubFile` method, along with some related types, is exposed, as well as an internal link prefix.
-
-To handle internal chapter navigation within the EPUB, EPUB uses `<a>` tags with href. To distinguish internal links from external ones and simplify internal link handling, internal links are prefixed with epub:. The processing of such links is handled in the UI layer, while epub-parser only provides the functionality to return the corresponding chapter's HTML and selectors.
-
-# EpubFile
-
-The parsing of the EPUB file is based on the specifications of [EPUB 3.3](https://www.w3.org/TR/epub-33/#sec-pkg-metadata) and [Open Packaging Format (OPF) 2.0.1 v1.0](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1). The exposed methods of the parsed EPUB file object are as follows:
+## initEpubFile
 
 ```typescript
+import { initEpubFile } from '@lingo-reader/epub-parser'
+import type { EpubFile } from '@lingo-reader/epub-parser'
+/*
+  type initEpubFile = (epubPath: string | File, resourceSaveDir?: string) => Promise<EpubFile>
+*/
+
+const epub: EpubFile = await initEpubFile(file)
+```
+
+The primary API exposed by `@lingo-reader/epub-parser` is `initEpubFile`. When provided with a file path or File object, it returns an initialized `EpubFile` class containing methods to read metadata, Spine information, and other EPUB data.
+
+**Parameters:**
+
+- `epubPath: string | File`: File path or File object.
+- `resourceSaveDir?: string`: Optional (Node.js only). Specifies where to save resources like images.
+  - `default: './images/'`
+
+**Returns:**
+
+- `Promise`: Initialized EpubFile object (Promise).
+
+## EpubFile
+
+The EpubFile class exposes these methods:
+
+```typescript
+import { EpubFile } from '@lingo-reader/epub-parser'
+import { EBookParser } from '@lingo-reader/shared'
+
 declare class EpubFile implements EBookParser {
   getFileInfo(): EpubFileInfo
   getMetadata(): EpubMetadata
@@ -66,7 +106,217 @@ declare class EpubFile implements EBookParser {
 }
 ```
 
-## getFileInfo(): EpubFileInfo
+### getManifest(): Record<string, ManifestItem>
+
+Retrieves all resources contained in the EPUB (HTML files, images, etc.).
+
+```typescript
+import { getManifest } from '@lingo-reader/epub-parser'
+import type { ManifestItem } from '@lingo-reader/epub-parser'
+/*
+  type getManifest = () => Record<string, ManifestItem>
+*/
+
+// Keys represent resource `id`
+const manifest: Record<string, ManifestItem> = epub.getManifest()
+```
+
+**Parameters:**
+
+- None
+
+**Returns:**
+
+- `Record` - A dictionary mapping resource `id` to their descriptors:
+
+```typescript
+interface ManifestItem {
+  // Unique resource identifier
+  id: string
+  // Path within the EPUB (ZIP) archive
+  href: string
+  // MIME type (e.g., "application/xhtml+xml")
+  mediaType: string
+  // Special role (e.g., "cover-image")
+  properties?: string
+  // Associated media overlay for audio/video
+  mediaOverlay?: string
+  // Fallback resources when this item cannot be loaded
+  fallback?: string[]
+}
+```
+
+### getSpine(): EpubSpine
+
+Returns the reading order of all content documents in the EPUB.
+
+The `linear` property in `SpineItem` indicates whether the item is part of the primary reading flow (values: "yes" or "no").
+
+```typescript
+import { getSpine } from '@lingo-reader/epub-parser'
+import type { EpubSpine } from '@lingo-reader/epub-parser'
+/*
+  type getSpine = () => EpubSpine
+*/
+
+const spine: EpubSpine = epub.getSpine()
+```
+
+**Parameters:**
+
+- None
+
+**Returns:**
+
+- `EpubSpine` - An ordered array of spine items:
+
+```typescript
+type SpineItem = ManifestItem & {
+  /**
+   * Reading progression flag
+   * - "yes": Primary reading content (default)
+   * - "no": Supplementary material
+   */
+  linear?: string
+}
+type EpubSpine = SpineItem[]
+```
+
+### loadChapter(id: string): Promise\<EpubProcessedChapter\>
+
+The `loadChapter` function takes a chapter `id` as parameter and returns a processed chapter object. Returns `undefined` if the chapter doesn't exist.
+
+```typescript
+const spine = epub.getSpine()
+const fileInfo = epub.getFileInfo()
+
+// Load the first chapter. 'html' is the processed HTML chapter string,
+// 'css' is the chapter's CSS file, provided as an absolute path in Node.js,
+// which can be directly read.
+const { html, css } = epub.loadChapter(spine[0].id)
+```
+
+**Parameters:**
+
+- `id: string` - The chapter `id` from spine
+
+**Returns:**
+
+- `Promise<EpubProcessedChapter | undefined>` - Processed chapter content
+
+```typescript
+interface EpubCssPart {
+  id: string
+  href: string
+}
+
+interface EpubProcessedChapter {
+  css: EpubCssPart[]
+  html: string
+}
+```
+
+In an EPUB ebook file, each chapter is typically an XHTML (or HTML) file. Thus, the processed chapter object consists of two parts: one is the HTML content string under the `<body>` tag, and the other is the CSS. The CSS is parsed from the `<link>` tags in the chapter file and provided here in the form of a blob URL (or as an absolute filesystem path in a Node.js environment), represented by the `href` field in `EpubCssPart`, along with a corresponding `id` for the URL. The CSS blob URL can be directly referenced in a `<link>` tag or fetched via the Fetch API (using the absolute path in Node.js) to obtain the CSS text for further processing.
+
+Internal chapter navigation in EPUBs is handled through `<a>` tags' `href` attributes. To distinguish internal links from external links and facilitate internal navigation logic, internal links are prefixed with `epub:`. These links can be resolved using the `resolveHref` function. The handling of such links is managed at the UI layer, while `epub-parser` only provides the corresponding chapter HTML and selector functionality.
+
+### resolveHref(href: string): EpubResolvedHref | undefined
+
+`resolveHref` parses internal links into a chapter ID and a CSS selector within the book's HTML.
+
+If an external link (e.g., `https://www.example.com`) or an invalid internal link is provided, it returns `undefined`.
+
+```typescript
+const toc: EpubToc = epub.getToc()
+// 'id' is the chapter ID, 'selector' is a DOM selector (e.g., `[id="ididid"]`)
+const { id, selector } = epub.resolveHref(toc[0].href)
+```
+
+**Parameters：**
+
+- `href: string`：The internal resource path.
+
+**Returns:**
+
+- `EpubResolvedHref | undefined`：The resolved internal link. Returns `undefined` if the path is invalid.
+
+```typescript
+interface EpubResolvedHref {
+  id: string
+  selector: string
+}
+```
+
+### getToc(): EpubToc
+
+The `toc` structure corresponds to the `navMap` section of the EPUB's `.ncx` file, which contains the book's navigation hierarchy.
+
+```typescript
+import { getToc } from '@lingo-reader/epub-parser'
+import type { EpubToc } from '@lingo-reader/epub-parser'
+/*
+  type getToc = () => EpubToc
+*/
+
+const toc: EpubToc = epub.getToc()
+```
+
+**Parameters：**
+
+- none
+
+**Returns:**
+
+- `EpubToc`：
+
+```typescript
+interface NavPoint {
+  // Display text of the table of contents entry
+  label: string
+
+  // Resource path within the EPUB file (preprocessed format).
+  // Can be resolved using resolveHref()
+  href: string
+
+  // Chapter identifier
+  id: string
+
+  // Reading order sequence
+  playOrder: string
+
+  // Nested sub-entries (optional)
+  children?: NavPoint[]
+}
+
+/** EPUB table of contents structure (NCX navMap representation) */
+type EpubToc = NavPoint[]
+```
+
+### destroy(): void
+
+Cleans up generated resources (like blob URLs) created during file parsing
+to prevent memory leaks. In Node.js environments, it also deletes corresponding temporary files.
+
+### getFileInfo(): EpubFileInfo
+
+```typescript
+import type { EpubFileInfo } from '@lingo-reader/epub-parser'
+/*
+  type getFileInfo = () => EpubFileInfo
+*/
+
+const fileInfo: EpubFileInfo = epub.getFileInfo()
+```
+
+EpubFileInfo currently includes two attributes: `fileName` represents the file name, and `mimetype` indicates the file type of the EPUB file, which is read from the `/mimetype` file but is always fixed as `application/epub+zip`.
+
+**Parameters：**
+
+- none
+
+**Returns:**
+
+- `EpubFileInfo`：
 
 ```typescript
 interface EpubFileInfo {
@@ -75,43 +325,28 @@ interface EpubFileInfo {
 }
 ```
 
-The returned object contains the `fileName` and `mimetype`, where the `mimetype` is always set to the string `application/epub+zip`.
+### getMetadata(): EpubMetadata
 
-## getMetadata(): EpubMetadata;
+The metadata recorded in the book.
 
 ```typescript
-// 'id' represents the unique identifier of the resource, 'scheme' specifies the system or authority used to generate or assign that identifier.
-interface Identifier {
-  id: string
-  identifierType?: string
-  scheme?: string
-}
+import type { EpubMetadata } from '@lingo-reader/epub-parser'
+/*
+  type getMetadata = () => EpubFileInfo
+*/
 
-interface Contributor {
-  contributor: string
-  fileAs?: string
-  role?: string
+const metadata: EpubMetadata = epub.getMetadata()
+```
 
-  // append in <meta>
-  scheme?: string
-  alternateScript?: string
-}
+**Parameters：**
 
-interface Subject {
-  subject: string
-  authority?: string
-  term?: string
-}
+- none
 
-interface Link {
-  href: string
-  hreflang?: string
-  id?: string
-  mediaType?: string
-  properties?: string
-  rel: string
-}
+**Returns:**
 
+- `EpubMetadata`：
+
+```typescript
 interface EpubMetadata {
   // Title of the book
   title: string
@@ -121,20 +356,22 @@ interface EpubMetadata {
   description?: string
   // Publisher of the EPUB file
   publisher?: string
-  // General book genre (e.g., novel, biography)
+  // General type/genre of the book, such as novel, biography, etc.
   type?: string
-  // Mimetype of the EPUB file
+  // MIME type of the EPUB file
   format?: string
-  // Original source of the book's content
+  // Original source of the book content
   source?: string
-  // Associated external resources
+  // Related external resources
   relation?: string
-  // Scope of the publication
+  // Coverage of the publication content
   coverage?: string
   // Copyright statement
   rights?: string
-  // Includes book creation time, publication time, update time, etc.
+  // Includes creation time, publication date, update time, etc. of the book
+  // Specific fields depend on opf:event, such as modification
   date?: Record<string, string>
+
   identifier: Identifier
   packageIdentifier: Identifier
   creator?: Contributor[]
@@ -146,90 +383,180 @@ interface EpubMetadata {
 }
 ```
 
-## getManifest(): Record<string, ManifestItem>;
+#### identifier: Identifier
+
+`id` represents the unique identifier of the resource. The `scheme` specifies the system or authority used to generate or assign the identifier, such as ISBN or DOI. `identifierType` indicates the type of identifier used by `id`, which is similar to `scheme`.
 
 ```typescript
-interface ManifestItem {
-  // Unique identifier for the resource
+interface Identifier {
   id: string
-  // Path of the resource within the EPUB (ZIP) file
-  href: string
-  // Resource type (mimetype)
-  mediaType: string
-  // Role of the resource, e.g., "cover-image"
-  properties?: string
-  // Media overlay for audio/video resources
-  mediaOverlay?: string
-  // List of fallback resource IDs (in case the current resource fails to load)
-  fallback?: string[]
+  scheme?: string
+  identifierType?: string
 }
 ```
 
-This method returns all the resources in the EPUB file, including HTML chapter files, images, audio, video, etc.
+#### packageIdentifier: Identifier
 
-## getSpine(): EpubSpine
+It is essentially also an `Identifier`. Typically, within the `<package>` tag, it is referenced using the `unique-identifier` attribute, whose value corresponds to the `id` of the relevant `<identifier>` element.
 
-```typescript
-type SpineItem = ManifestItem & { linear?: string }
-type EpubSpine = SpineItem[]
+```xml
+<package unique-identifier="id">
+
+<dc:identifier id="id" opf:scheme="URI">uuid:19c0c5cb-002b-476f-baa7-fcf510414f95</dc:identifier>
+
+</package>
 ```
 
-The spine lists all the chapter files that need to be displayed in order. The `linear` property in `SpineItem` indicates whether the chapter is part of the main linear sequence, with values of either `yes` or `no`.
+#### creator?: Contributor[]
 
-## getGuide(): GuideReference[]
+Describes the various contributors.
+
+```typescript
+interface Contributor {
+  // Name of the contributor
+  contributor: string
+  // Sort-friendly version of the name
+  fileAs?: string
+  // Role of the contributor
+  role?: string
+
+  // The encoding scheme used for role or alternateScript,
+  // can also represent a language, such as English or Chinese
+  scheme?: string
+  // Alternative script or writing system for the contributor's name
+  alternateScript?: string
+}
+```
+
+#### subject?: Subject[]
+
+The subject or theme of the book.
+
+```typescript
+interface Subject {
+  // Subject, such as fiction, essay, etc.
+  subject: string
+  // The authority or organization providing the code or identifier
+  authority?: string
+  // Associated subject code or term
+  term?: string
+}
+```
+
+#### links?: Link[]
+
+Provides additional related resources or external links.
+
+```typescript
+interface Link {
+  // URL or path to the resource
+  href: string
+  // Language of the resource
+  hreflang?: string
+  // id
+  id?: string
+  // MIME type of the resource (e.g., image/jpeg, application/xml)
+  mediaType?: string
+  // Additional properties
+  properties?: string
+  // Purpose or function of the link
+  rel: string
+}
+```
+
+### getGuide(): EpubGuide
+
+The preview chapters of the book, which can also be replaced by the first few chapters from the spine.
+
+```typescript
+import { getGuide } from '@lingo-reader/epub-parser'
+import type { EpubGuide } from '@lingo-reader/epub-parser'
+/*
+  type getGuide = () => EpubGuide
+*/
+
+const guide: EpubGuide = epub.getGuide()
+```
+
+**Parameters：**
+
+- none
+
+**Returns:**
+
+- `EpubGuide`：
 
 ```typescript
 interface GuideReference {
   title: string
-  // Role of the resource, e.g., toc, loi, cover-image, etc.
+  // The role of the resource, such as toc, loi, cover-image, etc.
   type: string
-  // Path within the EPUB file
+  // The path to the resource within the EPUB file
   href: string
 }
+
 type EpubGuide = GuideReference[]
 ```
 
-This contains preview chapters of the book, or it can use the first few chapters from the spine as a substitute.
+### getCollection(): EpubCollection
 
-## getCollection(): EpubCollection
+The content under the `<collection>` tag in the `.opf` file, used to specify whether an EPUB file belongs to a specific collection, such as a series, category, or a particular group of publications.
+
+```typescript
+import { getCollection } from '@lingo-reader/epub-parser'
+import type { EpubCollection } from '@lingo-reader/epub-parser'
+/*
+  type getCollection = () => EpubCollection
+*/
+
+const collection: EpubCollection = epub.getCollection()
+```
+
+**Parameters：**
+
+- none
+
+**Returns:**
+
+- `EpubCollection`：
 
 ```typescript
 interface CollectionItem {
-  // Role of the resource in the collection
+  // The role played within the Collection
   role: string
-  // Related resource links
+  // Links to related resources
   links: string[]
 }
+
 type EpubCollection = CollectionItem[]
 ```
 
-The `<collection>` tag in the `.opf` file is used to specify whether an EPUB file belongs to a specific collection, such as a series, category, or particular group of publications.
+### getPageList(): PageList
 
-## getToc(): EpubToc
+Refer to [https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2), where the `correspondId` refers to the resource's ID, and the rest correspond to the specifications.
 
 ```typescript
-interface NavPoint {
-  // Label of the table of contents entry
-  label: string
-  // Path to the resource in the EPUB file
-  href: string
-  // Chapter ID
-  id: string
-  // Order of the resource
-  playOrder: string
-  // Subdirectory for nested TOC entries
-  children?: NavPoint[]
-}
-type EpubToc = NavPoint[]
+import { getPageList } from '@lingo-reader/epub-parser'
+import type { PageList } from '@lingo-reader/epub-parser'
+/*
+  type getPageList = () => PageList
+*/
+
+const pageList: PageList = epub.getPageList()
 ```
 
-This toc corresponds to the `navMap` in the `.ncx` file.
+**Parameters：**
 
-## getPageList(): PageList
+- none
+
+**Returns:**
+
+- `PageList`:
 
 ```typescript
 interface PageTarget {
   label: string
+  // Page number
   value: string
   href: string
   playOrder: string
@@ -242,9 +569,27 @@ interface PageList {
 }
 ```
 
-For more details, refer to [this specification](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2). The `correspondId` represents the resource's ID, while other fields correspond to the specification.
+### getNavList(): NavList
 
-## getNavList(): NavList
+Refer to [https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2), where the `correspondId` refers to the resource's ID, `label` corresponds to the content of `navLabel.text`, and `href` is the path to the resource within the EPUB file.
+
+```typescript
+import { getNavList } from '@lingo-reader/epub-parser'
+import type { NavList } from '@lingo-reader/epub-parser'
+/*
+  type getNavList = () => NavList
+*/
+
+const navList: NavList = epub.getNavList()
+```
+
+**Parameters：**
+
+- none
+
+**Returns:**
+
+- `NavList:`
 
 ```typescript
 interface NavTarget {
@@ -257,37 +602,3 @@ interface NavList {
   navTargets: NavTarget[]
 }
 ```
-
-For details, check [this specification](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2). Here, `correspondId` is the resource's ID, `label` corresponds to `navLabel.text`, and `href` is the path to the resource in the EPUB file.
-
-## loadChapter(id: string): Promise<EpubProcessedChapter>
-
-The parameter for `loadChapter` is the chapter ID. It returns the processed chapter object. If the chapter is not found, it returns `undefined`.
-
-```typescript
-interface EpubCssPart {
-  id: string
-  href: string
-}
-interface EpubProcessedChapter {
-  css: EpubCssPart[]
-  html: string
-}
-```
-
-In an EPUB file, a chapter is typically an XHTML (or HTML) file. The processed chapter object includes two parts: the HTML body string under the `<body>` tag, and the CSS, which is extracted from the `<link>` tags in the chapter file. The CSS is returned as a Blob URL in the `href` field of the EpubCssPart and can be used directly in a `<link>` tag or fetched via the Fetch API for further processing.
-
-## resolveHref(href: string): EpubResolvedHref | undefined
-
-```typescript
-interface EpubResolvedHref {
-  id: string
-  selector: string
-}
-```
-
-This method resolves internal links within the book to the chapter ID and CSS selector for that chapter. If the link is external or does not exist, it returns `undefined`. External links, such as `https://www.example.com`, are handled as regular URLs.
-
-## destroy(): void
-
-This method is used to clean up resources created during the file parsing process, such as Blob URLs, to prevent memory leaks.
