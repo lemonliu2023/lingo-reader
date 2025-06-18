@@ -62,7 +62,7 @@ describe('createZipFile in Node', async () => {
   })
 
   it('readFile if file not exit', async () => {
-    await expect(epubFile.readFile('not-exist')).rejects.toThrow()
+    expect(await epubFile.readFile('not-exist')).toBe('')
   })
 
   it('readImage', async () => {

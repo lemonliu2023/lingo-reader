@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import JSZip from 'jszip'
+import type { PathToProcessors } from './types'
 
 export async function createZipFile(filePath: string | File) {
   const zip = new ZipFile(filePath)
@@ -14,6 +15,14 @@ export class ZipFile {
   private names!: Map<string, string>
   public getNames() {
     return [...this.names.values()]
+  }
+
+  private pathToProcessors: PathToProcessors = {}
+  public useDeprocessors(processors: PathToProcessors) {
+    this.pathToProcessors = {
+      ...this.pathToProcessors,
+      ...processors,
+    }
   }
 
   constructor(private filePath: string | File) { }
@@ -52,12 +61,8 @@ export class ZipFile {
   }
 
   public async readFile(name: string): Promise<string> {
-    if (!this.hasFile(name)) {
-      throw new Error(`${name} file was not exit in ${this.filePath}`)
-    }
-    const fileName = this.getFileName(name)!
-    const file = await this.jsZip.file(fileName)!.async('string')
-    return file
+    const file = await this.readResource(name)
+    return new TextDecoder().decode(file)
   }
 
   public async readResource(name: string): Promise<Uint8Array> {
@@ -66,11 +71,16 @@ export class ZipFile {
       return new Uint8Array()
     }
     const fileName = this.getFileName(name)!
-    const file = await this.jsZip.file(fileName)!.async('uint8array')
+    let file = await this.jsZip.file(fileName)!.async('uint8array')
+    if (this.pathToProcessors[fileName]) {
+      for (const processor of this.pathToProcessors[fileName]) {
+        file = await processor(file)
+      }
+    }
     return file
   }
 
-  private hasFile(name: string): boolean {
+  public hasFile(name: string): boolean {
     return this.names.has(name.toLowerCase())
   }
 
@@ -117,3 +127,14 @@ export const resourceExtensionToMimeType: Record<string, string> = {
 }
 
 export const savedResourceMediaTypePrefixes = new Set(Object.values(resourceExtensionToMimeType))
+
+// browser env
+export function base64ToUint8Array(base64: string) {
+  const binaryString = atob(base64)
+  const len = binaryString.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes
+}

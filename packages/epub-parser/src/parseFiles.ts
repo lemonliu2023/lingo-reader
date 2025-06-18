@@ -1,10 +1,13 @@
 import { path } from '@lingo-reader/shared'
+import { inflateSync } from 'fflate'
 import type {
+  AesName,
   Contributor,
   EpubCollection,
   EpubGuide,
   EpubMetadata,
   EpubSpine,
+  IdToKey,
   Identifier,
   Link,
   ManifestItem,
@@ -13,10 +16,13 @@ import type {
   NavTarget,
   PageList,
   PageTarget,
+  PathToProcessors,
+  RsaHash,
   Subject,
 } from './types'
-import { camelCase } from './utils'
-import { HREF_PREFIX } from './constant'
+import { base64ToUint8Array, camelCase } from './utils'
+import { AesSymmetricKey16, HREF_PREFIX, RsaPrivateKey } from './constant'
+import { decryptAes, decryptRsa } from './decryption'
 
 // the content of mimetype must be 'application/epub+zip'
 export function parseMimeType(file: string): string {
@@ -510,4 +516,102 @@ export function parseNavList(
     label,
     navTargets,
   }
+}
+
+async function parseEncryptedKeys(
+  encryptedKeysAST: any[],
+): Promise<IdToKey> {
+  const idToKeyMap: IdToKey = {}
+  for (const encryptedKey of encryptedKeysAST) {
+    const id = encryptedKey.$.Id
+
+    // EncryptionMethod
+    const encryptionMethod = encryptedKey.EncryptionMethod[0]
+    const algorithm = encryptionMethod.$.Algorithm.split('#')[1]
+    if (!algorithm.startsWith('rsa')) {
+      throw new Error(`Unsupported encryption algorithm: ${algorithm}. Only RSA and AES algorithms are supported.`)
+    }
+    let sha: RsaHash = 'sha1'
+    if (algorithm === 'rsa-oaep') {
+      sha = encryptionMethod.DigestMethod[0].$.Algorithm.split('#')[1]
+    }
+
+    // encryptedData
+    const encryptedKeyDataBase64 = encryptedKey.CipherData[0].CipherValue[0].trim()
+
+    // TODO: replace RsaPrivateKey with the actual RSA private key. Passed by parameter
+    const decryptedKey = await decryptRsa(RsaPrivateKey, encryptedKeyDataBase64, sha)
+    idToKeyMap[id] = decryptedKey
+  }
+
+  return idToKeyMap
+}
+
+function parseEncryptedDatas(
+  encryptedDatasAST: any[],
+  idToKeyMap: Record<string, Uint8Array>,
+): PathToProcessors {
+  const fileToProcessors: PathToProcessors = {}
+  for (const encryptedData of encryptedDatasAST) {
+    // EncryptionMethod
+    const algorithmInXml = encryptedData.EncryptionMethod[0].$.Algorithm.split('#')[1]
+    if (!algorithmInXml.startsWith('aes')) {
+      console.warn(`Unsupported encryption algorithm: ${algorithmInXml}. Only AES and RSA algorithms are supported.`)
+      continue
+    }
+    const algorithm: AesName = algorithmInXml.replace('aes', 'aes-')
+
+    // file path
+    const filePath = encryptedData.CipherData[0].CipherReference[0].$.URI
+    fileToProcessors[filePath] = []
+    const processors = fileToProcessors[filePath]
+
+    // aes decrypt processor
+    const keyInfo = encryptedData.KeyInfo[0]
+    if (keyInfo && keyInfo.RetrievalMethod) {
+      const keyId = keyInfo.RetrievalMethod[0].$.URI.slice(1)
+      const symmetricKey = idToKeyMap[keyId]
+      if (!symmetricKey) {
+        throw new Error(`No symmetric key found for id "${keyId}". Skipping decryption for file "${filePath}".`)
+      }
+      const decryptAesProcessor = async (file: Uint8Array) => {
+        return await decryptAes(algorithm, symmetricKey, file)
+      }
+      processors.push(decryptAesProcessor)
+    }
+    else {
+      const decryptAesProcessor = async (file: Uint8Array) => {
+        return await decryptAes(algorithm, base64ToUint8Array(AesSymmetricKey16), file)
+      }
+      // TODO: replace AesSymmetricKey16 with the actual AES symmetric key. Passed by parameter
+      processors.push(decryptAesProcessor)
+    }
+
+    // decompression
+    const encryptionPropertys = encryptedData.EncryptionProperties?.[0].EncryptionProperty
+    if (encryptionPropertys) {
+      for (const encryptionProperty of encryptionPropertys) {
+        const compression = encryptionProperty.Compression[0]
+        if (compression && compression.$.Method === '8') {
+          processors.push(inflateSync)
+        }
+      }
+    }
+
+    // save
+    fileToProcessors[filePath] = processors
+  }
+
+  return fileToProcessors
+}
+
+export async function parseEncryption(encryptionAST: any): Promise<PathToProcessors> {
+  const encryption = encryptionAST.encryption
+  const encryptedKeys = encryption.EncryptedKey
+  const encryptedDatas = encryption.EncryptedData
+
+  const idToKeyMap = await parseEncryptedKeys(encryptedKeys)
+  const pathToProcessors = parseEncryptedDatas(encryptedDatas, idToKeyMap)
+
+  return pathToProcessors
 }

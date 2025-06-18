@@ -19,6 +19,7 @@ import type {
 import {
   parseCollection,
   parseContainer,
+  parseEncryption,
   parseGuide,
   parseManifest,
   parseMetadata,
@@ -166,6 +167,17 @@ export class EpubFile implements EBookParser {
     // full-path
     this.opfPath = parseContainer(containerAST)
     this.opfDir = path.dirname(this.opfPath)
+
+    // meta-inf/encryption.xml
+    if (this.zip.hasFile('meta-inf/encryption.xml')) {
+      const encryptionXml = await this.zip.readFile('meta-inf/encryption.xml')
+      const prefixMatch = /(?!xmlns)^.*:/
+      const encryptionAST = await parsexml(encryptionXml, {
+        tagNameProcessors: [(str: string) => str.replace(prefixMatch, '')],
+      })
+      const pathToProcessors = await parseEncryption(encryptionAST)
+      this.zip.useDeprocessors(pathToProcessors)
+    }
 
     // .opf file
     await this.parseRootFile()

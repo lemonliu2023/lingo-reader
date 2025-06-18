@@ -139,3 +139,17 @@ export interface EpubResolvedHref {
   id: string
   selector: string
 }
+
+/**
+ * decryption
+ */
+export type RsaHash = 'sha1' | 'sha256' | 'sha384' | 'sha512'
+
+export type AesName = 'aes-256-cbc' | 'aes-256-ctr' | 'aes-256-gcm'
+  | 'aes-192-cbc' | 'aes-192-ctr' | 'aes-192-gcm'
+  | 'aes-128-cbc' | 'aes-128-ctr' | 'aes-128-gcm'
+
+export type IdToKey = Record<string, Uint8Array>
+
+export type FileProcessor = (file: Uint8Array) => Promise<Uint8Array> | Uint8Array
+export type PathToProcessors = Record<string, FileProcessor[]>

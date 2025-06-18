@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@lingo-reader/shared": "workspace:^",
+    "fflate": "0.8.2",
     "jszip": "^3.10.1"
   }
 }
