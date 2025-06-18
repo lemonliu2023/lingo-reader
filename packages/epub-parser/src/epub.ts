@@ -1,10 +1,12 @@
 import type { EBookParser } from '@lingo-reader/shared'
 import { parsexml, path } from '@lingo-reader/shared'
 import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
-import { type ZipFile, createZipFile, savedResourceMediaTypePrefixes } from './utils'
+import { type ZipFile, createZipFile, extractEncryptionKeys, prefixMatch, savedResourceMediaTypePrefixes } from './utils'
 import type {
+  EncryptionKeys,
   EpubCollection,
   EpubFileInfo,
+  EpubFileOptions,
   EpubGuide,
   EpubMetadata,
   EpubProcessedChapter,
@@ -36,8 +38,12 @@ import { HREF_PREFIX } from './constant'
 */
 
 // wrapper for async constructor, because EpubFile class has async code
-export async function initEpubFile(epubPath: string | File, resourceSaveDir?: string): Promise<EpubFile> {
-  const epub = new EpubFile(epubPath, resourceSaveDir)
+export async function initEpubFile(
+  epubPath: string | File,
+  resourceSaveDir?: string,
+  options: EpubFileOptions = {},
+): Promise<EpubFile> {
+  const epub = new EpubFile(epubPath, resourceSaveDir, options)
   await epub.loadEpub()
   await epub.parse()
   return epub
@@ -137,8 +143,13 @@ export class EpubFile implements EBookParser {
   private opfPath: string = ''
   private opfDir: string = ''
   private resourceSaveDir: string
+  private encryptionKeys: EncryptionKeys = {}
 
-  constructor(private epub: string | File, resourceSaveDir: string = './images') {
+  constructor(
+    private epub: string | File,
+    resourceSaveDir: string = './images',
+    private options: EpubFileOptions = {},
+  ) {
     if (typeof epub === 'string') {
       this.fileName = path.basename(epub)
     }
@@ -150,6 +161,8 @@ export class EpubFile implements EBookParser {
     if (!existsSync(this.resourceSaveDir)) {
       mkdirSync(this.resourceSaveDir, { recursive: true })
     }
+
+    this.encryptionKeys = extractEncryptionKeys(this.options)
   }
 
   async loadEpub(): Promise<void> {
@@ -171,11 +184,10 @@ export class EpubFile implements EBookParser {
     // meta-inf/encryption.xml
     if (this.zip.hasFile('meta-inf/encryption.xml')) {
       const encryptionXml = await this.zip.readFile('meta-inf/encryption.xml')
-      const prefixMatch = /(?!xmlns)^.*:/
       const encryptionAST = await parsexml(encryptionXml, {
         tagNameProcessors: [(str: string) => str.replace(prefixMatch, '')],
       })
-      const pathToProcessors = await parseEncryption(encryptionAST)
+      const pathToProcessors = await parseEncryption(encryptionAST, this.encryptionKeys)
       this.zip.useDeprocessors(pathToProcessors)
     }
 

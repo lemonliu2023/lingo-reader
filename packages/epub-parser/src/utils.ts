@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import JSZip from 'jszip'
-import type { PathToProcessors } from './types'
+import type { EncryptionKeys, EpubFileOptions, PathToProcessors } from './types'
 
 export async function createZipFile(filePath: string | File) {
   const zip = new ZipFile(filePath)
@@ -137,4 +137,22 @@ export function base64ToUint8Array(base64: string) {
     bytes[i] = binaryString.charCodeAt(i)
   }
   return bytes
+}
+
+export const prefixMatch = /(?!xmlns)^.*:/
+
+export function extractEncryptionKeys(options: EpubFileOptions): EncryptionKeys {
+  const encryptionKeys: EncryptionKeys = {}
+  // options
+  if (options.rsaPrivateKey) {
+    encryptionKeys.rsaPrivateKey = typeof options.rsaPrivateKey === 'string'
+      ? base64ToUint8Array(options.rsaPrivateKey)
+      : options.rsaPrivateKey
+  }
+  if (options.aesSymmetricKey) {
+    encryptionKeys.aesSymmetricKey = typeof options.aesSymmetricKey === 'string'
+      ? base64ToUint8Array(options.aesSymmetricKey)
+      : options.aesSymmetricKey
+  }
+  return encryptionKeys
 }

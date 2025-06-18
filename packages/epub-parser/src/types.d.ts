@@ -153,3 +153,13 @@ export type IdToKey = Record<string, Uint8Array>
 
 export type FileProcessor = (file: Uint8Array) => Promise<Uint8Array> | Uint8Array
 export type PathToProcessors = Record<string, FileProcessor[]>
+
+export interface EpubFileOptions {
+  rsaPrivateKey?: string | Uint8Array
+  aesSymmetricKey?: string | Uint8Array
+}
+
+export interface EncryptionKeys {
+  rsaPrivateKey?: Uint8Array
+  aesSymmetricKey?: Uint8Array
+}

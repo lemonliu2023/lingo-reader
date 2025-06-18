@@ -3,6 +3,7 @@ import { inflateSync } from 'fflate'
 import type {
   AesName,
   Contributor,
+  EncryptionKeys,
   EpubCollection,
   EpubGuide,
   EpubMetadata,
@@ -20,8 +21,8 @@ import type {
   RsaHash,
   Subject,
 } from './types'
-import { base64ToUint8Array, camelCase } from './utils'
-import { AesSymmetricKey16, HREF_PREFIX, RsaPrivateKey } from './constant'
+import { camelCase } from './utils'
+import { HREF_PREFIX } from './constant'
 import { decryptAes, decryptRsa } from './decryption'
 
 // the content of mimetype must be 'application/epub+zip'
@@ -518,9 +519,14 @@ export function parseNavList(
   }
 }
 
+// TODO: EncryptedKey in EncryptedData>KeyInfo
 async function parseEncryptedKeys(
   encryptedKeysAST: any[],
+  rsaPrivateKey: Uint8Array,
 ): Promise<IdToKey> {
+  if (!encryptedKeysAST) {
+    return {}
+  }
   const idToKeyMap: IdToKey = {}
   for (const encryptedKey of encryptedKeysAST) {
     const id = encryptedKey.$.Id
@@ -539,8 +545,7 @@ async function parseEncryptedKeys(
     // encryptedData
     const encryptedKeyDataBase64 = encryptedKey.CipherData[0].CipherValue[0].trim()
 
-    // TODO: replace RsaPrivateKey with the actual RSA private key. Passed by parameter
-    const decryptedKey = await decryptRsa(RsaPrivateKey, encryptedKeyDataBase64, sha)
+    const decryptedKey = await decryptRsa(rsaPrivateKey, encryptedKeyDataBase64, sha)
     idToKeyMap[id] = decryptedKey
   }
 
@@ -550,6 +555,7 @@ async function parseEncryptedKeys(
 function parseEncryptedDatas(
   encryptedDatasAST: any[],
   idToKeyMap: Record<string, Uint8Array>,
+  aesSymmetricKey: Uint8Array,
 ): PathToProcessors {
   const fileToProcessors: PathToProcessors = {}
   for (const encryptedData of encryptedDatasAST) {
@@ -567,7 +573,7 @@ function parseEncryptedDatas(
     const processors = fileToProcessors[filePath]
 
     // aes decrypt processor
-    const keyInfo = encryptedData.KeyInfo[0]
+    const keyInfo = encryptedData.KeyInfo?.[0]
     if (keyInfo && keyInfo.RetrievalMethod) {
       const keyId = keyInfo.RetrievalMethod[0].$.URI.slice(1)
       const symmetricKey = idToKeyMap[keyId]
@@ -581,9 +587,8 @@ function parseEncryptedDatas(
     }
     else {
       const decryptAesProcessor = async (file: Uint8Array) => {
-        return await decryptAes(algorithm, base64ToUint8Array(AesSymmetricKey16), file)
+        return await decryptAes(algorithm, aesSymmetricKey, file)
       }
-      // TODO: replace AesSymmetricKey16 with the actual AES symmetric key. Passed by parameter
       processors.push(decryptAesProcessor)
     }
 
@@ -605,13 +610,24 @@ function parseEncryptedDatas(
   return fileToProcessors
 }
 
-export async function parseEncryption(encryptionAST: any): Promise<PathToProcessors> {
+export async function parseEncryption(
+  encryptionAST: any,
+  options: EncryptionKeys,
+): Promise<PathToProcessors> {
   const encryption = encryptionAST.encryption
   const encryptedKeys = encryption.EncryptedKey
   const encryptedDatas = encryption.EncryptedData
 
-  const idToKeyMap = await parseEncryptedKeys(encryptedKeys)
-  const pathToProcessors = parseEncryptedDatas(encryptedDatas, idToKeyMap)
+  if (encryptedKeys && !options.rsaPrivateKey) {
+    throw new Error('Please provide the RSA private key to decrypt the encrypted AES keys. ')
+  }
+
+  if (!encryptedKeys && encryptedDatas && !options.aesSymmetricKey) {
+    throw new Error('The file is only enctypted with AES, but no symmetric key is provided. ')
+  }
+
+  const idToKeyMap = await parseEncryptedKeys(encryptedKeys, options.rsaPrivateKey!)
+  const pathToProcessors = parseEncryptedDatas(encryptedDatas, idToKeyMap, options.aesSymmetricKey!)
 
   return pathToProcessors
 }

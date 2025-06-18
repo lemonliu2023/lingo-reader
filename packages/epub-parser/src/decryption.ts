@@ -3,7 +3,7 @@ import nodeCrypto from 'node:crypto'
 import type { AesName, RsaHash } from './types'
 
 export async function decryptRsa(
-  base64Key: string,
+  privateKey: Uint8Array,
   base64Data: string,
   hash: RsaHash = 'sha256',
 ): Promise<Uint8Array> {
@@ -12,9 +12,8 @@ export async function decryptRsa(
   }
   else {
     const encryptedData = Buffer.from(base64Data, 'base64')
-    const privateKey = Buffer.from(base64Key, 'base64')
     const keyObj = nodeCrypto.createPrivateKey({
-      key: privateKey,
+      key: Buffer.from(privateKey),
       format: 'der',
       type: 'pkcs8',
     })
