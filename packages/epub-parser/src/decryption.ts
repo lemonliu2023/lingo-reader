@@ -8,7 +8,28 @@ export async function decryptRsa(
   hash: RsaHash = 'sha256',
 ): Promise<Uint8Array> {
   if (__BROWSER__) {
-    throw new Error('decryptRsa is currently not supported in browser environment')
+    const cryptoKey = await crypto.subtle.importKey(
+      'pkcs8',
+      privateKey,
+      {
+        name: 'RSA-OAEP',
+        hash: { name: hash.replace('sha', 'sha-').toUpperCase() },
+      },
+      true,
+      ['decrypt'],
+    )
+
+    const encryptedData = Uint8Array.from(atob(base64Data), char => char.charCodeAt(0))
+
+    const decryptedData = await crypto.subtle.decrypt(
+      {
+        name: 'RSA-OAEP',
+      },
+      cryptoKey,
+      encryptedData,
+    )
+
+    return new Uint8Array(decryptedData)
   }
   else {
     const encryptedData = Buffer.from(base64Data, 'base64')
@@ -35,7 +56,68 @@ export async function decryptAes(
   fileData: Uint8Array,
 ): Promise<Uint8Array> {
   if (__BROWSER__) {
-    throw new Error('decryptAes is currently not supported in browser environment')
+    const isGcm = name.endsWith('gcm')
+    const ivLength = isGcm ? 12 : 16
+    const authTagLength = isGcm ? 16 : 0
+
+    const iv = fileData.slice(0, ivLength)
+    const authTag = isGcm ? fileData.slice(fileData.length - authTagLength) : undefined
+    const encryptedData = fileData.slice(ivLength, fileData.length - authTagLength)
+
+    const [algoName, bits, mode] = name.split('-') as [AesName, string, 'cbc' | 'ctr' | 'gcm']
+
+    // Prepare the algorithm parameters
+    let algorithmParams: AesCtrParams | AesCbcParams | AesGcmParams
+    const algorithmParamsName = `${algoName}-${mode}`.toUpperCase()
+    switch (mode) {
+      case 'cbc': {
+        algorithmParams = { name: algorithmParamsName, iv }
+        break
+      }
+      case 'ctr': {
+        algorithmParams = {
+          name: algorithmParamsName,
+          counter: iv,
+          length: 64,
+        }
+        break
+      }
+      case 'gcm': {
+        algorithmParams = {
+          name: algorithmParamsName,
+          iv,
+          additionalData: new Uint8Array(0),
+          tagLength: 128,
+        }
+        break
+      }
+    }
+
+    // Import the key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      symmetricKey,
+      { name: algorithmParamsName, length: Number.parseInt(bits) },
+      false,
+      ['decrypt'],
+    )
+
+    let dataToDecrypt = encryptedData
+    if (mode === 'gcm') {
+      const combinedData = new Uint8Array(encryptedData.length + 16)
+      combinedData.set(encryptedData)
+      combinedData.set(authTag!, encryptedData.length)
+      dataToDecrypt = combinedData
+    }
+
+    // Perform the decryption
+    const decrypted = await crypto.subtle.decrypt(
+      algorithmParams,
+      key,
+      dataToDecrypt,
+    )
+
+    return new Uint8Array(decrypted)
   }
   else {
     const isGcm = name.endsWith('gcm')

@@ -128,17 +128,6 @@ export const resourceExtensionToMimeType: Record<string, string> = {
 
 export const savedResourceMediaTypePrefixes = new Set(Object.values(resourceExtensionToMimeType))
 
-// browser env
-export function base64ToUint8Array(base64: string) {
-  const binaryString = atob(base64)
-  const len = binaryString.length
-  const bytes = new Uint8Array(len)
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i)
-  }
-  return bytes
-}
-
 export const prefixMatch = /(?!xmlns)^.*:/
 
 export function extractEncryptionKeys(options: EpubFileOptions): EncryptionKeys {
@@ -146,12 +135,12 @@ export function extractEncryptionKeys(options: EpubFileOptions): EncryptionKeys 
   // options
   if (options.rsaPrivateKey) {
     encryptionKeys.rsaPrivateKey = typeof options.rsaPrivateKey === 'string'
-      ? base64ToUint8Array(options.rsaPrivateKey)
+      ? Uint8Array.from(atob(options.rsaPrivateKey), c => c.charCodeAt(0))
       : options.rsaPrivateKey
   }
   if (options.aesSymmetricKey) {
     encryptionKeys.aesSymmetricKey = typeof options.aesSymmetricKey === 'string'
-      ? base64ToUint8Array(options.aesSymmetricKey)
+      ? Uint8Array.from(atob(options.aesSymmetricKey), c => c.charCodeAt(0))
       : options.aesSymmetricKey
   }
   return encryptionKeys
