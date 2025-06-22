@@ -8,7 +8,7 @@ export async function decryptRsa(
   hash: RsaHash = 'sha256',
 ): Promise<Uint8Array> {
   if (__BROWSER__) {
-    const cryptoKey = await globalThis.crypto.subtle.importKey(
+    const cryptoKey = await crypto.subtle.importKey(
       'pkcs8',
       privateKey,
       {
@@ -21,7 +21,7 @@ export async function decryptRsa(
 
     const encryptedData = Uint8Array.from(atob(base64Data), char => char.charCodeAt(0))
 
-    const decryptedData = await globalThis.crypto.subtle.decrypt(
+    const decryptedData = await crypto.subtle.decrypt(
       {
         name: 'RSA-OAEP',
       },
@@ -97,7 +97,7 @@ export async function decryptAes(
     }
 
     // Import the key
-    const key = await globalThis.crypto.subtle.importKey(
+    const key = await crypto.subtle.importKey(
       'raw',
       symmetricKey,
       { name: algorithmParamsName, length: Number.parseInt(bits) },
@@ -114,7 +114,7 @@ export async function decryptAes(
     }
 
     // Perform the decryption
-    const decrypted = await globalThis.crypto.subtle.decrypt(
+    const decrypted = await crypto.subtle.decrypt(
       algorithmParams,
       key,
       dataToDecrypt,

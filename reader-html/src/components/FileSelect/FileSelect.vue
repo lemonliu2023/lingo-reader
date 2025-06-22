@@ -114,7 +114,6 @@ const handleDrop = (e: DragEvent) => {
 
 .get-file-content {
   display: flex;
-  pointer-events: none;
 }
 
 /* file select button css */
