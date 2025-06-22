@@ -1,5 +1,4 @@
 {
-  "tip": "Tip: If you encounter any issues, such as being unable to open an eBook file or any other unexpected behavior, please reach out to me via GitHub Issues (https://github.com/hhk-png/lingo-reader/issues). I'll do my best to resolve the problem as quickly as possible. If possible, kindly provide the affected eBook file to help with troubleshooting.",
   "selectFile": "Select File",
   "loadViaUrl": "Load via URL",
   "enterUrl": "Enter URL (Or click the button below)",

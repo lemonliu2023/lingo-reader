@@ -1,5 +1,4 @@
 {
-  "tip": "Tip: 如果你遇到了电子书文件打不开，或者其他你不想看到的情况，请通过https://github.com/hhk-png/lingo-reader/issues联系我。我会尽我最大的努力将其修复。如果可以的话，希望你可以提供对应的电子书文件。",
   "selectFile": "选择文件",
   "loadViaUrl": "通过 URL 加载文件",
   "enterUrl": "输入文件 URL (或者直接点击下方按钮)",
