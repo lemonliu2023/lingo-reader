@@ -40,7 +40,7 @@ import { HREF_PREFIX } from './constant'
 // wrapper for async constructor, because EpubFile class has async code
 export async function initEpubFile(
   epubPath: string | File,
-  resourceSaveDir?: string,
+  resourceSaveDir: string = './images',
   options: EpubFileOptions = {},
 ): Promise<EpubFile> {
   const epub = new EpubFile(epubPath, resourceSaveDir, options)

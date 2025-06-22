@@ -46,7 +46,7 @@ export async function decryptAes(
     const authTag = isGcm ? fileData.slice(fileData.length - authTagLength) : undefined
     const encrypted = fileData.slice(ivLength, fileData.length - authTagLength)
 
-    const decipher = nodeCrypto.createDecipheriv(name, Buffer.from(symmetricKey), iv)
+    const decipher = nodeCrypto.createDecipheriv(name, symmetricKey, iv)
 
     if (isGcm && authTag) {
       (decipher as nodeCrypto.DecipherGCM).setAuthTag(authTag)
