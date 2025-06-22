@@ -1,10 +1,17 @@
 import { Buffer } from 'node:buffer'
+import crypto from 'node:crypto'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { decryptAes, decryptRsa } from '../src/decryption'
 import { AesSymmetricKey16, AesSymmetricKey24, AesSymmetricKey32, RsaPrivateKey } from './keys/encryptionKey'
 
 describe('decrypt Rsa in browser', () => {
   beforeAll(() => {
+    const [major] = process.versions.node.split('.').map(Number)
+    if (major <= 18) {
+      // Node 18 does not support crypto.subtle, so we need to use the node:crypto module
+      // @ts-expect-error Node 18 does not support crypto.subtle
+      globalThis.crypto = crypto.webcrypto
+    }
     // @ts-expect-error __BROWSER__ is for build process
     globalThis.__BROWSER__ = true
   })
@@ -25,6 +32,12 @@ describe('decrypt Rsa in browser', () => {
 
 describe('decrypt Aes in browser', () => {
   beforeAll(() => {
+    const [major] = process.versions.node.split('.').map(Number)
+    if (major <= 18) {
+      // Node 18 does not support crypto.subtle, so we need to use the node:crypto module
+      // @ts-expect-error Node 18 does not support crypto.subtle
+      globalThis.crypto = crypto.webcrypto
+    }
     // @ts-expect-error __BROWSER__ is for build process
     globalThis.__BROWSER__ = true
   })
