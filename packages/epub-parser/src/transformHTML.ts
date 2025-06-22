@@ -46,11 +46,10 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
   // svg <image> tag
   str = str.replace(/<image[^>]*>/g, (imgTag) => {
     // could handle xlink:href
-    const hrefMatch = imgTag.match(/href="([^"]*)"/)
-
+    const hrefMatch = imgTag.match(/href="([^"]*)"/)?.[1]
     if (hrefMatch) {
-      const imageSrc = getResourceUrl(hrefMatch[1], htmlDir, resourceSaveDir)
-      imgTag = imgTag.replace(hrefMatch[1], imageSrc)
+      const imageSrc = getResourceUrl(hrefMatch, htmlDir, resourceSaveDir)
+      imgTag = imgTag.replace(hrefMatch, imageSrc)
     }
 
     return imgTag
@@ -59,7 +58,7 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
   // a tag href
   str = str.replace(/<a[^>]*>/g, (aTag: string) => {
     const href = aTag.match(/href="([^"]*)"/)?.[1]
-    if (href && !/^http|mailto/.test(href)) {
+    if (href && !/^https?|mailto/.test(href)) {
       const transformedHref = path.joinPosix(htmlDir, href)
       aTag = aTag.replace(href, HREF_PREFIX + decodeURIComponent(transformedHref))
     }
@@ -115,10 +114,7 @@ export function transformHTML(
 
   // body
   const body = html.match(/<body[^>]*>(.*?)<\/body>/is)
-  let bodyReplaced = ''
-  if (body) {
-    bodyReplaced = replaceBodyResources(body[1], htmlDir, resourceSaveDir)
-  }
+  const bodyReplaced = body ? replaceBodyResources(body[1], htmlDir, resourceSaveDir) : ''
 
   return {
     css,

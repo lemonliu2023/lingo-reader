@@ -19,4 +19,24 @@ describe('transformHTML', () => {
       html: '<a href="epub:temp/,a.html"></a><a href="https://www.baidu.com"></a>',
     })
   })
+
+  it('replace <image> src in browser', () => {
+    const transformed = transformHTML(
+      '<body><image xlink:href="src.jpg"></image></body>',
+      '',
+      './images',
+    ).html
+    const dir = process.cwd()
+    const href = transformed.match(/xlink:href="([^"]*)"/)?.[1]
+    expect(href?.startsWith(dir)).toBe(true)
+  })
+
+  it('do not allow to reference external resources', () => {
+    const transformed = transformHTML(
+      '<body><img src="https://www.baidu.com/image.jpg"/></body>',
+      '',
+      '',
+    )
+    expect(transformed.html).not.toBe('<img src="https://www.baidu.com/image.jpg"/>')
+  })
 })
