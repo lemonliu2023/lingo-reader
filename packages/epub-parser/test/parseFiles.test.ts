@@ -1,11 +1,13 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
+import { Buffer } from 'node:buffer'
 import { describe, expect, it, vi } from 'vitest'
 import { parsexml } from '@lingo-reader/shared'
 import {
   parseCollection,
   parseContainer,
+  parseEncryption,
   parseGuide,
   parseManifest,
   parseMetadata,
@@ -15,6 +17,8 @@ import {
   parsePageList,
   parseSpine,
 } from '../src/parseFiles'
+import { prefixMatch } from '../src/utils'
+import { RsaPrivateKey } from './keys/encryptionKey'
 
 describe('parseMimeType', () => {
   it('should return application/epub+zip', () => {
@@ -502,5 +506,69 @@ describe('parseNcx', async () => {
       href: 'epub:OEBPS/content2.html#ill2',
       correspondId: undefined,
     })
+  })
+})
+
+describe('parseEncryption', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = false
+
+  const encryptions = readFileSync(
+    fileURLToPath(new URL('./fixtures/encryption.xml', import.meta.url)),
+    'utf-8',
+  )
+  const encryptionsAST = await parsexml(encryptions, {
+    tagNameProcessors: [(str: string) => str.replace(prefixMatch, '')],
+  })
+  const enc = encryptionsAST.enc
+
+  it('has encryptedKeys but no rsaPrivateKey provided', async () => {
+    const enc0 = enc.enc0[0]
+    // Warning: if <encryption> in root, its children will be an object
+    // but if <encryption> is in <package> and others, its children will be an array
+    enc0.encryption = enc0.encryption[0]
+
+    await expect(async () => {
+      await parseEncryption(enc.enc0[0], {})
+    }).rejects.toThrowError()
+  })
+
+  it('the file encrypted with aes, but no aesKey provided', async () => {
+    const enc1 = enc.enc1[0]
+    enc1.encryption = enc1.encryption[0]
+    await expect(async () => {
+      await parseEncryption(enc1, {})
+    }).rejects.toThrowError()
+  })
+
+  it('unsupported asymmetric encryption(except for rsa)', async () => {
+    const enc2 = enc.enc2[0]
+    enc2.encryption = enc2.encryption[0]
+    await expect(async () => {
+      await parseEncryption(enc2, {
+        rsaPrivateKey: Buffer.from('private key', 'base64'),
+      })
+    }).rejects.toThrowError()
+  })
+
+  it('no symmetric key found for id', async () => {
+    const enc3 = enc.enc3[0]
+    enc3.encryption = enc3.encryption[0]
+    await expect(async () => {
+      await parseEncryption(enc3, {
+        rsaPrivateKey: Buffer.from(RsaPrivateKey, 'base64'),
+      })
+    }).rejects.toThrowError()
+  })
+
+  it('unsupported encryption symmetric algorithm', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
+    const enc4 = enc.enc4[0]
+    enc4.encryption = enc4.encryption[0]
+    await parseEncryption(enc4, {
+      aesSymmetricKey: Buffer.from('symmetric key', 'base64'),
+    })
+    expect(warnSpy).toBeCalled()
+    warnSpy.mockRestore()
   })
 })
