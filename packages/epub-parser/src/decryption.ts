@@ -8,7 +8,7 @@ export async function decryptRsa(
   hash: RsaHash = 'sha256',
 ): Promise<Uint8Array> {
   if (__BROWSER__) {
-    const cryptoKey = await crypto.subtle.importKey(
+    const cryptoKey = await globalThis.crypto.subtle.importKey(
       'pkcs8',
       privateKey,
       {
@@ -21,7 +21,7 @@ export async function decryptRsa(
 
     const encryptedData = Uint8Array.from(atob(base64Data), char => char.charCodeAt(0))
 
-    const decryptedData = await crypto.subtle.decrypt(
+    const decryptedData = await globalThis.crypto.subtle.decrypt(
       {
         name: 'RSA-OAEP',
       },
@@ -65,6 +65,9 @@ export async function decryptAes(
     const encryptedData = fileData.slice(ivLength, fileData.length - authTagLength)
 
     const [algoName, bits, mode] = name.split('-') as [AesName, string, 'cbc' | 'ctr' | 'gcm']
+    if (bits === '192') {
+      throw new Error('AES-192 is not supported in the browser, please use AES-128 or AES-256.')
+    }
 
     // Prepare the algorithm parameters
     let algorithmParams: AesCtrParams | AesCbcParams | AesGcmParams
@@ -94,7 +97,7 @@ export async function decryptAes(
     }
 
     // Import the key
-    const key = await crypto.subtle.importKey(
+    const key = await globalThis.crypto.subtle.importKey(
       'raw',
       symmetricKey,
       { name: algorithmParamsName, length: Number.parseInt(bits) },
@@ -111,7 +114,7 @@ export async function decryptAes(
     }
 
     // Perform the decryption
-    const decrypted = await crypto.subtle.decrypt(
+    const decrypted = await globalThis.crypto.subtle.decrypt(
       algorithmParams,
       key,
       dataToDecrypt,

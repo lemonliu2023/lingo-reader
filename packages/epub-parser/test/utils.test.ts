@@ -62,7 +62,10 @@ describe('createZipFile in Node', async () => {
   })
 
   it('readFile if file not exit', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
     expect(await epubFile.readFile('not-exist')).toBe('')
+    expect(warnSpy).toBeCalled()
+    warnSpy.mockRestore()
   })
 
   it('readImage', async () => {

@@ -3,7 +3,10 @@ import { readFileSync } from 'node:fs'
 import { Buffer } from 'node:buffer'
 import { describe, expect, it } from 'vitest'
 import { initEpubFile } from '../src'
-import { AesSymmetricKey16, RsaPrivateKey } from './keys/encryptionKey'
+import {
+  AesSymmetricKey16,
+  RsaPrivateKey,
+} from './keys/encryptionKey'
 
 function isJpg(img: Uint8Array): boolean {
   return img[0] === 0xFF && img[1] === 0xD8 && img[img.length - 2] === 0xFF && img[img.length - 1] === 0xD9
