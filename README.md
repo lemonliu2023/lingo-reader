@@ -18,7 +18,7 @@ pnpm install @lingo-reader/mobi-parser # include parsers of mobi and azw3
 pnpm install @lingo-reader/shared # include types of unified API mentioned above
 ```
 
-# Usage in browser
+# Usage
 
 ```typescript
 import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
@@ -193,10 +193,10 @@ During file parsing, the HTML extracted from chapters is not security and could 
 
 ## TODO：
 
-7. write blog to explain how to parse epub, mobi or kf8 file
+write blog to explain how to parse epub, mobi or kf8 file
 
-later:
-9. find test case
-13. textarea focus
-12. cycle color components
-8. Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.
+find test case
+
+cycle color components
+
+Now the file is loaded into memory all at once and then processed, this will be bad when ebook files are vary large. It could be better to convert the way to ondemand loading.

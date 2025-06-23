@@ -9,8 +9,12 @@ An EPUB file is essentially a `.zip` archive. Its content structure is built usi
 
 **When parsing EPUB files:**
 **(1)** The first step involves parsing files like `container.xml`, `.opf`, and `.ncx`, which contain metadata (title, author, publication date, etc.), resource information (paths to images and other assets within the EPUB), and sequential chapter display information (Spine).
+
 **(2)** The second step handles resource paths within chapters. References to resources in chapter files are only valid internally, so they must be converted to paths usable in the display environment—either as blob URLs in browsers or absolute filesystem paths in Node.js.
-**(3)** Additionally, EPUB encryption, signatures, and permissions (managed via `encryption.xml`, `signatures.xml`, and `rights.xml` respectively) need processing. Like `container.xml`, these files reside in the `/META-INF/` directory with fixed filenames. Currently, `@lingo-reader/epub-parser` supports the first two functionalities, with the third (encryption handling) coming soon—meaning it currently works with unencrypted EPUBs.
+
+**(3).** The encryption information of an EPUB file is stored in the `META-INF/encryption.xml` file. Version `0.3.x` supports parsing encrypted EPUB files, but it requires adherence to a specific encryption scheme and the provision of a private key for decryption. The supported encryption methods are detailed in the `initEpubFile` section.
+
+**(4).** In addition, EPUB files may also include signatures and rights management information, stored in the `signatures.xml` and `rights.xml` files, respectively. Like `container.xml`, these files are located in the `/META-INF/` directory and have fixed filenames. Support for parsing these files will be added in future updates of `@lingo-reader/epub-parser`.
 
 The parser follows the [EPUB 3.3](https://www.w3.org/TR/epub-33/#sec-pkg-metadata) and [Open Packaging Format (OPF) 2.0.1 v1.0](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1) specifications. Its API aims to expose all available file information comprehensively.
 
@@ -64,10 +68,23 @@ async function initEpub(file: File) {
 import { initEpubFile } from '@lingo-reader/epub-parser'
 import type { EpubFile } from '@lingo-reader/epub-parser'
 /*
-  type initEpubFile = (epubPath: string | File, resourceSaveDir?: string) => Promise<EpubFile>
+  interface EpubFileOptions {
+    rsaPrivateKey?: string | Uint8Array
+    aesSymmetricKey?: string | Uint8Array
+  }
+
+  type initEpubFile = (epubPath: string | File, resourceSaveDir: string = './images', options: EpubFileOptions = {}): => Promise<EpubFile>
 */
 
-const epub: EpubFile = await initEpubFile(file)
+const epub: EpubFile = await initEpubFile(
+  file,
+  './images', // The default is './images'. If you don't want to change it, you can simply pass undefined.
+  {
+    // The RSA private key in PKCS#8 format should be provided either as a Base64-encoded string or a Uint8Array.
+    rsaPrivateKey: 'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQ......',
+    aesSymmetricKey: 'D2wVcst49HU6KqC......',
+  }
+)
 ```
 
 The primary API exposed by `@lingo-reader/epub-parser` is `initEpubFile`. When provided with a file path or File object, it returns an initialized `EpubFile` class containing methods to read metadata, Spine information, and other EPUB data.
@@ -77,10 +94,54 @@ The primary API exposed by `@lingo-reader/epub-parser` is `initEpubFile`. When p
 - `epubPath: string | File`: File path or File object.
 - `resourceSaveDir?: string`: Optional (Node.js only). Specifies where to save resources like images.
   - `default: './images/'`
+- `options?: EpubFileOptions`：Optional. Used to pass in key information。
+
+```typescript
+interface EpubFileOptions {
+  // The RSA private key in PKCS#8 format should be provided either as a Base64-encoded string or a Uint8Array.
+  rsaPrivateKey?: string | Uint8Array
+  aesSymmetricKey?: string | Uint8Array
+}
+```
 
 **Returns:**
 
 - `Promise`: Initialized EpubFile object (Promise).
+
+The `0.3.x` version of `epub-parser` supports decryption using two encryption schemes:
+
+1. **Hybrid RSA + AES Encryption**
+   In this approach, a symmetric AES key is encrypted using the RSA algorithm (asymmetric encryption), and the actual file contents are encrypted with that AES key. During decryption, the AES key is first recovered using an RSA private key, and then the AES key is used to decrypt the content. To enable this, you must provide an RSA private key in **PKCS8** format via the `rsaPrivateKey` option in `EpubFileOptions`.
+   This method supports storing multiple AES key entries within the `encryption.xml` file.
+2. **Pure AES Encryption**
+   This method skips RSA and directly encrypts file contents using a symmetric AES key. In this case, the `aesSymmetricKey` option must be provided for decryption.
+
+The decryption logic is implemented in the `parseEncryption` method within `epub-parser/src/parseFiles.ts`.
+
+Decryption does **not** rely on any third-party libraries—it is built on the native **Web Crypto API** in the browser and **Node's crypto module**, allowing the parser to run in both browser and Node environments.
+
+Note that the browser supports fewer cryptographic algorithms than Node; however, all browser-supported algorithms are also available in Node. Therefore, the set of supported algorithms is aligned with browser compatibility, effectively a subset of Node's capabilities.
+
+**Supported Algorithms:**
+
+- **Asymmetric (RSA)**:
+  - `RSA-OAEP`
+  - `RSA-OAEP-MGF1P`
+- **Symmetric (AES)**:
+  - `AES-256-CBC`
+  - `AES-256-CTR`
+  - `AES-256-GCM`
+  - `AES-128-CBC`
+  - `AES-128-CTR`
+  - `AES-128-GCM`
+
+Note: **AES-192** is not supported in browsers and will throw an error if used to encrypt EPUB content, although it is fully supported in Node.js.
+
+The expected key lengths for AES are:
+
+- **256-bit**: 32 bytes
+- **192-bit**: 24 bytes
+- **128-bit**: 16 bytes
 
 ## EpubFile
 

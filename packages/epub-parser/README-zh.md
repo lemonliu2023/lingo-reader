@@ -6,7 +6,15 @@ epub 文件格式用于存储电子书的内容，在其内部存储有书籍的
 
 epub 实际上是一个 zip 文件，电子书内容的构建基于 html 和 css，理论上也可以包括 js。将 epub 文件的后缀改变为 zip 之后解压缩，点击章节对应的 html/xhtml 文件，就可以直接查阅对应的章节内容。只是此时各章节之间的排序为乱序，并且如果某些章节或者资源进行了加密，通过前面说的转换为 zip 文件打开的方式就会失败。
 
-在进行 epub 文件的解析时，**(1).** 一部分是解析文件中的 `container.xml`、`.opf`、`.ncx` 文件，这些文件中包括书籍的元信息（书名、作者、发布日期等）、资源信息（图片等在 epub 文件中的路径）、按顺序显示的章节文件信息（Spine）等。**(2).** 另一部分是处理章节中的资源路径，章节文件中对资源的引用路径只能用于文件内部，因此需要将其处理成在展示的环境下可以使用的路径，浏览器环境下会处理成 bloburl，node 环境下会处理成文件系统中的绝对路径。**(3).** 除此之外，还需要处理 epub 文件的加密、签名、权限等内容，分别对应`encryption.xml`、`signatures.xml`、`rights.xml` 文件，这些文件与 `container.xml` 文件一样，统一存放在 `/META-INF/` 文件夹下，且文件名固定。`@lingo-reader/epub-parser` 目前支持了前两部分功能，第三部分过段时间就可以支持，也就是说目前可以正常解析未加密的 epub 文件。
+在进行 epub 文件的解析时，
+
+**(1).** 一部分是解析文件中的 `container.xml`、`.opf`、`.ncx` 文件，这些文件中包括书籍的元信息（书名、作者、发布日期等）、资源信息（图片等在 epub 文件中的路径）、按顺序显示的章节文件信息（Spine）等。
+
+**(2).** 另一部分是处理章节中的资源路径，章节文件中对资源的引用路径只能用于文件内部，因此需要将其处理成在展示的环境下可以使用的路径，浏览器环境下会处理成 bloburl，node 环境下会处理成文件系统中的绝对路径。
+
+**(3).** epub 文件的加密信息存放在 `META-INF/encryption.xml` 文件中，`0.3.x` 版本可以支持加密的 epub 文件的解析，但需要遵循特定的加密策略和传入用于解密的私钥，支持的加密策略在 `initEpubFile` 部分有介绍。
+
+**(4).** 除此之外，还需要处理 epub 文件的签名、权限等内容，分别对应 `signatures.xml`、`rights.xml` 文件，这些文件与 `container.xml` 文件一样，统一存放在 `/META-INF/` 文件夹下，且文件名固定。`@lingo-reader/epub-parser` 会在未来的更新中支持这些部分。
 
 epub 文件的解析参考了 [EPUB 3.3](https://www.w3.org/TR/epub-33/#sec-pkg-metadata) 和 [Open Packaging Format (OPF) 2.0.1 v1.0](https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1) 两个规范。提供的 API 尽可能地将文件提供的信息暴漏出来。
 
@@ -62,18 +70,50 @@ async function initEpub(file: File) {
 import { initEpubFile } from '@lingo-reader/epub-parser'
 import type { EpubFile } from '@lingo-reader/epub-parser'
 /*
-  type initEpubFile = (epubPath: string | File, resourceSaveDir?: string): => Promise<EpubFile>
+  interface EpubFileOptions {
+    rsaPrivateKey?: string | Uint8Array
+    aesSymmetricKey?: string | Uint8Array
+  }
+
+  type initEpubFile = (epubPath: string | File, resourceSaveDir: string = './images', options: EpubFileOptions = {}): => Promise<EpubFile>
 */
 
-const epub: EpubFile = await initEpubFile(file)
+const epub: EpubFile = await initEpubFile(
+  file,
+  './images', // 默认为'./images'，如果不想更改，可以传入undefined
+  {
+    // pkcs8格式的密钥，以base64或者Uint8Array形式表示
+    rsaPrivateKey: 'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQ......',
+    aesSymmetricKey: 'D2wVcst49HU6KqC......',
+  }
+)
 ```
 
 `@lingo-reader/epub-parser` 主要向外暴漏了一个 `initEpubFile` API。将文件路径或者文件的 File 对象输入其中后，就可以得到一个已经初始化的 EpubFile 对象，包括读取元信息、Spine 的各种信息的 API。
+
+`0.3.x` 版本的 `epub-parser` 支持解密两种加密方式。第一种是使用非对称加密算法 RSA 加密对称加密算法 AES 的对称密钥，使用 AES 算法加密文件内容，解密时首先通过 RSA 的私钥获取到 AES 的对称密钥，然后解密由 AES 加密的文件内容。这时需要在 EpubFileOptions 中传入 pkcs8 格式的 `rsaPrivateKey` 私钥，此种方式支持在`encryption.xml` 中存入多个对称密钥信息。第二种是仅使用 AES 直接加密文件内容，不使用 RSA 加密密钥信息，因此需要传入 `aesSymmetricKey` 参数。具体的解密策略可以查看 `epub-parser/src/parseFiles.ts` 中的`parseEncryption` 方法。
+
+解密流程没有依赖额外的第三方库，而是基于浏览器的 web crypto api 与 node crypto 实现，可以同时支持在浏览器端与 node 端运行。浏览器支持的加解密算法少于 node crypto，而浏览器支持的算法在 node 中都有支持，因此所支持的算法与浏览器相同，是 node crypto 的子集。
+
+支持的非对称加密算法有 `rsa-oaep`，`rsa-oaep-mgf1p`。
+
+支持的对称加密算法有 `aes-256-cbc`，`aes-256-ctr`，`aes-256-gcm`，`aes-128-cbc`，`aes-128-ctr`，`aes-128-gcm`。192 位的 Aes 算法在浏览器中不支持，解析该算法加密的文件时会报错，但是在 node 中可以正常解析。
+
+256 位、192 位、128 位加密算法的密钥长度分别为 32B、24B、16B。
 
 **参数：**
 
 - `epubPath: string | File`：文件路径或者文件的 File 对象。
 - `resourceSaveDir?: string`：可选参数，主要应用在 node 环境下，为图片等资源的保存路径。默认为 `./images`
+- `options?: EpubFileOptions`：可选参数，用于传入密钥信息。
+
+```typescript
+interface EpubFileOptions {
+  // pkcs8格式的密钥，以base64或者Uint8Array形式传递
+  rsaPrivateKey?: string | Uint8Array
+  aesSymmetricKey?: string | Uint8Array
+}
+```
 
 **返回值：**
 

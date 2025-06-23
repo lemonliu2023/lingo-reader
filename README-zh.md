@@ -4,7 +4,7 @@
 
 此外，你还可以访问 https://hhk-png.github.io/lingo-reader/ 来直接阅读电子书。这个网站是基于该解析库开发的。
 
-各个解析库的详细解释可以查看对应子项目下的 `README.md` 文件：[epub-parser](./packages/epub-parser/README-zh.md)，[mobi-parser](./packages/mobi-parser/README-zh.md)，[kf8-parser](./packages/mobi-parser/README-zh.md)。
+各个解析库的详细解释可以查看对应子项目下的 `README.md` 文件：[epub-parser README.md](./packages/epub-parser/README-zh.md)，[mobi-parser README.md](./packages/mobi-parser/README-zh.md)，[kf8-parser README.md](./packages/mobi-parser/README-zh.md)。
 
 # Install
 
@@ -14,7 +14,7 @@ pnpm install @lingo-reader/mobi-parser # 包括moi和azw3文件的解析
 pnpm install @lingo-reader/shared # 包含统一API的类型
 ```
 
-# Usage in browser
+# Usage
 
 ```typescript
 import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
