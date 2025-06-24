@@ -21,14 +21,6 @@ import type {
 } from './types'
 
 export async function initMobiFile(file: InputFile, resourceSaveDir?: string) {
-  if (__BROWSER__ && typeof file === 'string') {
-    throw new Error('`string` type is not supported in browser environment. Use File or Uint8Array instead.')
-  }
-
-  if (!__BROWSER__ && file instanceof File) {
-    throw new Error('`File` type is not supported in Node.js environment. Use string or Uint8Array instead.')
-  }
-
   const mobi = new Mobi(file, resourceSaveDir)
   await mobi.innerLoadFile()
   await mobi.innerInit()

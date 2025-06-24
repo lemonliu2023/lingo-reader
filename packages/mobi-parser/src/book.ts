@@ -23,9 +23,7 @@ import type { Exth, ExthKey, ExthRecord, IndexData, LoadRecordFunc, Ncx, NcxItem
 export function getMobiFileName(file: InputFile): string {
   let fileName = ''
   if (__BROWSER__) {
-    if (file instanceof File) {
-      fileName = file.name
-    }
+    fileName = (file as File).name ?? ''
   }
   else {
     if (typeof file === 'string') {

@@ -29,24 +29,6 @@ describe('initMobiFile interface', () => {
 
     expect(mobi.getSpine().length).toBe(33)
   })
-
-  it('should throw error when the first argument is string in browser', () => {
-    // @ts-expect-error __BROWSER__ is for build process
-    globalThis.__BROWSER__ = true
-
-    expect(async () => {
-      await initMobiFile('./example/taoyong.mobi')
-    }).rejects.toThrowError()
-  })
-
-  it('should throw error when the first argument is not a File in node', () => {
-    // @ts-expect-error __BROWSER__ is for build process
-    globalThis.__BROWSER__ = false
-
-    expect(async () => {
-      await initMobiFile(new File([], 'test.mobi'))
-    }).rejects.toThrowError()
-  })
 })
 
 describe('mobi class', () => {

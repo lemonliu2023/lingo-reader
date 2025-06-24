@@ -20,24 +20,6 @@ describe('initEpubFile interface', () => {
 
     expect(epub.getSpine().length).toBe(1)
   })
-
-  it('should throw error when the first argement is stirng in browser', () => {
-    // @ts-expect-error __BROWSER__ is for build process
-    globalThis.__BROWSER__ = true
-
-    expect(async () => {
-      await initEpubFile('./example/alice.epub')
-    }).rejects.toThrowError()
-  })
-
-  it('should throw error when the first argement is not a File in node', () => {
-    // @ts-expect-error __BROWSER__ is for build process
-    globalThis.__BROWSER__ = false
-
-    expect(async () => {
-      await initEpubFile(new File([], 'test.epub'))
-    }).rejects.toThrowError()
-  })
 })
 
 describe('parse epubFile in node', async () => {

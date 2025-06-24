@@ -43,14 +43,6 @@ export async function initEpubFile(
   resourceSaveDir: string = './images',
   options: EpubFileOptions = {},
 ): Promise<EpubFile> {
-  if (__BROWSER__ && typeof epubPath === 'string') {
-    throw new Error('`string` type is not supported in browser environment. Use File or Uint8Array instead.')
-  }
-
-  if (!__BROWSER__ && epubPath instanceof File) {
-    throw new Error('`File` type is not supported in Node.js environment. Use string or Uint8Array instead.')
-  }
-
   const epub = new EpubFile(epubPath, resourceSaveDir, options)
   await epub.loadEpub()
   await epub.parse()
