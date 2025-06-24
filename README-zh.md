@@ -14,7 +14,7 @@ pnpm install @lingo-reader/mobi-parser # 包括moi和azw3文件的解析
 pnpm install @lingo-reader/shared # 包含统一API的类型
 ```
 
-# Usage
+# Usage in Browser
 
 ```typescript
 import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
@@ -60,6 +60,10 @@ for (let i = 0; i < spine.length; i++) {
 // destroy
 book!.destroy()
 ```
+
+# Init File
+
+针对每种电子书文件，各子包都暴露出了一个init方法，epub、mobi、azw3(kf8)对应的方法分别是`initEpubFile`、`initMobiFile`、`initKf8File`，它们返回的对象都implements了下面的EBookParser接口，在一定程度上统一，但又保持了各自文件类型的特点。请选择对应的文档查看更详细的描述。
 
 # Unified API
 

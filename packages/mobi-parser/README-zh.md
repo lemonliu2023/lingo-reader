@@ -50,6 +50,21 @@ const firstChapter = mobi.loadChapter(spine[0].id)
 // .....
 ```
 
+## initMobiFile(file: string | File |Uint8Array, resourceSaveDir?: string): Promise\<Mobi\>
+
+用于初始化 mobi 文件的API。将文件路径、文件的 File 对象或者 Uint8Array 输入其中后，就可以得到一个 Mobi 对象，包括读取元信息、Spine 的各种信息的 API。
+
+**参数：**
+
+- `file: string | File | Uint8Array`：文件路径或者文件的 File 对象，`Uint8Array`。
+- `resourceSaveDir?: string`：可选参数，主要应用在 node 环境下，为图片等资源的保存路径。默认为 `./images`
+
+**返回值：**
+
+- `Promise<Mobi>`：初始化后的 Mobi 对象，为一个 Promise。
+
+**Note:** 对于 `file` 参数，浏览器端其类型应为 `File | Uint8Array`，不能传入`string` 类型。nodejs端其类型应该为 `string | Uint8Array`，不能传入 `File` 类型。否则会报错。
+
 ## Mobi class
 
 ```typescript
@@ -216,6 +231,21 @@ const firstChapter: Kf8ProcessedChapter = mobi.loadChapter(spine[0].id)
 // see Kf8 class
 // .....
 ```
+
+## initKf8File(file: InputFile, resourceSaveDir?: string): Promise\<Kf8\>
+
+用于初始化 azw3(kf8) 文件的API，将文件路径、文件的 File 对象或者Uint8Array数组输入其中后，就可以得到一个已经初始化的 Kf8 对象，包括读取元信息、Spine 的各种信息的 API。
+
+**参数：**
+
+- `file: string | File | Uint8Array`：文件路径或者文件的 File 对象，`Uint8Array`。
+- `resourceSaveDir?: string`：可选参数，主要应用在 node 环境下，为图片等资源的保存路径。默认为 `./images`
+
+**返回值：**
+
+- `Promise<Kf8>`：初始化后的 Kf8 对象，为一个 Promise。
+
+**Note:** 对于 `file` 参数，浏览器端其类型应为 `File | Uint8Array`，不能传入`string` 类型。nodejs端其类型应该为 `string | Uint8Array`，不能传入 `File` 类型。否则会报错。
 
 ## Kf8 class
 

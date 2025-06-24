@@ -108,6 +108,11 @@ interface EpubFileOptions {
 
 - `Promise`: Initialized EpubFile object (Promise).
 
+**Note:** For the `epubPath` parameter, its type differs between environments:
+
+- In the **browser**, it should be of type `File | Uint8Array`. Passing a `string` will result in an error.
+- In **Node.js**, it should be of type `string | Uint8Array`. Passing a `File` will result in an error.
+
 The `0.3.x` version of `epub-parser` supports decryption using two encryption schemes:
 
 1. **Hybrid RSA + AES Encryption**
@@ -135,9 +140,7 @@ Note that the browser supports fewer cryptographic algorithms than Node; however
   - `AES-128-CTR`
   - `AES-128-GCM`
 
-Note: **AES-192** is not supported in browsers and will throw an error if used to encrypt EPUB content, although it is fully supported in Node.js.
-
-The expected key lengths for AES are:
+**AES-192** is not supported in browsers and will throw an error if used to encrypt EPUB content, although it is fully supported in Node.js. The IV used for encryption should be placed at the beginning of the encrypted file. The expected key lengths for AES are:
 
 - **256-bit**: 32 bytes
 - **192-bit**: 24 bytes

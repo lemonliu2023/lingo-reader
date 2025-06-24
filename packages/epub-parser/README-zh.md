@@ -89,21 +89,11 @@ const epub: EpubFile = await initEpubFile(
 )
 ```
 
-`@lingo-reader/epub-parser` 主要向外暴漏了一个 `initEpubFile` API。将文件路径或者文件的 File 对象输入其中后，就可以得到一个已经初始化的 EpubFile 对象，包括读取元信息、Spine 的各种信息的 API。
-
-`0.3.x` 版本的 `epub-parser` 支持解密两种加密方式。第一种是使用非对称加密算法 RSA 加密对称加密算法 AES 的对称密钥，使用 AES 算法加密文件内容，解密时首先通过 RSA 的私钥获取到 AES 的对称密钥，然后解密由 AES 加密的文件内容。这时需要在 EpubFileOptions 中传入 pkcs8 格式的 `rsaPrivateKey` 私钥，此种方式支持在`encryption.xml` 中存入多个对称密钥信息。第二种是仅使用 AES 直接加密文件内容，不使用 RSA 加密密钥信息，因此需要传入 `aesSymmetricKey` 参数。具体的解密策略可以查看 `epub-parser/src/parseFiles.ts` 中的`parseEncryption` 方法。
-
-解密流程没有依赖额外的第三方库，而是基于浏览器的 web crypto api 与 node crypto 实现，可以同时支持在浏览器端与 node 端运行。浏览器支持的加解密算法少于 node crypto，而浏览器支持的算法在 node 中都有支持，因此所支持的算法与浏览器相同，是 node crypto 的子集。
-
-支持的非对称加密算法有 `rsa-oaep`，`rsa-oaep-mgf1p`。
-
-支持的对称加密算法有 `aes-256-cbc`，`aes-256-ctr`，`aes-256-gcm`，`aes-128-cbc`，`aes-128-ctr`，`aes-128-gcm`。192 位的 Aes 算法在浏览器中不支持，解析该算法加密的文件时会报错，但是在 node 中可以正常解析。
-
-256 位、192 位、128 位加密算法的密钥长度分别为 32B、24B、16B。
+`@lingo-reader/epub-parser` 主要向外暴漏了一个 `initEpubFile` API。将文件路径、文件的 File 对象或者 Uint8Array 输入其中后，就可以得到一个已经初始化的 EpubFile 对象，包括读取元信息、Spine 的各种信息的 API。
 
 **参数：**
 
-- `epubPath: string | File`：文件路径或者文件的 File 对象。
+- `epubPath: string | File | Uint8Array`：文件路径或者文件的 File 对象，`Uint8Array`。
 - `resourceSaveDir?: string`：可选参数，主要应用在 node 环境下，为图片等资源的保存路径。默认为 `./images`
 - `options?: EpubFileOptions`：可选参数，用于传入密钥信息。
 
@@ -118,6 +108,18 @@ interface EpubFileOptions {
 **返回值：**
 
 - `Promise<EpubFile>`：初始化后的 EpubFile 对象，为一个 Promise。
+
+**Note:** 对于 `epubPath` 参数，浏览器端其类型应为 `File | Uint8Array`，不能传入`string` 类型。nodejs端其类型应该为 `string | Uint8Array`，不能传入 `File` 类型。否则会报错。
+
+`0.3.x` 版本的 `epub-parser` 支持解密两种加密方式。第一种是使用非对称加密算法 RSA 加密对称加密算法 AES 的对称密钥，使用 AES 算法加密文件内容，解密时首先通过 RSA 的私钥获取到 AES 的对称密钥，然后解密由 AES 加密的文件内容。这时需要在 EpubFileOptions 中传入 pkcs8 格式的 `rsaPrivateKey` 私钥，此种方式支持在`encryption.xml` 中存入多个对称密钥信息。第二种是仅使用 AES 直接加密文件内容，不使用 RSA 加密密钥信息，因此需要传入 `aesSymmetricKey` 参数。具体的解密策略可以查看 `epub-parser/src/parseFiles.ts` 中的`parseEncryption` 方法。
+
+解密流程没有依赖额外的第三方库，而是基于浏览器的 web crypto api 与 node crypto 实现，可以同时支持在浏览器端与 node 端运行。浏览器支持的加解密算法少于 node crypto，而浏览器支持的算法在 node 中都有支持，因此所支持的算法与浏览器相同，是 node crypto 的子集。
+
+支持的非对称加密算法有 `rsa-oaep`，`rsa-oaep-mgf1p`。
+
+支持的对称加密算法有 `aes-256-cbc`，`aes-256-ctr`，`aes-256-gcm`，`aes-128-cbc`，`aes-128-ctr`，`aes-128-gcm`。192 位的 Aes 算法在浏览器中不支持，解析该算法加密的文件时会报错，但是在 node 中可以正常解析。加密所使用的IV应该放在加密后文件的头部。
+
+256 位、192 位、128 位加密算法的密钥长度分别为 32B、24B、16B。
 
 ## EpubFile
 

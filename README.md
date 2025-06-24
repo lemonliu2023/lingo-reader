@@ -18,7 +18,7 @@ pnpm install @lingo-reader/mobi-parser # include parsers of mobi and azw3
 pnpm install @lingo-reader/shared # include types of unified API mentioned above
 ```
 
-# Usage
+# Usage in Browser
 
 ```typescript
 import type { EpubFile, EpubSpine } from '@lingo-reader/epub-parser'
@@ -64,6 +64,18 @@ for (let i = 0; i < spine.length; i++) {
 // destroy
 book!.destroy()
 ```
+
+# Init File
+
+Each eBook format has its own initialization method exposed by the corresponding subpackage:
+
+- `initEpubFile` for EPUB
+- `initMobiFile` for MOBI
+- `initKf8File` for AZW3 (KF8)
+
+These methods return objects that implement the shared `EBookParser` interface, providing a unified API surface while preserving the unique characteristics of each file format.
+
+Please refer to the respective documentation pages for more detailed descriptions.
 
 # Unified API
 

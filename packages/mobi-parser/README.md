@@ -51,6 +51,25 @@ const firstChapter = mobi.loadChapter(spine[0].id)
 // .....
 ```
 
+## initMobiFile(file: string | File |Uint8Array, resourceSaveDir?: string): Promise\<Mobi\>
+
+API for initializing a MOBI file. You can pass in a file path, a `File` object, or a `Uint8Array` to receive a `Mobi` instance, which provides APIs for reading metadata, spine information, and more.
+
+**Parameters:**
+
+- `file: string | File | Uint8Array` – The MOBI file input, which can be a file path (Node.js), a `File` object (browser), or a `Uint8Array` in either environment.
+- `resourceSaveDir?: string` – *(Optional)* Applicable mainly in Node.js. Specifies the directory to save images and other resources. Defaults to `./images`.
+
+**Returns:**
+
+- `Promise` – A Promise that resolves to the initialized `Mobi` object.
+
+**Note:**
+For the `file` parameter:
+
+- In the **browser**, it must be a `File` or `Uint8Array`. Passing a `string` will throw an error.
+- In **Node.js**, it must be a `string` or `Uint8Array`. Passing a `File` will throw an error.
+
 ## Mobi class
 
 ```typescript
@@ -217,6 +236,25 @@ const firstChapter: Kf8ProcessedChapter = mobi.loadChapter(spine[0].id)
 // see Kf8 class
 // .....
 ```
+
+## initKf8File(file: InputFile, resourceSaveDir?: string): Promise\<Kf8\>
+
+API for initializing an AZW3 (KF8) file. You can pass in a file path, a `File` object, or a `Uint8Array` to receive a fully initialized `Kf8` object, which provides APIs for reading metadata, spine information, and more.
+
+**Parameters:**
+
+- `file: string | File | Uint8Array` – The input KF8 file. Can be a file path (Node.js), a `File` object (browser), or a `Uint8Array` in either environment.
+- `resourceSaveDir?: string` – *(Optional)* Mainly used in Node.js. Specifies the directory to save images and other resources. Defaults to `./images`.
+
+**Returns:**
+
+- `Promise` – A Promise that resolves to the initialized `Kf8` object.
+
+**Note:**
+For the `file` parameter:
+
+- In the **browser**, the type must be `File` or `Uint8Array`. Passing a `string` will throw an error.
+- In **Node.js**, the type must be `string` or `Uint8Array`. Passing a `File` will throw an error.
 
 ## Kf8 class
 
