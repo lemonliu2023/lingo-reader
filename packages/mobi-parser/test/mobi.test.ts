@@ -3,12 +3,63 @@ import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { type Mobi, initMobiFile } from '../src'
 
+describe('initMobiFile interface', () => {
+  it('init mobi from memory in nodejs', async () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = false
+
+    const mobi = await initMobiFile(new Uint8Array(readFileSync('./example/taoyong.mobi')))
+
+    expect(mobi.getFileInfo()).toEqual({
+      fileName: '',
+    })
+
+    expect(mobi.getSpine().length).toBe(33)
+  })
+
+  it('init mobi from Uint8Array in browser', async () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = true
+
+    const mobi = await initMobiFile(new Uint8Array(readFileSync('./example/taoyong.mobi')))
+
+    expect(mobi.getFileInfo()).toEqual({
+      fileName: '',
+    })
+
+    expect(mobi.getSpine().length).toBe(33)
+  })
+
+  it('should throw error when the first argument is string in browser', () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = true
+
+    expect(async () => {
+      await initMobiFile('./example/taoyong.mobi')
+    }).rejects.toThrowError()
+  })
+
+  it('should throw error when the first argument is not a File in node', () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = false
+
+    expect(async () => {
+      await initMobiFile(new File([], 'test.mobi'))
+    }).rejects.toThrowError()
+  })
+})
+
 describe('mobi class', () => {
   let mobi: Mobi
   beforeAll(async () => {
     // @ts-expect-error globalThis.__BROWSER__
     globalThis.__BROWSER__ = false
     mobi = await initMobiFile('./example/taoyong.mobi')
+  })
+
+  it('getFileInfo', () => {
+    const fileInfo = mobi.getFileInfo()
+    expect(fileInfo.fileName).toBe('taoyong.mobi')
   })
 
   it('getSpine', () => {
@@ -99,6 +150,7 @@ describe('init mobi in browser', () => {
         return arrayBuffer
       }
     }
+    // filename will be undefined in node env
     mobi = await initMobiFile(new File([], 'taoyong.mobi'))
   })
   afterAll(() => {

@@ -32,6 +32,8 @@ export interface ResolvedHref {
 
 export type Metadata = Record<string, any>
 
+export type InputFile = string | File | Uint8Array
+
 export interface EBookParser {
   getSpine: () => Spine
   loadChapter: (id: string) => Promise<ProcessedChapter | undefined> | ProcessedChapter | undefined

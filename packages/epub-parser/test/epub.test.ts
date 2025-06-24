@@ -6,6 +6,40 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { initEpubFile } from '../src'
 import { EpubFile } from '../src/epub'
 
+describe('initEpubFile interface', () => {
+  it('init epub from memory in nodejs', async () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = false
+
+    const epub = await initEpubFile(new Uint8Array(readFileSync('./example/alice.epub')))
+
+    expect(epub.getFileInfo()).toEqual({
+      fileName: '',
+      mimetype: 'application/epub+zip',
+    })
+
+    expect(epub.getSpine().length).toBe(1)
+  })
+
+  it('should throw error when the first argement is stirng in browser', () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = true
+
+    expect(async () => {
+      await initEpubFile('./example/alice.epub')
+    }).rejects.toThrowError()
+  })
+
+  it('should throw error when the first argement is not a File in node', () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = false
+
+    expect(async () => {
+      await initEpubFile(new File([], 'test.epub'))
+    }).rejects.toThrowError()
+  })
+})
+
 describe('parse epubFile in node', async () => {
   // @ts-expect-error __BROWSER__ is for build process
   globalThis.__BROWSER__ = false
@@ -231,10 +265,7 @@ describe('parse epubFile in browser', async () => {
     // @ts-expect-error simulate FileReader in browser
     globalThis.FileReader = FileReader
 
-    // TODO: the parameter of initEpubFile should be a File object in browser env
-    //  but here we use a string path for test, it can process File when we use it in browser
-    // alice.epub file path
-    epub2 = await initEpubFile('./example/alice.epub')
+    epub2 = await initEpubFile(new Uint8Array(readFileSync('./example/alice.epub')))
   })
 
   afterAll(() => {

@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import JSZip from 'jszip'
+import type { InputFile } from '@lingo-reader/shared'
 import type { EncryptionKeys, EpubFileOptions, PathToProcessors } from './types'
 
-export async function createZipFile(filePath: string | File) {
+export async function createZipFile(filePath: InputFile): Promise<ZipFile> {
   const zip = new ZipFile(filePath)
   await zip.loadZip()
   return zip
@@ -25,7 +26,7 @@ export class ZipFile {
     }
   }
 
-  constructor(private filePath: string | File) { }
+  constructor(private filePath: InputFile) { }
 
   public async loadZip() {
     this.jsZip = await this.readZip(this.filePath)
@@ -36,7 +37,7 @@ export class ZipFile {
     ))
   }
 
-  private async readZip(file: string | File): Promise<JSZip> {
+  private async readZip(file: InputFile): Promise<JSZip> {
     return new Promise((resolve, reject) => {
       if (__BROWSER__) {
         const reader = new FileReader()
@@ -51,8 +52,11 @@ export class ZipFile {
         reader.onerror = reject
       }
       else {
+        const fileToLoad: Uint8Array = typeof file === 'string'
+          ? new Uint8Array(fs.readFileSync(file))
+          : file as Uint8Array
         new JSZip()
-          .loadAsync(new Uint8Array(fs.readFileSync(<string>file)))
+          .loadAsync(fileToLoad)
           .then((zipFile) => {
             resolve(zipFile)
           })

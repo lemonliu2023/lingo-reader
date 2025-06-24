@@ -1,4 +1,4 @@
-import type { EBookParser } from '@lingo-reader/shared'
+import type { EBookParser, InputFile } from '@lingo-reader/shared'
 import { parsexml, path } from '@lingo-reader/shared'
 import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile, extractEncryptionKeys, prefixMatch, savedResourceMediaTypePrefixes } from './utils'
@@ -39,10 +39,18 @@ import { HREF_PREFIX } from './constant'
 
 // wrapper for async constructor, because EpubFile class has async code
 export async function initEpubFile(
-  epubPath: string | File,
+  epubPath: InputFile,
   resourceSaveDir: string = './images',
   options: EpubFileOptions = {},
 ): Promise<EpubFile> {
+  if (__BROWSER__ && typeof epubPath === 'string') {
+    throw new Error('`string` type is not supported in browser environment. Use File or Uint8Array instead.')
+  }
+
+  if (!__BROWSER__ && epubPath instanceof File) {
+    throw new Error('`File` type is not supported in Node.js environment. Use string or Uint8Array instead.')
+  }
+
   const epub = new EpubFile(epubPath, resourceSaveDir, options)
   await epub.loadEpub()
   await epub.parse()
@@ -146,12 +154,15 @@ export class EpubFile implements EBookParser {
   private encryptionKeys: EncryptionKeys = {}
 
   constructor(
-    private epub: string | File,
+    private epub: InputFile,
     resourceSaveDir: string = './images',
     private options: EpubFileOptions = {},
   ) {
     if (typeof epub === 'string') {
       this.fileName = path.basename(epub)
+    }
+    else if (epub instanceof Uint8Array) {
+      this.fileName = ''
     }
     else {
       this.fileName = epub.name

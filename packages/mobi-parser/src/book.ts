@@ -1,5 +1,7 @@
-import type { Buffer } from 'node:buffer'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { unzlibSync } from 'fflate'
+import type { InputFile } from '@lingo-reader/shared'
 import {
   cdicHeader,
   exthHeader,
@@ -18,15 +20,34 @@ import {
 } from './utils'
 import type { Exth, ExthKey, ExthRecord, IndexData, LoadRecordFunc, Ncx, NcxItem } from './types'
 
-function bufferToArrayBuffer(buffer: Buffer): ArrayBuffer {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
-}
-export async function toArrayBuffer(file: File | Buffer): Promise<ArrayBuffer> {
+export function getMobiFileName(file: InputFile): string {
+  let fileName = ''
   if (__BROWSER__) {
-    return await (file as File).arrayBuffer()
+    if (file instanceof File) {
+      fileName = file.name
+    }
   }
   else {
-    return bufferToArrayBuffer(file as Buffer)
+    if (typeof file === 'string') {
+      fileName = path.basename(file)
+    }
+  }
+  return fileName
+}
+
+function bufferToArrayBuffer(buffer: Uint8Array): ArrayBuffer {
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
+}
+export async function toArrayBuffer(file: InputFile): Promise<ArrayBuffer> {
+  if (__BROWSER__) {
+    return file instanceof Uint8Array
+      ? bufferToArrayBuffer(file)
+      : await (file as File).arrayBuffer()
+  }
+  else {
+    return typeof file === 'string'
+      ? bufferToArrayBuffer(new Uint8Array(readFileSync(file)))
+      : bufferToArrayBuffer(file as Uint8Array)
   }
 }
 

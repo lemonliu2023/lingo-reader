@@ -3,6 +3,26 @@ import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { type Kf8, initKf8File } from '../src'
 
+describe('initKf8File interface', () => {
+  it('should throw error when the first argument is string in browser', () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = true
+
+    expect(async () => {
+      await initKf8File('./example/taoyong.mobi')
+    }).rejects.toThrowError()
+  })
+
+  it('should throw error when the first argument is not a File in node', () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = false
+
+    expect(async () => {
+      await initKf8File(new File([], 'test.mobi'))
+    }).rejects.toThrowError()
+  })
+})
+
 describe('kf8 class', () => {
   let kf8: Kf8
   beforeAll(async () => {

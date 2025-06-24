@@ -1,6 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, unlink } from 'node:fs'
-import path from 'node:path'
-import type { EBookParser } from '@lingo-reader/shared'
+import { existsSync, mkdirSync, unlink } from 'node:fs'
+import type { EBookParser, InputFile } from '@lingo-reader/shared'
 import type {
   MimeToExt,
 } from './utils'
@@ -12,6 +11,7 @@ import {
   concatTypedArrays,
   getFragmentSelector,
   getIndexData,
+  getMobiFileName,
   getStruct,
   getUint,
   kindleResourceRegex,
@@ -37,7 +37,15 @@ import type {
   SkelTable,
 } from './types'
 
-export async function initKf8File(file: string | File, resourceSaveDir?: string) {
+export async function initKf8File(file: InputFile, resourceSaveDir?: string) {
+  if (__BROWSER__ && typeof file === 'string') {
+    throw new Error('`string` type is not supported in browser environment. Use File or Uint8Array instead.')
+  }
+
+  if (!__BROWSER__ && file instanceof File) {
+    throw new Error('`File` type is not supported in Node.js environment. Use string or Uint8Array instead.')
+  }
+
   const kf8 = new Kf8(file, resourceSaveDir)
   await kf8.innerLoadFile()
   await kf8.innerInit()
@@ -104,11 +112,8 @@ export class Kf8 implements EBookParser {
     return this.toc
   }
 
-  constructor(private file: string | File, resourceSaveDir: string = './images') {
-    this.fileName
-      = __BROWSER__
-        ? (file as File).name
-        : path.dirname(file as string)
+  constructor(private file: InputFile, resourceSaveDir: string = './images') {
+    this.fileName = getMobiFileName(file)
 
     this.resourceSaveDir = resourceSaveDir
     if (!__BROWSER__) {
@@ -119,11 +124,7 @@ export class Kf8 implements EBookParser {
   }
 
   async innerLoadFile() {
-    this.fileArrayBuffer = await toArrayBuffer(
-      __BROWSER__
-        ? this.file as File
-        : readFileSync(this.file as string),
-    )
+    this.fileArrayBuffer = await toArrayBuffer(this.file)
     this.mobiFile = new MobiFile(this.fileArrayBuffer)
   }
 

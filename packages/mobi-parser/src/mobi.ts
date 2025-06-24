@@ -1,10 +1,10 @@
-import { existsSync, mkdirSync, readFileSync, unlink } from 'node:fs'
-import path from 'node:path'
-import type { EBookParser } from '@lingo-reader/shared'
+import { existsSync, mkdirSync, unlink } from 'node:fs'
+import type { EBookParser, InputFile } from '@lingo-reader/shared'
 import { parsexml } from '@lingo-reader/shared'
 import { saveResource } from './utils'
 import {
   concatTypedArrays,
+  getMobiFileName,
   mbpPagebreakRegex,
   toArrayBuffer,
 } from './book'
@@ -20,7 +20,15 @@ import type {
   MobiTocItem,
 } from './types'
 
-export async function initMobiFile(file: string | File, resourceSaveDir?: string) {
+export async function initMobiFile(file: InputFile, resourceSaveDir?: string) {
+  if (__BROWSER__ && typeof file === 'string') {
+    throw new Error('`string` type is not supported in browser environment. Use File or Uint8Array instead.')
+  }
+
+  if (!__BROWSER__ && file instanceof File) {
+    throw new Error('`File` type is not supported in Node.js environment. Use string or Uint8Array instead.')
+  }
+
   const mobi = new Mobi(file, resourceSaveDir)
   await mobi.innerLoadFile()
   await mobi.innerInit()
@@ -97,11 +105,8 @@ export class Mobi implements EBookParser {
     return this.mobiFile.getMetadata()
   }
 
-  constructor(private file: string | File, resourceSaveDir: string = './images') {
-    this.fileName
-      = __BROWSER__
-        ? (this.file as File).name
-        : path.basename(this.file as string)
+  constructor(private file: InputFile, resourceSaveDir: string = './images') {
+    this.fileName = getMobiFileName(file)
 
     this.resourceSaveDir = resourceSaveDir
     if (!__BROWSER__) {
@@ -112,11 +117,7 @@ export class Mobi implements EBookParser {
   }
 
   async innerLoadFile() {
-    this.fileArrayBuffer = await toArrayBuffer(
-      __BROWSER__
-        ? this.file as File
-        : readFileSync(this.file as string),
-    )
+    this.fileArrayBuffer = await toArrayBuffer(this.file)
     this.mobiFile = new MobiFile(this.fileArrayBuffer)
   }
 
