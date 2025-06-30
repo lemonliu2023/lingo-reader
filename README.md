@@ -207,7 +207,7 @@ During file parsing, the HTML extracted from chapters is not security and could 
 
 write blog to explain how to parse epub, mobi or kf8 file
 
-find test case
+There are many example files in [https://toolsfairy.com/ebook-test](https://toolsfairy.com/ebook-test), try to parse them all.
 
 cycle color components
 
