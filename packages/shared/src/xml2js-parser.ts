@@ -451,7 +451,7 @@ export class Parser extends EventEmitter {
     }
   }
 
-  parseString = (str: string | Buffer, cb?: CallBack): any => {
+  parseString = (str: string | Uint8Array, cb?: CallBack): any => {
     if (cb && typeof cb === 'function') {
       this.on('end', (result) => {
         this.reset()
@@ -489,7 +489,7 @@ export class Parser extends EventEmitter {
     }
   }
 
-  parseStringPromise = (str: string | Buffer): Promise<any> => {
+  parseStringPromise = (str: string | Uint8Array): Promise<any> => {
     return new Promise((resolve, reject) => {
       this.parseString(str, (err, value) => {
         if (err) {
@@ -532,7 +532,7 @@ export function parseString(str: string | Buffer, a?: ParserOptions | CallBack, 
   parser.parseString(str, cb)
 }
 
-export function parseStringPromise(str: string | Buffer, a?: ParserOptions): Promise<any> {
+export function parseStringPromise(str: string | Uint8Array, a?: ParserOptions): Promise<any> {
   let options: ParserOptions = {}
   if (typeof a === 'object') {
     options = a

@@ -40,7 +40,7 @@ export interface EBookParser {
   getToc: () => Toc
   getMetadata: () => Metadata
   getFileInfo: () => FileInfo
-  getCover?: () => string
+  getCoverImage?: () => string
   resolveHref: (href: string) => ResolvedHref | undefined
   destroy: () => void
 }
