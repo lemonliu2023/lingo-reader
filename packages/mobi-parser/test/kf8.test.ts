@@ -84,6 +84,10 @@ describe('kf8 class', () => {
     expect(chapter).toBeUndefined()
   })
 
+  it('loadChapter when id is not a number', () => {
+    expect(kf8.loadChapter('abc')).toBeUndefined()
+  })
+
   it('resolveHref when href format is correct', () => {
     const toc = kf8.getToc()
     // kindle:pos:fid:0000:off:0000000000
@@ -136,6 +140,11 @@ describe('kf8 class', () => {
     })
   })
 
+  it('getFileInfo', () => {
+    const fileInfo = kf8.getFileInfo()
+    expect(fileInfo.fileName).toBe('taoyong.azw3')
+  })
+
   it('getCover', () => {
     const coverSrc = kf8.getCoverImage()
     expect(coverSrc).toBe(path.resolve('./images', 'cover.jpg'))
@@ -186,6 +195,11 @@ describe('init kf8 in browser', () => {
     cssHrefs.forEach((href) => {
       expect(href.startsWith('blob')).toBe(true)
     })
+  })
+
+  it('getFileInfo', () => {
+    const fileInfo = kf8.getFileInfo()
+    expect(fileInfo.fileName).toBe('')
   })
 
   it('destroy', () => {

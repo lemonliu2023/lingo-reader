@@ -77,6 +77,10 @@ describe('mobi class', () => {
     expect(mobi.loadChapter('50')).toBeUndefined()
   })
 
+  it('chapter id is not number', () => {
+    expect(mobi.loadChapter('abc')).toBeUndefined()
+  })
+
   it('resolveHref', () => {
     const toc = mobi.getToc()
     const href = toc[2].href
@@ -112,6 +116,8 @@ describe('mobi class', () => {
   it('getCoverImage', () => {
     const coverUrl = mobi.getCoverImage()
     expect(coverUrl).toBe(path.resolve('./images/cover.jpg'))
+    const coverUrlCache = mobi.getCoverImage()
+    expect(coverUrlCache).toBe(coverUrl)
   })
 
   it('destroy', () => {
@@ -151,5 +157,26 @@ describe('init mobi in browser', () => {
 
   it('destroy', () => {
     expect(() => mobi.destroy()).not.toThrowError()
+  })
+})
+
+describe('sway.mobi', () => {
+  let mobi: Mobi
+  beforeAll(async () => {
+    // @ts-expect-error globalThis.__BROWSER__
+    globalThis.__BROWSER__ = false
+    mobi = await initMobiFile('./example/sway.mobi')
+  })
+
+  it('replace a tag href', () => {
+    const spine = mobi.getSpine()
+    // src match with `fileposReg`
+    const chapter = mobi.loadChapter(spine[0].id)
+    const href = chapter!.html.match(/href="([^"]*)"/i)![1]
+    expect(href).toBe('http://www.HachetteBookGroupUSA.com')
+    // src do not match with `fileposReg`
+    const chapter1 = mobi.loadChapter(spine[1].id)
+    const aHref = chapter1?.html.match(/href="([^"]*)"/i)![1]
+    expect(aHref?.startsWith('filepos')).toBe(true)
   })
 })

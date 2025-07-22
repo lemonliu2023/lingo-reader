@@ -73,7 +73,7 @@ class Mobi {
   getSpine(): MobiSpine
   loadChapter(id: string): MobiProcessedChapter | undefined
   getToc(): MobiToc
-  getCoverImage(): string | undefined
+  getCoverImage(): string
   getMetadata(): MobiMetadata
   resolveHref(href: string): MobiResolvedHref | undefined
   destroy(): void
@@ -146,9 +146,9 @@ type MobiToc = MobiTocItem[]
 
 用于获取书籍的目录。
 
-### getCoverImage(): string | undefined
+### getCoverImage(): string
 
-获取书籍的封面图片，以 blob url 的形式给出。
+获取书籍的封面图片，以 blob url 的形式给出。返回空字符串时，代表 `CoverImage` 不存在。
 
 ### getMetadata(): MobiMetadata
 
@@ -253,7 +253,7 @@ const firstChapter: Kf8ProcessedChapter = mobi.loadChapter(spine[0].id)
 class Kf8 {
   getFileInfo(): Kf8FileInfo
   getMetadata(): Kf8Metadata
-  getCoverImage(): string | undefined
+  getCoverImage(): string
   getSpine(): Kf8Spine
   getToc(): Kf8Toc
   getGuide(): Kf8Guide | undefined
@@ -279,9 +279,9 @@ type Kf8Metadata = MobiMetadata
 
 与 MobiMetadata 相同，[跳转](#getmetadata-mobimetadata)
 
-### getCoverImage(): string | undefined
+### getCoverImage(): string
 
-用于获取书籍封面图片，以 blob url 的形式给出。
+用于获取书籍封面图片，以 blob url 的形式给出。返回空字符串时，代表 `CoverImage` 不存在
 
 ### getSpine(): Kf8Spine
 

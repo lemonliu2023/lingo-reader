@@ -78,7 +78,7 @@ class Mobi {
   getSpine(): MobiSpine
   loadChapter(id: string): MobiProcessedChapter | undefined
   getToc(): MobiToc
-  getCoverImage(): string | undefined
+  getCoverImage(): string
   getMetadata(): MobiMetadata
   resolveHref(href: string): MobiResolvedHref | undefined
   destroy(): void
@@ -151,9 +151,9 @@ type MobiToc = MobiTocItem[]
 
 This function retrieves the table of contents (TOC) of the book.
 
-### getCoverImage(): string | undefined
+### getCoverImage(): string
 
-This retrieves the cover image of the book as a blob URL.
+This retrieves the cover image of the book as a blob URL. When an empty string is returned, it means that the `CoverImage` does not exist.
 
 ### getMetadata(): MobiMetadata
 
@@ -262,7 +262,7 @@ For the `file` parameter:
 class Kf8 {
   getFileInfo(): Kf8FileInfo
   getMetadata(): Kf8Metadata
-  getCoverImage(): string | undefined
+  getCoverImage(): string
   getSpine(): Kf8Spine
   getToc(): Kf8Toc
   getGuide(): Kf8Guide | undefined
@@ -288,9 +288,9 @@ type Kf8Metadata = MobiMetadata
 
 This is the same as `MobiMetadata`, [see here](#getmetadata-mobimetadata)
 
-### getCoverImage(): string | undefined
+### getCoverImage(): string
 
-This retrieves the book's cover image as a blob URL.
+This retrieves the book's cover image as a blob URL. When an empty string is returned, it means that the `CoverImage` does not exist.
 
 ### getSpine(): Kf8Spine
 
