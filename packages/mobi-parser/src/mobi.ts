@@ -78,19 +78,18 @@ export class Mobi implements EBookParser {
     return this.toc
   }
 
-  public getCoverImage(): string | undefined {
+  public getCoverImage(): string {
     if (this.resourceCache.has('cover')) {
       return this.resourceCache.get('cover')!
     }
 
     const coverImage = this.mobiFile.getCoverImage()
+    let coverUrl = ''
     if (coverImage) {
-      const coverUrl = saveResource(coverImage.raw, coverImage.type, 'cover', this.resourceSaveDir)
-
+      coverUrl = saveResource(coverImage.raw, coverImage.type, 'cover', this.resourceSaveDir)
       this.resourceCache.set('cover', coverUrl)
-      return coverUrl
     }
-    return undefined
+    return coverUrl
   }
 
   public getMetadata(): MobiMetadata {
@@ -101,10 +100,8 @@ export class Mobi implements EBookParser {
     this.fileName = getMobiFileName(file)
 
     this.resourceSaveDir = resourceSaveDir
-    if (!__BROWSER__) {
-      if (!existsSync(this.resourceSaveDir)) {
-        mkdirSync(this.resourceSaveDir, { recursive: true })
-      }
+    if (!__BROWSER__ && !existsSync(this.resourceSaveDir)) {
+      mkdirSync(this.resourceSaveDir, { recursive: true })
     }
   }
 
@@ -228,6 +225,7 @@ export class Mobi implements EBookParser {
   }
 
   private loadResource(index: number): string {
+    // different chapter refer to one resource
     if (this.resourceCache.has(String(index))) {
       return this.resourceCache.get(String(index))!
     }

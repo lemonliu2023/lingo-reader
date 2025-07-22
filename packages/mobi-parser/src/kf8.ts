@@ -82,18 +82,18 @@ export class Kf8 implements EBookParser {
     return this.mobiFile.getMetadata()
   }
 
-  getCoverImage(): string | undefined {
+  getCoverImage(): string {
     if (this.resourceCache.has('cover')) {
       return this.resourceCache.get('cover')!
     }
 
     const coverImage = this.mobiFile.getCoverImage()
+    let coverUrl = ''
     if (coverImage) {
-      const url = saveResource(coverImage.raw, coverImage.type, 'cover', this.resourceSaveDir)
-      this.resourceCache.set('cover', url)
-      return url
+      coverUrl = saveResource(coverImage.raw, coverImage.type, 'cover', this.resourceSaveDir)
+      this.resourceCache.set('cover', coverUrl)
     }
-    return undefined
+    return coverUrl
   }
 
   getSpine(): Kf8Spine {
@@ -108,10 +108,8 @@ export class Kf8 implements EBookParser {
     this.fileName = getMobiFileName(file)
 
     this.resourceSaveDir = resourceSaveDir
-    if (!__BROWSER__) {
-      if (!existsSync(this.resourceSaveDir)) {
-        mkdirSync(this.resourceSaveDir, { recursive: true })
-      }
+    if (!__BROWSER__ && !existsSync(this.resourceSaveDir)) {
+      mkdirSync(this.resourceSaveDir, { recursive: true })
     }
   }
 
