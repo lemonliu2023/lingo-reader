@@ -45,6 +45,6 @@
   },
   "dependencies": {
     "@lingo-reader/shared": "workspace:^",
-    "fflate": "^0.8.2"
+    "fflate": "catalog:"
   }
 }

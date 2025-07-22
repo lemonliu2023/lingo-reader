@@ -1,3 +1,6 @@
 packages:
   - 'packages/*'
   - reader-html
+
+catalog:
+  fflate: ^0.8.2
