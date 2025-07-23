@@ -93,10 +93,6 @@ export class ZipFile {
   }
 }
 
-export function camelCase(str: string): string {
-  return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
-}
-
 export const resourceExtensionToMimeType: Record<string, string> = {
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',

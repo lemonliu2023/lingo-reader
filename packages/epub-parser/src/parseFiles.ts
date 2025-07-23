@@ -1,4 +1,4 @@
-import { path } from '@lingo-reader/shared'
+import { camelCase, path } from '@lingo-reader/shared'
 import { inflateSync } from 'fflate'
 import type {
   AesName,
@@ -21,7 +21,6 @@ import type {
   RsaHash,
   Subject,
 } from './types'
-import { camelCase } from './utils'
 import { HREF_PREFIX } from './constant'
 import { decryptAes, decryptRsa } from './decryption'
 

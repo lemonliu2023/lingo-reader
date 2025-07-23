@@ -5,3 +5,7 @@ export async function parsexml(str: string | Uint8Array, optionsParserOptions: P
   const result = await parseStringPromise(str, optionsParserOptions)
   return result
 }
+
+export function camelCase(str: string): string {
+  return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
+}

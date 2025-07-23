@@ -75,6 +75,12 @@ importers:
         specifier: ^3.10.1
         version: 3.10.1
 
+  packages/fb2-parser:
+    dependencies:
+      '@lingo-reader/shared':
+        specifier: workspace:^
+        version: link:../shared
+
   packages/mobi-parser:
     dependencies:
       '@lingo-reader/shared':
