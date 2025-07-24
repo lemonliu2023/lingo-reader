@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync } from 'node:fs'
-import type { InputFile } from '@lingo-reader/shared'
+import { existsSync, mkdirSync, unlink } from 'node:fs'
+import type { FileInfo, InputFile } from '@lingo-reader/shared'
 import { parsexml } from '@lingo-reader/shared'
-import { inputFileToUint8Array } from './utils'
+import { extractFileName, inputFileToUint8Array, saveResource } from './utils'
 import type { Fb2Metadata, Fb2ResourceMap } from './types'
 import { parseBinary, parseDescription } from './parseXmlNodes'
 
@@ -18,8 +18,29 @@ export async function initFb2File(
 export class Fb2File {
   private resourceSaveDir: string
   private resourceMap!: Fb2ResourceMap
+  private resourceCache: Map<string, string> = new Map()
+
   private metadata!: Fb2Metadata
+  public getMetadata() {
+    return this.metadata
+  }
+
+  private fileName!: string
+  public getFileInfo(): FileInfo {
+    return {
+      fileName: this.fileName,
+    }
+  }
+
   private coverImageId!: string
+  public getCoverImage() {
+    if (this.resourceMap.has(this.coverImageId)) {
+      const resourcePath = saveResource(this.resourceMap.get(this.coverImageId)!, this.resourceSaveDir)
+      this.resourceCache.set(this.coverImageId, resourcePath)
+      return resourcePath
+    }
+    return ''
+  }
 
   constructor(
     private fb2: InputFile,
@@ -29,6 +50,8 @@ export class Fb2File {
     if (!__BROWSER__ && !existsSync(this.resourceSaveDir)) {
       mkdirSync(this.resourceSaveDir, { recursive: true })
     }
+
+    this.fileName = extractFileName(fb2)
   }
 
   public async loadFb2() {
@@ -45,6 +68,7 @@ export class Fb2File {
 
     // parse xml node
     this.resourceMap = parseBinary(fictionBook.binary)
+    // TODO: metadata.history
     const { metadata, coverImageId } = parseDescription(fictionBook.description[0])
     this.metadata = metadata
     this.coverImageId = coverImageId
@@ -53,9 +77,17 @@ export class Fb2File {
   // getSpine: () => Spine
   // loadChapter: (id: string) => Promise<ProcessedChapter | undefined> | ProcessedChapter | undefined
   // getToc: () => Toc
-  // getMetadata: () => Metadata
-  // getFileInfo: () => FileInfo
-  // getCoverImage?: () => string
   // resolveHref: (href: string) => ResolvedHref | undefined
-  // destroy: () => void
+
+  public destroy() {
+    this.resourceCache.values().forEach((path) => {
+      if (__BROWSER__) {
+        URL.revokeObjectURL(path)
+      }
+      else {
+        unlink(path, () => {})
+      }
+    })
+    this.resourceCache.clear()
+  }
 }

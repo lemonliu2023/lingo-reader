@@ -1,6 +1,11 @@
 import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+import { Buffer } from 'node:buffer'
+import { writeFileSync } from 'node:fs'
 import type { InputFile } from 'packages/shared'
+import type { Fb2Resource } from './types'
 
+// TODO: merge the following two functions: inputFileToUint8Array and extractFileName
 export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array> {
   if (file instanceof Uint8Array) {
     return file
@@ -17,6 +22,24 @@ export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array
       // Converting Buffer to Uint8 via `new UintArray` may
       //  result in garbled characters
       return await readFile(file)
+    }
+    throw new Error('The `fb2` param cannot be a `File` in node env.')
+  }
+}
+
+export function extractFileName(inputFile: InputFile): string {
+  if (inputFile instanceof Uint8Array) {
+    return ''
+  }
+  if (__BROWSER__) {
+    if (typeof inputFile === 'string') {
+      throw new TypeError('The `fb2` param cannot be a `string` in browser env.')
+    }
+    return inputFile.name
+  }
+  else {
+    if (typeof inputFile === 'string') {
+      return path.basename(inputFile)
     }
     throw new Error('The `fb2` param cannot be a `File` in node env.')
   }
@@ -39,4 +62,51 @@ export function extend<T extends object, U extends object>(
     }
   }
   return target as T & U
+}
+
+export const mimeTypeToResourceExtension: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/svg+xml': 'svg',
+  'image/bmp': 'bmp',
+  'image/x-icon': 'ico',
+  'image/tiff': 'tif',
+  'image/heic': 'heic',
+  'image/avif': 'avif',
+}
+
+function base64ToUint8Array(base64String: string): Uint8Array {
+  const binaryString = atob(base64String.trim())
+  const len = binaryString.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+
+  return bytes
+}
+
+export function saveResource(resource: Fb2Resource, resourceSaveDir: string): string {
+  const { id, base64Data, contentType } = resource
+  if (__BROWSER__) {
+    // data
+    const resourceUint8 = base64ToUint8Array(base64Data)
+    const blob = new Blob([resourceUint8], { type: contentType })
+    return URL.createObjectURL(blob)
+  }
+  else {
+    // filePath
+    let fileName = id
+    const ext = mimeTypeToResourceExtension[contentType]
+    if (!id.endsWith(ext)) {
+      fileName = `${id}.${ext}`
+    }
+    const filePath = path.resolve(resourceSaveDir, fileName)
+    // buffer
+    const buffer = Buffer.from(base64Data, 'base64')
+    writeFileSync(filePath, buffer)
+    return filePath
+  }
 }

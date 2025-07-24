@@ -172,7 +172,7 @@ export function parseDescription(descriptionAST: any) {
   }
   // custom-info info-type as key
   if (descriptionAST['custom-info']) {
-    const customInfo = parseCustomInfo(descriptionAST['publish-info'])
+    const customInfo = parseCustomInfo(descriptionAST['custom-info'])
     extend(metadata, customInfo)
   }
 
