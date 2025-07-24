@@ -56,7 +56,10 @@ export class Fb2File {
   }
 
   private coverImageId!: string
-  public getCoverImage() {
+  public getCoverImage(): string {
+    if (this.resourceCache.has(this.coverImageId)) {
+      return this.resourceCache.get(this.coverImageId)!
+    }
     if (this.resourceMap.has(this.coverImageId)) {
       const resourcePath = saveResource(this.resourceMap.get(this.coverImageId)!, this.resourceSaveDir)
       this.resourceCache.set(this.coverImageId, resourcePath)
