@@ -4,6 +4,7 @@ import { Buffer } from 'node:buffer'
 import { writeFileSync } from 'node:fs'
 import type { InputFile } from 'packages/shared'
 import type { Fb2Resource } from './types'
+import { STYLESHEET_ID } from './constant'
 
 // TODO: merge the following two functions: inputFileToUint8Array and extractFileName
 export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array> {
@@ -65,6 +66,7 @@ export function extend<T extends object, U extends object>(
 }
 
 export const mimeTypeToResourceExtension: Record<string, string> = {
+  // image
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/gif': 'gif',
@@ -75,6 +77,9 @@ export const mimeTypeToResourceExtension: Record<string, string> = {
   'image/tiff': 'tif',
   'image/heic': 'heic',
   'image/avif': 'avif',
+
+  // css
+  'text/css': 'css',
 }
 
 function base64ToUint8Array(base64String: string): Uint8Array {
@@ -107,6 +112,17 @@ export function saveResource(resource: Fb2Resource, resourceSaveDir: string): st
     // buffer
     const buffer = Buffer.from(base64Data, 'base64')
     writeFileSync(filePath, buffer)
+    return filePath
+  }
+}
+
+export function saveStylesheet(style: string, resourceSaveDir: string): string {
+  if (__BROWSER__) {
+    return URL.createObjectURL(new Blob([style], { type: 'text/css' }))
+  }
+  else {
+    const filePath = path.resolve(resourceSaveDir, `${STYLESHEET_ID}.css`)
+    writeFileSync(filePath, style)
     return filePath
   }
 }
