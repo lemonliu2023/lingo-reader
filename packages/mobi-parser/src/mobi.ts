@@ -314,5 +314,6 @@ export class Mobi implements EBookParser {
         unlink(url, () => { })
       }
     })
+    this.resourceCache.clear()
   }
 }
