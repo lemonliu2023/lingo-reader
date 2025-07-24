@@ -4,7 +4,7 @@ import { Buffer } from 'node:buffer'
 import { writeFileSync } from 'node:fs'
 import type { InputFile } from 'packages/shared'
 import type { Fb2Resource } from './types'
-import { STYLESHEET_ID } from './constant'
+import { HREF_PREFIX, STYLESHEET_ID } from './constant'
 
 // TODO: merge the following two functions: inputFileToUint8Array and extractFileName
 export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array> {
@@ -44,6 +44,10 @@ export function extractFileName(inputFile: InputFile): string {
     }
     throw new Error('The `fb2` param cannot be a `File` in node env.')
   }
+}
+
+export function getFirstXmlNodeText(xmlNode: any): string {
+  return xmlNode?.[0]._ ?? ''
 }
 
 export function extend<T extends object, U extends object>(
@@ -125,4 +129,8 @@ export function saveStylesheet(style: string, resourceSaveDir: string): string {
     writeFileSync(filePath, style)
     return filePath
   }
+}
+
+export function buildFb2Href(chapterId: string, fb2GlobalId?: string) {
+  return HREF_PREFIX + chapterId + (fb2GlobalId ?? '')
 }

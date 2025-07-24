@@ -9,7 +9,7 @@ import type {
   Sequence,
   TitleInfo,
 } from './types'
-import { extend } from './utils'
+import { extend, getFirstXmlNodeText } from './utils'
 
 // <binary id="_" content-type>...<binary>
 export function parseBinary(binaryAST: any): Fb2ResourceMap {
@@ -28,10 +28,6 @@ export function parseBinary(binaryAST: any): Fb2ResourceMap {
     })
   }
   return resourceMap
-}
-
-function getFirstXmlNodeText(xmlNode: any): string {
-  return xmlNode?.[0]._ ?? ''
 }
 
 function parseAuthor(authorAST: any): Author {
@@ -109,6 +105,7 @@ export function parseTitleInfo(titleInfoAST: any): TitleInfo {
   return titleInfo
 }
 
+// TODO: history
 export function parseDocumentInfo(documentInfoAST: any): DocumentInfo {
   const documentInfo: DocumentInfo = {}
   for (const key in documentInfoAST) {

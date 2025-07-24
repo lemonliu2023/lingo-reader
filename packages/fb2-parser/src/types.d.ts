@@ -89,3 +89,35 @@ export interface PublishInfo {
 export type CustomInfo = Record<string, string>
 
 export type Fb2Metadata = Omit<TitleInfo, 'coverImageId'> & DocumentInfo & PublishInfo & CustomInfo
+
+export interface Fb2SpineItem {
+  id: string
+}
+
+export type Fb2Spine = Fb2SpineItem[]
+
+export interface Fb2TocItem {
+  label: string
+  href: string
+}
+
+export type Fb2Toc = Fb2TocItem[]
+
+export interface Fb2Chapter {
+  id: string
+  sectionNode: any
+}
+
+export type Fb2ChapterMap = Map<string, Fb2Chapter>
+
+export interface BodyWithName {
+  name: string
+  sectionNode: any
+}
+
+export type Fb2RemainingBodys = BodyWithName[]
+
+export interface Fb2ResolvedHref {
+  id: string
+  selector: string
+}
