@@ -6,7 +6,7 @@ export interface Fb2Resource {
   base64Data: string
 }
 
-export type Fb2IdToResourceMap = Map<string, Fb2Resource>
+export type Fb2ResourceMap = Map<string, Fb2Resource>
 
 export interface Author {
   name: string

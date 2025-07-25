@@ -13,10 +13,10 @@ import {
 } from './utils'
 import type {
   Fb2ChapterMap,
-  Fb2IdToResourceMap,
   Fb2Metadata,
   Fb2ProcessedChapter,
   Fb2ResolvedHref,
+  Fb2ResourceMap,
   Fb2Spine,
   Fb2Toc,
 } from './types'
@@ -38,8 +38,9 @@ export async function initFb2File(
 export class Fb2File {
   // resource
   private resourceSaveDir: string
+
   // global id to Resource
-  private resourceStore!: Fb2IdToResourceMap
+  private resourceStore!: Fb2ResourceMap
   // id to url
   private resourceCache: Map<string, string> = new Map()
   // chapter id to processed chapter
@@ -49,7 +50,7 @@ export class Fb2File {
 
   // chapters
   private chapterStore: Fb2ChapterMap = new Map()
-  private idToChapterMap = new Map<string, string>()
+  private idToChapterIdMap = new Map<string, string>()
 
   // Toc
   private tableOfContent: Fb2Toc = []
@@ -146,7 +147,7 @@ export class Fb2File {
             label: sectionLabel,
             href: buildFb2Href(id),
           })
-          buildIdToSectionMap(id, sectionNode, this.idToChapterMap)
+          buildIdToSectionMap(id, sectionNode, this.idToChapterIdMap)
           sectionId++
         }
       }
@@ -164,7 +165,7 @@ export class Fb2File {
           label: name,
           href: buildFb2Href(id),
         })
-        buildIdToSectionMap(id, sectionNode, this.idToChapterMap)
+        buildIdToSectionMap(id, sectionNode, this.idToChapterIdMap)
         sectionId++
       }
     }
