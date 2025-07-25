@@ -134,3 +134,25 @@ export function saveStylesheet(style: string, resourceSaveDir: string): string {
 export function buildFb2Href(chapterId: string, fb2GlobalId?: string) {
   return HREF_PREFIX + chapterId + (fb2GlobalId ?? '')
 }
+
+export function buildIdToSectionMap(
+  sectionId: string,
+  sectionNode: any,
+  idToChapterMap: Map<string, string>,
+): void {
+  for (const node of sectionNode.children) {
+    // ignore text node
+    if (node['#name'] === '__text__') {
+      continue
+    }
+    const $ = node.$
+    // has attr
+    if ($ && $.id) {
+      idToChapterMap.set($.id, sectionId)
+    }
+    // has children
+    if (node.children) {
+      buildIdToSectionMap(sectionId, node, idToChapterMap)
+    }
+  }
+}

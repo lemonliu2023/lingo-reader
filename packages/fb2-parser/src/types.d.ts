@@ -6,7 +6,7 @@ export interface Fb2Resource {
   base64Data: string
 }
 
-export type Fb2ResourceMap = Map<string, Fb2Resource>
+export type Fb2IdToResourceMap = Map<string, Fb2Resource>
 
 export interface Author {
   name: string
@@ -105,6 +105,7 @@ export type Fb2Toc = Fb2TocItem[]
 
 export interface Fb2Chapter {
   id: string
+  name?: string
   sectionNode: any
 }
 
@@ -120,4 +121,9 @@ export type Fb2RemainingBodys = BodyWithName[]
 export interface Fb2ResolvedHref {
   id: string
   selector: string
+}
+
+export interface Fb2ProcessedChapter {
+  html: string
+  css: string[]
 }

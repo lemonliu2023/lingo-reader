@@ -1,8 +1,24 @@
 import { existsSync, mkdirSync, unlink } from 'node:fs'
 import type { FileInfo, InputFile } from '@lingo-reader/shared'
 import { parsexml } from '@lingo-reader/shared'
-import { buildFb2Href, extractFileName, getFirstXmlNodeText, inputFileToUint8Array, saveResource, saveStylesheet } from './utils'
-import type { Fb2ChapterMap, Fb2Metadata, Fb2RemainingBodys, Fb2ResolvedHref, Fb2ResourceMap, Fb2Spine, Fb2Toc } from './types'
+import {
+  buildFb2Href,
+  buildIdToSectionMap,
+  extractFileName,
+  getFirstXmlNodeText,
+  inputFileToUint8Array,
+  saveResource,
+  saveStylesheet,
+} from './utils'
+import type {
+  Fb2ChapterMap,
+  Fb2IdToResourceMap,
+  Fb2Metadata,
+  Fb2ProcessedChapter,
+  Fb2ResolvedHref,
+  Fb2Spine,
+  Fb2Toc,
+} from './types'
 import { parseBinary, parseDescription } from './parseXmlNodes'
 import { HREF_PREFIX, ID_PREFIX, STYLESHEET_ID } from './constant'
 
@@ -16,16 +32,24 @@ export async function initFb2File(
   return fb2Instance
 }
 
+// section Id and fb2 id are different
+
 export class Fb2File {
   // resource
   private resourceSaveDir: string
-  private resourceMap!: Fb2ResourceMap
+  // global id to Resource
+  private idToResourceMap!: Fb2IdToResourceMap
+  // id to url
   private resourceCache: Map<string, string> = new Map()
+  // chapter id to processed chapter
+  private chapterCache: Map<string, Fb2ProcessedChapter> = new Map()
   // stylesheet Url
   private stylesheetUrl: string = ''
 
   // chapters
-  private chapterMap: Fb2ChapterMap = new Map()
+  private chapterIdMap: Fb2ChapterMap = new Map()
+  private idToChapterMap = new Map<string, string>()
+
   // Toc
   private tableOfContent: Fb2Toc = []
   public getToc() {
@@ -36,11 +60,6 @@ export class Fb2File {
   private spine: Fb2Spine = []
   public getSpine() {
     return this.spine
-  }
-
-  private remainingBody: Fb2RemainingBodys = []
-  public getRemainingBodys() {
-    return this.remainingBody
   }
 
   private metadata!: Fb2Metadata
@@ -60,8 +79,8 @@ export class Fb2File {
     if (this.resourceCache.has(this.coverImageId)) {
       return this.resourceCache.get(this.coverImageId)!
     }
-    if (this.resourceMap.has(this.coverImageId)) {
-      const resourcePath = saveResource(this.resourceMap.get(this.coverImageId)!, this.resourceSaveDir)
+    if (this.idToResourceMap.has(this.coverImageId)) {
+      const resourcePath = saveResource(this.idToResourceMap.get(this.coverImageId)!, this.resourceSaveDir)
       this.resourceCache.set(this.coverImageId, resourcePath)
       return resourcePath
     }
@@ -93,7 +112,7 @@ export class Fb2File {
     const fictionBook = res.FictionBook
 
     // parse xml node
-    this.resourceMap = parseBinary(fictionBook.binary)
+    this.idToResourceMap = parseBinary(fictionBook.binary)
 
     // TODO: metadata.history
     // description
@@ -107,16 +126,15 @@ export class Fb2File {
       this.resourceCache.set(STYLESHEET_ID, this.stylesheetUrl)
     }
 
-    // TODO: buildIdToChapterMap
+    let sectionId = 0
     // body
     for (const body of fictionBook.body) {
       // body that stores chapters
       if (!body.$?.name) {
-        for (let i = 0; i < body.section.length; i++) {
-          const id = ID_PREFIX + i
-          const sectionNode = body.section[i]
+        for (const sectionNode of body.section) {
+          const id = ID_PREFIX + sectionId
           // innner chapter
-          this.chapterMap.set(id, {
+          this.chapterIdMap.set(id, {
             id,
             sectionNode,
           })
@@ -128,15 +146,26 @@ export class Fb2File {
             label: sectionLabel,
             href: buildFb2Href(id),
           })
+          buildIdToSectionMap(id, sectionNode, this.idToChapterMap)
+          sectionId++
         }
       }
       else {
         // remaining body with name
+        const id = ID_PREFIX + sectionId
         const name = body.$.name
-        this.remainingBody.push({
-          name,
-          sectionNode: body.section[0],
+        const sectionNode = body.section[0]
+        // inner chapter
+        this.chapterIdMap.set(id, { id, name, sectionNode })
+        // spine
+        this.spine.push({ id })
+        // toc
+        this.tableOfContent.push({
+          label: name,
+          href: buildFb2Href(id),
         })
+        buildIdToSectionMap(id, sectionNode, this.idToChapterMap)
+        sectionId++
       }
     }
   }
@@ -150,7 +179,7 @@ export class Fb2File {
     // remove 'fb2:'
     fb2Href = fb2Href.slice(HREF_PREFIX.length).trim()
     const [chapterId, globalId] = fb2Href.split('#')
-    const id = this.chapterMap.get(chapterId)?.id
+    const id = this.chapterIdMap.get(chapterId)?.id
     if (!id) {
       return undefined
     }
