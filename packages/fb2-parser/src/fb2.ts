@@ -9,6 +9,7 @@ import {
   inputFileToUint8Array,
   saveResource,
   saveStylesheet,
+  transformTagName,
 } from './utils'
 import type {
   Fb2ChapterMap,
@@ -38,7 +39,7 @@ export class Fb2File {
   // resource
   private resourceSaveDir: string
   // global id to Resource
-  private idToResourceMap!: Fb2IdToResourceMap
+  private resourceStore!: Fb2IdToResourceMap
   // id to url
   private resourceCache: Map<string, string> = new Map()
   // chapter id to processed chapter
@@ -47,7 +48,7 @@ export class Fb2File {
   private stylesheetUrl: string = ''
 
   // chapters
-  private chapterIdMap: Fb2ChapterMap = new Map()
+  private chapterStore: Fb2ChapterMap = new Map()
   private idToChapterMap = new Map<string, string>()
 
   // Toc
@@ -79,8 +80,8 @@ export class Fb2File {
     if (this.resourceCache.has(this.coverImageId)) {
       return this.resourceCache.get(this.coverImageId)!
     }
-    if (this.idToResourceMap.has(this.coverImageId)) {
-      const resourcePath = saveResource(this.idToResourceMap.get(this.coverImageId)!, this.resourceSaveDir)
+    if (this.resourceStore.has(this.coverImageId)) {
+      const resourcePath = saveResource(this.resourceStore.get(this.coverImageId)!, this.resourceSaveDir)
       this.resourceCache.set(this.coverImageId, resourcePath)
       return resourcePath
     }
@@ -107,12 +108,11 @@ export class Fb2File {
       preserveChildrenOrder: true,
       explicitChildren: true,
       childkey: 'children',
-      trim: true,
     })
     const fictionBook = res.FictionBook
 
     // parse xml node
-    this.idToResourceMap = parseBinary(fictionBook.binary)
+    this.resourceStore = parseBinary(fictionBook.binary)
 
     // TODO: metadata.history
     // description
@@ -134,7 +134,7 @@ export class Fb2File {
         for (const sectionNode of body.section) {
           const id = ID_PREFIX + sectionId
           // innner chapter
-          this.chapterIdMap.set(id, {
+          this.chapterStore.set(id, {
             id,
             sectionNode,
           })
@@ -156,7 +156,7 @@ export class Fb2File {
         const name = body.$.name
         const sectionNode = body.section[0]
         // inner chapter
-        this.chapterIdMap.set(id, { id, name, sectionNode })
+        this.chapterStore.set(id, { id, name, sectionNode })
         // spine
         this.spine.push({ id })
         // toc
@@ -170,7 +170,83 @@ export class Fb2File {
     }
   }
 
-  // loadChapter: (id: string) => Promise<ProcessedChapter | undefined> | ProcessedChapter | undefined
+  private serializeAttr(attrs: Record<string, string>, tagName: string): string {
+    if (!attrs) {
+      return ''
+    }
+
+    const res: string[] = []
+    for (const key in attrs) {
+      const value = attrs[key]
+      if (key === 'l:href' || key === 'xlink:href') {
+        // image or a
+        const resourceId = value.slice(1)
+        const targetAttrName = tagName === 'a' ? 'href' : 'src'
+        if (this.resourceStore.has(resourceId)) {
+          const resourceUrl = saveResource(
+            this.resourceStore.get(resourceId)!,
+            this.resourceSaveDir,
+          )
+          res.push(`${targetAttrName}="${resourceUrl}"`)
+        }
+        else {
+          res.push('')
+        }
+      }
+      else {
+        res.push(`${key}="${value}"`)
+      }
+    }
+    return res.filter(Boolean).join(' ')
+  }
+
+  private serializeChildren(sectionNode: any) {
+    const res: string[] = []
+    for (const node of sectionNode.children) {
+      if (node['#name'] === '__text__') {
+        res.push(node._.trim())
+      }
+      else {
+        const { tag, isSelfClosing } = transformTagName(node['#name'])
+        const attrStr = this.serializeAttr(node.$, tag)
+        const targetAttrStr = attrStr.length > 0 ? (` ${attrStr}`) : ''
+        let childrenStr = ''
+        if (node.children) {
+          childrenStr = this.serializeChildren(node)
+        }
+        res.push(
+          isSelfClosing
+            ? `<${tag}${targetAttrStr}/>`
+            : `<${tag}${targetAttrStr}>${childrenStr}</${tag}>`,
+        )
+      }
+    }
+    return res.join('')
+  }
+
+  private serializeNode(sectionNode: any): string {
+    const attrStr = this.serializeAttr(sectionNode.$, 'div')
+    const childrenStr = this.serializeChildren(sectionNode)
+    return `<div${attrStr}>${childrenStr}</div>`
+  }
+
+  public loadChapter(id: string): Fb2ProcessedChapter | undefined {
+    if (!this.chapterStore.has(id)) {
+      return undefined
+    }
+    if (this.chapterCache.has(id)) {
+      return this.chapterCache.get(id)!
+    }
+
+    const chapter = this.chapterStore.get(id)!
+    const transformedSection = {
+      html: this.serializeNode(chapter.sectionNode),
+      css: this.stylesheetUrl.length > 0 ? [this.stylesheetUrl] : [],
+    }
+
+    this.chapterCache.set(id, transformedSection)
+    return transformedSection
+  }
 
   public resolveHref(fb2Href: string): Fb2ResolvedHref | undefined {
     if (!fb2Href.startsWith(HREF_PREFIX)) {
@@ -179,7 +255,7 @@ export class Fb2File {
     // remove 'fb2:'
     fb2Href = fb2Href.slice(HREF_PREFIX.length).trim()
     const [chapterId, globalId] = fb2Href.split('#')
-    const id = this.chapterIdMap.get(chapterId)?.id
+    const id = this.chapterStore.get(chapterId)?.id
     if (!id) {
       return undefined
     }

@@ -9,6 +9,9 @@ describe('initFb2File in node', () => {
     fb2 = await initFb2File('./example/many-languages.fb2')
   })
   it('initFb2File', () => {
+    // const spine = fb2.getSpine()
+    // const chapter = fb2.loadChapter(spine[0].id)
+    // console.log(chapter)
     expect(fb2).toBeDefined()
   })
 })

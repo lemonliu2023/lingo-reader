@@ -156,3 +156,30 @@ export function buildIdToSectionMap(
     }
   }
 }
+
+const fb2TagToHtmlTagMap: Record<string, string> = {
+  'section': 'div',
+  'title': 'h2',
+  'subtitle': 'h3',
+  'poem': 'blockquote',
+  'stanza': 'p',
+  'v': 'p',
+  'text-author': 'cite',
+  'epigraph': 'blockquote',
+  'empty-line': 'br',
+  'image': 'img',
+  'emphasis': 'em',
+}
+
+const selfClosingHtmlTag = new Set([
+  'br',
+  'img',
+])
+
+export function transformTagName(tag: string) {
+  const transtormedTag = fb2TagToHtmlTagMap[tag] ?? tag
+  return {
+    tag: transtormedTag,
+    isSelfClosing: selfClosingHtmlTag.has(transtormedTag),
+  }
+}
