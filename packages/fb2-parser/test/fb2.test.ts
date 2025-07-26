@@ -1,6 +1,6 @@
 import { URL, fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { parsexml } from '@lingo-reader/shared'
 import { type Fb2File, initFb2File } from '../src/index'
 import { parseBinary } from '../src/parseXmlNodes'
@@ -103,9 +103,38 @@ describe('initFb2File in node', () => {
 })
 
 describe('fb2-parser corner case in node', () => {
+  const isNode18 = process.version.startsWith('v18.')
   beforeAll(async () => {
     // @ts-expect-error globalThis.__BROWSER__
     globalThis.__BROWSER__ = false
+    if (isNode18) {
+      class FakeFile {
+        name: string
+        size: number
+        type: string
+        lastModified: number
+        constructor(
+          parts: (string | Uint8Array)[],
+          name: string,
+          options: { type?: string } = {},
+        ) {
+          this.name = name
+          this.size = parts.reduce((sum, part) => sum + part.toString().length, 0)
+          this.type = options.type || ''
+          this.lastModified = Date.now()
+        }
+      }
+
+      // @ts-expect-error node18
+      globalThis.File = FakeFile
+    }
+  })
+
+  afterAll(() => {
+    if (isNode18) {
+      // @ts-expect-error File
+      globalThis.File = undefined
+    }
   })
 
   it('to throw when <binary> without content-type', async () => {
