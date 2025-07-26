@@ -7,7 +7,7 @@ import type { Fb2Resource } from './types'
 import { HREF_PREFIX, STYLESHEET_ID } from './constant'
 
 // TODO: merge the following two functions: inputFileToUint8Array and extractFileName
-export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array> {
+export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array | string> {
   if (file instanceof Uint8Array) {
     return file
   }
@@ -16,7 +16,8 @@ export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array
     if (typeof file === 'string') {
       throw new TypeError('The `fb2` param cannot be a `string` in browser env.')
     }
-    return new Uint8Array(await file.arrayBuffer())
+
+    return await file.text()
   }
   else {
     if (typeof file === 'string') {

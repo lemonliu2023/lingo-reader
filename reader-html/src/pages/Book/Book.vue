@@ -137,7 +137,7 @@ const tocItemClick = (item: FlatedTocItem) => {
       </div>
       <div :class="{ 'hide-toc': !showToc, }" @wheel.stop.passive class="toc">
         <ul>
-          <li @click="tocItemClick(item)" v-for="item in toc" :key="item.label"
+          <li @click="tocItemClick(item)" v-for="item in toc" :key="item.href"
             :style="{ paddingLeft: withPx(20 + item.level * 20) }">
             <span>{{ item.label }}</span>
           </li>

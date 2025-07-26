@@ -2,7 +2,7 @@ import { URL, fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { parsexml } from '@lingo-reader/shared'
-import { type Fb2File, initFb2File } from '../src/fb2'
+import { type Fb2File, initFb2File } from '../src/index'
 import { parseBinary } from '../src/parseXmlNodes'
 
 describe('initFb2File in node', () => {
@@ -181,3 +181,12 @@ k=
     expect(fb2.getSpine().length).toBe(1)
   })
 })
+
+// describe('initFb2File in node', () => {
+//   // let fb2: Fb2File
+//   beforeAll(async () => {
+//     // @ts-expect-error globalThis.__BROWSER__
+//     globalThis.__BROWSER__ = true
+//     // fb2 = await initFb2File()
+//   })
+// })

@@ -17,7 +17,7 @@ function replace(opts) {
   })
 }
 
-const external = ['@lingo-reader/shared', 'jszip', 'xml2js', 'fflate']
+const external = ['@lingo-reader/shared']
 
 function nodeConfig(input, output) {
   return {

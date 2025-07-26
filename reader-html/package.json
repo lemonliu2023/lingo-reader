@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lingo-reader/epub-parser": "workspace:^",
+    "@lingo-reader/fb2-parser": "workspace:^",
     "@lingo-reader/mobi-parser": "workspace:^",
     "@lingo-reader/shared": "workspace:^",
     "dompurify": "^3.2.3",

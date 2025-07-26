@@ -16,7 +16,7 @@
     "lint": "eslint . --cache",
     "tsc": "tsc --noEmit",
     "test": "vitest",
-    "build": "pnpm run -C packages/shared build && pnpm run -C packages/epub-parser build && pnpm run -C packages/mobi-parser build",
+    "build": "pnpm run -C packages/shared build && pnpm run -C packages/epub-parser build && pnpm run -C packages/mobi-parser build && pnpm run -C packages/fb2-parser build",
     "release": "bumpp",
     "publish:ci": "pnpm -r publish --access public --no-git-checks",
     "prepare": "simple-git-hooks",

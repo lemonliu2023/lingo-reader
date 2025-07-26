@@ -6,10 +6,12 @@ import DOMPurify from 'dompurify'
 import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
 import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
 import type { FileInfo, ResolvedHref, Toc } from '@lingo-reader/shared'
+import type { Fb2File, Fb2Spine } from '@lingo-reader/fb2-parser'
+import { initFb2File } from '@lingo-reader/fb2-parser'
 
 const useBookStore = defineStore('ebook', () => {
-  let book: EpubFile | Mobi | Kf8 | undefined
-  let spine: EpubSpine | MobiSpine | Kf8Spine = []
+  let book: EpubFile | Mobi | Kf8 | Fb2File | undefined
+  let spine: EpubSpine | MobiSpine | Kf8Spine | Fb2Spine = []
   const chapterIndex = ref<number>(0)
   const chapterNums = ref<number>(0)
   const progressInChapter = ref<number>(0)
@@ -37,6 +39,12 @@ const useBookStore = defineStore('ebook', () => {
       chapterNums.value = spine.length
       fileInfo = book.getFileInfo()
     }
+    else if (file.name.endsWith('fb2')) {
+      book = await initFb2File(file)
+      spine = book.getSpine()
+      chapterNums.value = spine.length
+      fileInfo = book.getFileInfo()
+    }
     else {
       throw new Error('Unsupported file type')
     }
@@ -51,7 +59,7 @@ const useBookStore = defineStore('ebook', () => {
     const { html } = await book!.loadChapter(id)!
     // for security
     const purifiedDom = DOMPurify.sanitize(html, {
-      ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/i,
+      ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle|fb2)/i,
       ADD_URI_SAFE_ATTR: ['width', 'height'],
     })
     chapterCache.set(id, purifiedDom)
@@ -69,7 +77,13 @@ const useBookStore = defineStore('ebook', () => {
   }
 
   const getToc = (): Toc => {
-    return book!.getToc()
+    const toc = book!.getToc()
+    for (const item of toc) {
+      if (item.label.length === 0) {
+        item.label = item.href
+      }
+    }
+    return toc
   }
 
   const getFileName = () => {

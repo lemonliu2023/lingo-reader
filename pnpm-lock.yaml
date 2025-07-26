@@ -126,6 +126,9 @@ importers:
       '@lingo-reader/epub-parser':
         specifier: workspace:^
         version: link:../packages/epub-parser
+      '@lingo-reader/fb2-parser':
+        specifier: workspace:^
+        version: link:../packages/fb2-parser
       '@lingo-reader/mobi-parser':
         specifier: workspace:^
         version: link:../packages/mobi-parser
