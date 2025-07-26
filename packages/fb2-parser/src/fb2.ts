@@ -4,9 +4,8 @@ import { parsexml } from '@lingo-reader/shared'
 import {
   buildFb2Href,
   buildIdToSectionMap,
-  extractFileName,
+  extractFileData,
   getFirstXmlNodeText,
-  inputFileToUint8Array,
   saveResource,
   saveStylesheet,
   transformTagName,
@@ -97,13 +96,12 @@ export class Fb2File implements EBookParser {
     if (!__BROWSER__ && !existsSync(this.resourceSaveDir)) {
       mkdirSync(this.resourceSaveDir, { recursive: true })
     }
-
-    this.fileName = extractFileName(fb2)
   }
 
   public async loadFb2() {
+    const { data: fb2Uint8Array, fileName } = await extractFileData(this.fb2)
+    this.fileName = fileName
     // load fb2
-    const fb2Uint8Array = await inputFileToUint8Array(this.fb2)
     const res = await parsexml(fb2Uint8Array, {
       charsAsChildren: true,
       preserveChildrenOrder: true,
@@ -197,6 +195,7 @@ export class Fb2File implements EBookParser {
             this.resourceStore.get(id)!,
             this.resourceSaveDir,
           )
+          this.resourceCache.set(id, resourceUrl)
           res.push(`src="${resourceUrl}"`)
         }
         else {

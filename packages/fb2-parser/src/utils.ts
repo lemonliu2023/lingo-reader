@@ -6,10 +6,12 @@ import type { InputFile } from 'packages/shared'
 import type { Fb2Resource } from './types'
 import { HREF_PREFIX, STYLESHEET_ID } from './constant'
 
-// TODO: merge the following two functions: inputFileToUint8Array and extractFileName
-export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array | string> {
+export async function extractFileData(file: InputFile) {
   if (file instanceof Uint8Array) {
-    return file
+    return {
+      data: file,
+      fileName: '',
+    }
   }
 
   if (__BROWSER__) {
@@ -17,31 +19,19 @@ export async function inputFileToUint8Array(file: InputFile): Promise<Uint8Array
       throw new TypeError('The `fb2` param cannot be a `string` in browser env.')
     }
 
-    return await file.text()
+    return {
+      data: await file.text(),
+      fileName: file.name,
+    }
   }
   else {
     if (typeof file === 'string') {
       // Converting Buffer to Uint8 via `new UintArray` may
       //  result in garbled characters
-      return await readFile(file)
-    }
-    throw new Error('The `fb2` param cannot be a `File` in node env.')
-  }
-}
-
-export function extractFileName(inputFile: InputFile): string {
-  if (inputFile instanceof Uint8Array) {
-    return ''
-  }
-  if (__BROWSER__) {
-    if (typeof inputFile === 'string') {
-      throw new TypeError('The `fb2` param cannot be a `string` in browser env.')
-    }
-    return inputFile.name
-  }
-  else {
-    if (typeof inputFile === 'string') {
-      return path.basename(inputFile)
+      return {
+        data: await readFile(file),
+        fileName: path.basename(file),
+      }
     }
     throw new Error('The `fb2` param cannot be a `File` in node env.')
   }

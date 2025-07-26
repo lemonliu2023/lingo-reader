@@ -400,7 +400,9 @@ export class Kf8 implements EBookParser {
         URL.revokeObjectURL(url)
       }
       else {
-        unlink(url, () => { })
+        if (existsSync(url)) {
+          unlink(url, () => { })
+        }
       }
     })
   }

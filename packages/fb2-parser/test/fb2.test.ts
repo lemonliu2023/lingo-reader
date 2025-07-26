@@ -89,7 +89,7 @@ describe('initFb2File in node', () => {
     expect(aTags[1].indexOf('#first_section')).toBe(24)
     const imgs = [...html.matchAll(/<img\b[^>]*>/gi)].map(val => val[0])
     const srcVal = imgs[0].match('src="(.*)"')?.[1]
-    expect(srcVal?.endsWith('_1.jpg')).toBe(true)
+    expect(srcVal?.endsWith('_11.jpg')).toBe(true)
 
     // load non-exist chapter
     expect(fb2.loadChapter('non-exist')).toBeUndefined()
@@ -180,13 +180,104 @@ k=
     const fb2 = await initFb2File(fb2File)
     expect(fb2.getSpine().length).toBe(1)
   })
+
+  it('thrown error if pass File', async () => {
+    await expect(async () => {
+      await initFb2File(new File(['Hello, world!'], 'hello.txt', {
+        type: 'text/plain',
+      }))
+    }).rejects.toThrowError('The `fb2` param cannot be a `File` in node env.')
+  })
 })
 
-// describe('initFb2File in node', () => {
-//   // let fb2: Fb2File
-//   beforeAll(async () => {
-//     // @ts-expect-error globalThis.__BROWSER__
-//     globalThis.__BROWSER__ = true
-//     // fb2 = await initFb2File()
-//   })
-// })
+describe('initFb2File in browser', () => {
+  let fb2: Fb2File
+  beforeAll(async () => {
+    // @ts-expect-error globalThis.__BROWSER__
+    globalThis.__BROWSER__ = true
+    // mock File obj
+    const mockFile: any = {
+      async text() {
+        return await readFile('./example/many-languages.fb2')
+      },
+      name: 'many-languages.fb2',
+    }
+    fb2 = await initFb2File(mockFile)
+  })
+
+  it('getMetadata', () => {
+    const metadata = fb2.getMetadata()
+    const metadataLen = Object.keys(metadata).length
+    expect(metadataLen).toBe(13)
+  })
+
+  it('getFileInfo', () => {
+    expect(fb2.getFileInfo()).toEqual({
+      fileName: 'many-languages.fb2',
+    })
+  })
+
+  it('getToc', () => {
+    const toc = fb2.getToc()
+    expect(toc.length).toBe(32)
+  })
+
+  it('getSpine', () => {
+    const spine = fb2.getSpine()
+    expect(spine.length).toBe(32)
+  })
+
+  it('getCoverImage', () => {
+    const coverImageUrl = fb2.getCoverImage()
+    expect(coverImageUrl.startsWith('blob')).toBe(true)
+  })
+
+  it('resolveHref', () => {
+    const resolvedHref2 = fb2.resolveHref('fb2:lingo_fb2_0#first_section')
+    expect(resolvedHref2?.id).toBe('lingo_fb2_0')
+    expect(resolvedHref2?.selector).toBe('[id="first_section"]')
+  })
+
+  it('loadChapter', () => {
+    const spine = fb2.getSpine()
+    // firstChapter
+    const firstChapter = fb2.loadChapter(spine[0].id)
+    expect(firstChapter?.html.length).toBeGreaterThan(4)
+    expect(firstChapter?.css[0].href.startsWith('blob')).toBe(true)
+
+    // secondChapter, with <a> and <img>
+    const secondChapter = fb2.loadChapter(spine[1].id)
+    const html = secondChapter!.html
+    const aTags = [...html.matchAll(/<a\b[^>]*>/gi)].map(val => val[0])
+    expect(aTags[0].indexOf('note')).toBe(46)
+    expect(aTags[1].indexOf('#first_section')).toBe(24)
+    const imgs = [...html.matchAll(/<img\b[^>]*>/gi)].map(val => val[0])
+    const srcVal = imgs[0].match('src="(.*)"')?.[1]
+    expect(srcVal?.startsWith('blob')).toBe(true)
+  })
+
+  it('destroy', () => {
+    expect(() => {
+      fb2.destroy()
+    }).not.toThrowError()
+  })
+})
+
+describe('fb2-parser corner case in browser', () => {
+  beforeAll(async () => {
+    // @ts-expect-error globalThis.__BROWSER__
+    globalThis.__BROWSER__ = true
+  })
+
+  it('throw error if initFb2File\'s first param is string', async () => {
+    await expect(async () => {
+      await initFb2File('example.fb2')
+    }).rejects.toThrowError()
+  })
+
+  it('init fb2 file using Uint8Array', async () => {
+    const fb2 = await initFb2File(await readFile('./example/many-languages.fb2'))
+    expect(fb2).toBeDefined()
+    expect(fb2.getSpine().length).toBe(32)
+  })
+})

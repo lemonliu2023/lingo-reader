@@ -333,7 +333,9 @@ export class EpubFile implements EBookParser {
   public destroy() {
     // resource in file system
     this.savedResourcePath.forEach((filePath) => {
-      unlink(filePath)
+      if (existsSync(filePath)) {
+        unlink(filePath)
+      }
     })
     this.savedResourcePath.length = 0
     // blob urls
