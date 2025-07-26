@@ -7,5 +7,5 @@ export async function parsexml(str: string | Uint8Array, optionsParserOptions: P
 }
 
 export function camelCase(str: string): string {
-  return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
+  return str.replace(/-([a-z])/gi, g => g[1].toUpperCase())
 }
