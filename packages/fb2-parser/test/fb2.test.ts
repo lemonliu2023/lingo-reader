@@ -84,10 +84,10 @@ describe('initFb2File in node', () => {
     // secondChapter, with <a> and <img>
     const secondChapter = fb2.loadChapter(spine[1].id)
     const html = secondChapter!.html
-    const aTags = [...html.matchAll(/<a\b[^>]*>/gi).map(val => val[0])]
+    const aTags = [...html.matchAll(/<a\b[^>]*>/gi)].map(val => val[0])
     expect(aTags[0].indexOf('note')).toBe(46)
     expect(aTags[1].indexOf('#first_section')).toBe(24)
-    const imgs = [...html.matchAll(/<img\b[^>]*>/gi).map(val => val[0])]
+    const imgs = [...html.matchAll(/<img\b[^>]*>/gi)].map(val => val[0])
     const srcVal = imgs[0].match('src="(.*)"')?.[1]
     expect(srcVal?.endsWith('_1.jpg')).toBe(true)
 
