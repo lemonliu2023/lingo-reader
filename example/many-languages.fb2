@@ -16,16 +16,28 @@
             <date>7.12.2019</date>
             <id>8acb2c8b-0c62-4328-ab34-8fe1f86cbc91</id>
             <version>1.0</version>
+            <history>
+              <p>This book was first uploaded in 2010, revised in 2012 to fix typos,and converted to FB2 in 2025 with updated metadata.</p>
+            </history>
         </document-info>
         <publish-info>
             <publisher>Infogrid Pacific</publisher>
             <year>2011</year>
-            
         </publish-info>
+        <custom-info info-type="source-url">https://example.com/book123</custom-info>
+        <custom-info info-type="translator">John Doe</custom-info>
     </description>
+
+<stylesheet type="text/css">
+  <![CDATA[
+    .bold { font-weight: bold; }
+    .italic { font-style: italic; }
+    .highlight { background-color: yellow; }
+  ]]>
+</stylesheet>
 <body>
 <section>
-<empty-line /><p>
+<empty-line /><p id="first_section">
         Around the</p><empty-line /><p>World in 28</p><empty-line /><p>Languages</p>
 
 <p><strong>AZARDI Language Test Book 1</strong></p><empty-line /><empty-line /><p>
@@ -33,7 +45,10 @@
 </section>
 
 <section>
-<empty-line /><p>
+<a xlink:href="#first_section" type="note">skip to first section</a>
+<a l:href="#first_section">skip to first section using l:href</a>
+<image xlink:href="#_1.jpg" />
+<empty-line /><p xlink:href="#first_section">
           <strong>Infogrid Pacific Pte. Ltd.</strong></p>
 
 <p>© 2011 Infogrid Pacific. All rights reserved.</p>
@@ -4634,7 +4649,17 @@
 <p>E leai lava se mea i lenei Tautinoga e mafai ona faauigaina e faapea, e mafai e so o se Malo, faalapotopotoga po o so o se tagata ua i ai le aia tatau e faagaoi so o se faagaoioiga po o faataunuu so o se tulaga mo le faatamaia o so o se aia tatau ma saolotoga ua tuuina mai i lenei Tautinoga.</p>
 </section>
 
-</body><binary id="_1.jpg" content-type="image/jpeg">/9j/4AAQSkZJRgABAQEAZABkAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8
+</body>
+<body name="footnotes">
+  <section>
+    <subtitle id="N2">2</subtitle>
+    <p>"JOHN H. WATSON, M.D.": the initial letters in the name are
+      capitalized, the other letters in small caps. All chapter titles are in
+      small caps. The initial words of chapters are in small caps with first
+      letter capitalized.</p>
+  </section>
+</body>
+<binary id="_1.jpg" content-type="image/jpeg">/9j/4AAQSkZJRgABAQEAZABkAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8
 lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KC
 IoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/w
 AARCADhAUADASIAAhEBAxEB/8QAHAAAAwEBAQEBAQAAAAAAAAAAAAYHBQQDAQII/8QAThAA

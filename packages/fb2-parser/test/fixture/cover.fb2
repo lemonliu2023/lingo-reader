@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <description>
+    <title-info>
+      <genre>antique</genre>
+      <author>
+        <first-name>Infogrid</first-name>
+        <last-name>Pacific</last-name>
+      </author>
+      <book-title>Around the World in 28 Languages</book-title>
+      <lang>en</lang>
+    </title-info>
+  </description>
+  <body>
+    <section>
+      <subtitle id="N2">2</subtitle>
+      <p>"JOHN H. WATSON, M.D.": the initial letters in the name are
+        capitalized, the other letters in small caps. All chapter titles are in
+        small caps. The initial words of chapters are in small caps with first
+        letter capitalized.</p>
+    </section>
+  </body>
+  <!-- binary without content-type -->
+  <binary id="123" content-type="image/jpeg">
+    xA5HSqm9vJY7jnJ5zRRUMtEyOzMuWJ47mpSTvHJ6UUUiWLcgApgDnrUCk7
+    m570UVSKXwlhOCAOlTzKoX7o/KiiqMpFebhOOOKi3sEXDEfjRRSLQ9XYuSWOcetIWY9ST+N
+    FFDGhG6N7DioYz8poopItCoMq2fWoCqiTgAdOgoooLQMSDgEgbu1DyPtb52/OiikPqELt5f
+    3j+dWMljg8j3oopBL4hknEJI4Oe1VYmbc3zHgcc0UUwLEnzIN3P1qm6jf0FFFA47lG4ZllU
+    AkDB6GoDI+AN7fnRRTN0TbiYeSTVBwA7nHINFFUilsSIflUdqfbk4NFFUhSHSKuAdoz9Kjl
+    GIcjg5ooqugkVnkfB+du3eq87vszuOfrRRQiiSzdm+8xP1NTOAHXA6nn3oooYiOUnL8ninK
+    TtxmiimMhZQH6DrVefhwR1z1ooq0CKN0zbPvHr61HbO5ySxJ9zRRWoD5GbJ+Y/nRRRSYH/9
+    k=
+  </binary>
+</FictionBook>

@@ -6,7 +6,6 @@ import type {
   Fb2Metadata,
   Fb2ResourceMap,
   PublishInfo,
-  Sequence,
   TitleInfo,
 } from './types'
 import { extend, getFirstXmlNodeText } from './utils'
@@ -51,18 +50,6 @@ function parseCoverpage(coverpageAST: any): string {
   return $['l:href'] ?? $['xlink:href']
 }
 
-function parseSequence(sequenceAST: any): Sequence[] {
-  const res: Sequence[] = []
-  for (const sequence of sequenceAST) {
-    const $ = sequence.$
-    res.push({
-      name: $.name,
-      number: $.number ?? '',
-    })
-  }
-  return res
-}
-
 export function parseTitleInfo(titleInfoAST: any): TitleInfo {
   const titleInfo: TitleInfo = {}
 
@@ -95,10 +82,6 @@ export function parseTitleInfo(titleInfoAST: any): TitleInfo {
         titleInfo.coverImageId = parseCoverpage(node).slice(1)
         break
       }
-      case 'sequence': {
-        titleInfo.sequence = parseSequence(titleInfoAST[key])
-        break
-      }
     }
   }
 
@@ -106,14 +89,17 @@ export function parseTitleInfo(titleInfoAST: any): TitleInfo {
 }
 
 // TODO: history
-export function parseDocumentInfo(documentInfoAST: any): DocumentInfo {
-  const documentInfo: DocumentInfo = {}
+export function parseDocumentInfo(documentInfoAST: any): DocumentInfo & { history?: any } {
+  const documentInfo: DocumentInfo & { history?: any } = {}
   for (const key in documentInfoAST) {
     if (key === 'children') {
       continue
     }
     else if (key === 'author') {
       documentInfo.author = parseAuthor(documentInfoAST.author[0])
+    }
+    else if (key === 'history') {
+      documentInfo.history = documentInfoAST.history[0]
     }
     else {
       documentInfo[camelCase(key) as keyof Omit<DocumentInfo, 'author'>]
@@ -150,6 +136,7 @@ export function parseCustomInfo(customInfoAST: any): CustomInfo {
 export function parseDescription(descriptionAST: any) {
   const metadata: Fb2Metadata = {}
   let coverImageId = ''
+  let history: any
 
   // title-info
   if (descriptionAST['title-info']) {
@@ -160,7 +147,8 @@ export function parseDescription(descriptionAST: any) {
   // document-info
   if (descriptionAST['document-info']) {
     const documentInfo = parseDocumentInfo(descriptionAST['document-info'][0])
-    extend(metadata, documentInfo)
+    extend(metadata, documentInfo, ['history'])
+    history = documentInfo.history
   }
   // publish-info
   if (descriptionAST['publish-info']) {
@@ -176,5 +164,6 @@ export function parseDescription(descriptionAST: any) {
   return {
     metadata,
     coverImageId,
+    history,
   }
 }

@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, unlink } from 'node:fs'
-import type { FileInfo, InputFile } from '@lingo-reader/shared'
+import type { EBookParser, FileInfo, InputFile } from '@lingo-reader/shared'
 import { parsexml } from '@lingo-reader/shared'
 import {
   buildFb2Href,
@@ -35,7 +35,7 @@ export async function initFb2File(
 
 // section Id and fb2 id are different
 
-export class Fb2File {
+export class Fb2File implements EBookParser {
   // resource
   private resourceSaveDir: string
 
@@ -81,7 +81,7 @@ export class Fb2File {
     if (this.resourceCache.has(this.coverImageId)) {
       return this.resourceCache.get(this.coverImageId)!
     }
-    if (this.resourceStore.has(this.coverImageId)) {
+    if (this.coverImageId.length > 0 && this.resourceStore.has(this.coverImageId)) {
       const resourcePath = saveResource(this.resourceStore.get(this.coverImageId)!, this.resourceSaveDir)
       this.resourceCache.set(this.coverImageId, resourcePath)
       return resourcePath
@@ -109,17 +109,20 @@ export class Fb2File {
       preserveChildrenOrder: true,
       explicitChildren: true,
       childkey: 'children',
+      trim: true,
     })
     const fictionBook = res.FictionBook
 
     // parse xml node
     this.resourceStore = parseBinary(fictionBook.binary)
 
-    // TODO: metadata.history
     // description
-    const { metadata, coverImageId } = parseDescription(fictionBook.description[0])
+    const { metadata, coverImageId, history } = parseDescription(fictionBook.description[0])
     this.metadata = metadata
     this.coverImageId = coverImageId
+    if (history) {
+      this.metadata.history = this.serializeNode(history)
+    }
 
     // stylesheet
     if (fictionBook.stylesheet) {
@@ -180,15 +183,21 @@ export class Fb2File {
     for (const key in attrs) {
       const value = attrs[key]
       if (key === 'l:href' || key === 'xlink:href') {
-        // image or a
-        const resourceId = value.slice(1)
-        const targetAttrName = tagName === 'a' ? 'href' : 'src'
-        if (this.resourceStore.has(resourceId)) {
+        const id = value.slice(1)
+        // <a>
+        if (tagName === 'a' && this.idToChapterIdMap.has(id)) {
+          res.push(`href="${buildFb2Href(
+            this.idToChapterIdMap.get(id)!,
+            id,
+          )}"`)
+        }
+        // <img>
+        else if (tagName === 'img' && this.resourceStore.has(id)) {
           const resourceUrl = saveResource(
-            this.resourceStore.get(resourceId)!,
+            this.resourceStore.get(id)!,
             this.resourceSaveDir,
           )
-          res.push(`${targetAttrName}="${resourceUrl}"`)
+          res.push(`src="${resourceUrl}"`)
         }
         else {
           res.push('')
@@ -242,7 +251,9 @@ export class Fb2File {
     const chapter = this.chapterStore.get(id)!
     const transformedSection = {
       html: this.serializeNode(chapter.sectionNode),
-      css: this.stylesheetUrl.length > 0 ? [this.stylesheetUrl] : [],
+      css: this.stylesheetUrl.length > 0
+        ? [{ id: `${ID_PREFIX}css`, href: this.stylesheetUrl }]
+        : [],
     }
 
     this.chapterCache.set(id, transformedSection)
@@ -276,9 +287,12 @@ export class Fb2File {
         URL.revokeObjectURL(path)
       }
       else {
-        unlink(path, () => { })
+        if (existsSync(path)) {
+          unlink(path, () => { })
+        }
       }
     })
     this.resourceCache.clear()
+    this.chapterCache.clear()
   }
 }

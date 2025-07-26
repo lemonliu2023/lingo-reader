@@ -132,7 +132,7 @@ export function saveStylesheet(style: string, resourceSaveDir: string): string {
 }
 
 export function buildFb2Href(chapterId: string, fb2GlobalId?: string) {
-  return HREF_PREFIX + chapterId + (fb2GlobalId ?? '')
+  return HREF_PREFIX + chapterId + (fb2GlobalId ? (`#${fb2GlobalId}`) : '')
 }
 
 export function buildIdToSectionMap(

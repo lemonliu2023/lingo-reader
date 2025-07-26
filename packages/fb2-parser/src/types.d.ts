@@ -18,31 +18,6 @@ export interface Author {
   email?: string
 }
 
-export interface Sequence {
-  name: string
-  number?: string
-}
-
-/**
-
-<title-info>
-  <genre>fantasy</genre>
-  <author>
-    <first-name>J.</first-name>
-    <last-name>Tolkien</last-name>
-  </author>
-  <book-title>The Hobbit</book-title>
-  <annotation>A fantasy novel...</annotation>
-  <date value="1937">1937</date>
-  <coverpage>
-    <image l:href="#cover.jpg"/>
-  </coverpage>
-  <lang>en</lang>
-  <sequence name="Middle-earth" number="1"/>
-</title-info>
-
- */
-
 // title-info
 export interface TitleInfo {
   // alias of book-title
@@ -59,7 +34,6 @@ export interface TitleInfo {
   date?: string
   srcLang?: string
   translator?: string
-  sequence?: Sequence[]
   coverImageId?: string
 }
 
@@ -123,7 +97,12 @@ export interface Fb2ResolvedHref {
   selector: string
 }
 
+export interface Fb2CssPart {
+  id: string
+  href: string
+}
+
 export interface Fb2ProcessedChapter {
   html: string
-  css: string[]
+  css: Fb2CssPart[]
 }
