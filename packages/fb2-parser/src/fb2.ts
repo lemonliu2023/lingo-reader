@@ -282,7 +282,7 @@ export class Fb2File implements EBookParser {
   }
 
   public destroy() {
-    this.resourceCache.values().forEach((path) => {
+    this.resourceCache.forEach((path) => {
       if (__BROWSER__) {
         URL.revokeObjectURL(path)
       }
