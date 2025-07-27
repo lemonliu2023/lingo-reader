@@ -74,7 +74,7 @@ const handleDrop = (e: DragEvent) => {
     <!-- file support -->
     <span v-show="!isDragging" class="info">
       {{ t('supportedFileTypsPrefix') }}
-      <b>.epub</b> <b>.mobi</b> <b>.azw3(.kf8)</b>
+      <b>.epub</b> <b>.mobi</b> <b>.azw3(.kf8)</b> <b>.fb2</b>
       {{ t('supportedFileTypsSuffix') }}
     </span>
   </div>
