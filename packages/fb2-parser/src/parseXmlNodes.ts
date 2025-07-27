@@ -57,11 +57,8 @@ export function parseTitleInfo(titleInfoAST: any): TitleInfo {
     'genre': 'type',
     'lang': 'language',
     'annotation': 'description',
-    'keywords': 'keywords',
-    'date': 'date',
     'book-title': 'title',
     'src-lang': 'srcLang',
-    'translator': 'translator',
   }
 
   for (const key in titleInfoAST) {
@@ -88,7 +85,6 @@ export function parseTitleInfo(titleInfoAST: any): TitleInfo {
   return titleInfo
 }
 
-// TODO: history
 export function parseDocumentInfo(documentInfoAST: any): DocumentInfo & { history?: any } {
   const documentInfo: DocumentInfo & { history?: any } = {}
   for (const key in documentInfoAST) {

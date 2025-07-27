@@ -81,7 +81,10 @@ export class Fb2File implements EBookParser {
       return this.resourceCache.get(this.coverImageId)!
     }
     if (this.coverImageId.length > 0 && this.resourceStore.has(this.coverImageId)) {
-      const resourcePath = saveResource(this.resourceStore.get(this.coverImageId)!, this.resourceSaveDir)
+      const resourcePath = saveResource(
+        this.resourceStore.get(this.coverImageId)!,
+        this.resourceSaveDir,
+      )
       this.resourceCache.set(this.coverImageId, resourcePath)
       return resourcePath
     }
@@ -131,35 +134,21 @@ export class Fb2File implements EBookParser {
     let sectionId = 0
     // body
     for (const body of fictionBook.body) {
-      // body that stores chapters
-      if (!body.$?.name) {
-        for (const sectionNode of body.section) {
-          const id = ID_PREFIX + sectionId
-          // innner chapter
-          this.chapterStore.set(id, {
-            id,
-            sectionNode,
-          })
-          // spine
-          this.spine.push({ id })
-          // toc
-          const sectionLabel = getFirstXmlNodeText(sectionNode.title)
-          this.tableOfContent.push({
-            label: sectionLabel,
-            href: buildFb2Href(id),
-          })
-          buildIdToSectionMap(id, sectionNode, this.idToChapterIdMap)
-          sectionId++
-        }
-      }
-      else {
-        // remaining body with name
+      const isUnnamedBody = !body.$?.name
+      for (const sectionNode of body.section) {
+        // chapter id
         const id = ID_PREFIX + sectionId
-        const name = body.$.name
-        const sectionNode = body.section[0]
-        // inner chapter
-        this.chapterStore.set(id, { id, name, sectionNode })
-        // spine
+        // get chapter name
+        const name = isUnnamedBody
+          ? getFirstXmlNodeText(sectionNode.title)
+          : body.$.name
+        // save chapter
+        this.chapterStore.set(id, {
+          id,
+          sectionNode,
+          ...(isUnnamedBody ? {} : { name }),
+        })
+        // add to spine
         this.spine.push({ id })
         // toc
         this.tableOfContent.push({
@@ -293,5 +282,7 @@ export class Fb2File implements EBookParser {
     })
     this.resourceCache.clear()
     this.chapterCache.clear()
+    this.resourceStore?.clear()
+    this.chapterStore.clear()
   }
 }

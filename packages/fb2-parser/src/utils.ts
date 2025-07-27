@@ -73,7 +73,7 @@ export const mimeTypeToResourceExtension: Record<string, string> = {
   'image/heic': 'heic',
   'image/avif': 'avif',
 
-  // css
+  // css, unused
   'text/css': 'css',
 }
 
