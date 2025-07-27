@@ -178,6 +178,9 @@ export class Fb2File implements EBookParser {
             id,
           )}"`)
         }
+        else if (tagName === 'a' && value.startsWith('http')) {
+          res.push(`href="${value}"`)
+        }
         // <img>
         else if (tagName === 'img' && this.resourceStore.has(id)) {
           const resourceUrl = saveResource(

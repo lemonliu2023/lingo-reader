@@ -87,6 +87,7 @@ describe('initFb2File in node', () => {
     const aTags = [...html.matchAll(/<a\b[^>]*>/gi)].map(val => val[0])
     expect(aTags[0].indexOf('note')).toBe(46)
     expect(aTags[1].indexOf('#first_section')).toBe(24)
+    expect(aTags[2].indexOf('http')).toBe(9)
     const imgs = [...html.matchAll(/<img\b[^>]*>/gi)].map(val => val[0])
     const srcVal = imgs[0].match('src="(.*)"')?.[1]
     expect(srcVal?.endsWith('_11.jpg')).toBe(true)

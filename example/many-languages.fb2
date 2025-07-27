@@ -45,8 +45,9 @@
 </section>
 
 <section>
-<a xlink:href="#first_section" type="note">skip to first section</a>
-<a l:href="#first_section">skip to first section using l:href</a>
+<p><a xlink:href="#first_section" type="note">skip to first section</a></p>
+<p><a l:href="#first_section">skip to first section using l:href</a></p>
+<p><a xlink:href="https://www.example.com"></a></p>
 <image xlink:href="#_11" />
 <empty-line /><p xlink:href="#first_section">
           <strong>Infogrid Pacific Pte. Ltd.</strong></p>
