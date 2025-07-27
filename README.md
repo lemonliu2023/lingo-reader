@@ -4,17 +4,18 @@
 
 # Introduction
 
-**lingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, and .**.azw3** (**.kf8**) files, and provides a unified API.
+**lingo-reader** is a library for parsing eBook files. It currently supports the parsing of **.epub**, **.mobi**, **.azw3** (**.kf8**) and **.fb2** files, and provides a unified API.
 
 In addition, you can also visit [https://hhk-png.github.io/lingo-reader/](https://hhk-png.github.io/lingo-reader/) to directly read eBooks. This website is developed based on this parsing library.
 
-You can find detailed explanations of each parsing library in the corresponding subproject's `README.md` file: [epub-parser](./packages/epub-parser/README.md), [mobi-parser](./packages/mobi-parser/README.md), and [kf8-parser](./packages/mobi-parser/README.md).
+You can find detailed explanations of each parsing library in the corresponding subproject's `README.md` file: [epub-parser README.md](./packages/epub-parser/README.md), [mobi-parser README.md](./packages/mobi-parser/README.md), [kf8-parser README.md](./packages/mobi-parser/README.md) and [fb2-parser README.md](./packages/fb2-parser/README.md).
 
 # Install
 
 ```shell
 pnpm install @lingo-reader/epub-parser
 pnpm install @lingo-reader/mobi-parser # include parsers of mobi and azw3
+pnpm install @lingo-reader/fb2-parser
 pnpm install @lingo-reader/shared # include types of unified API mentioned above
 ```
 
@@ -26,6 +27,8 @@ import { initEpubFile } from '@lingo-reader/epub-parser'
 import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
 import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
 import type { FileInfo } from '@lingo-reader/shared'
+import type { Fb2File, Fb2Spine } from '@lingo-reader/fb2-parser'
+import { initFb2File } from '@lingo-reader/fb2-parser'
 
 let book: EpubFile | Mobi | Kf8 | undefined
 let spine: EpubSpine | MobiSpine | Kf8Spine = []
@@ -44,9 +47,15 @@ async function initBook(file: File) {
     spine = book.getSpine()
     fileInfo = book.getFileInfo()
   }
-  else if (file.name.endsWith('kf8')) {
+  else if (file.name.endsWith('kf8') || file.name.endsWith('azw3')) {
     book = await initKf8File(file)
     spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+  else if (file.name.endsWith('fb2')) {
+    book = await initFb2File(file)
+    spine = book.getSpine()
+    chapterNums.value = spine.length
     fileInfo = book.getFileInfo()
   }
 }
@@ -72,6 +81,7 @@ Each eBook format has its own initialization method exposed by the corresponding
 - `initEpubFile` for EPUB
 - `initMobiFile` for MOBI
 - `initKf8File` for AZW3 (KF8)
+- `initFb2File` for FB2
 
 These methods return objects that implement the shared `EBookParser` interface, providing a unified API surface while preserving the unique characteristics of each file format.
 

@@ -1,16 +1,17 @@
 # 简介
 
-**lingo-reader** 是一个用于解析电子书文件的库。目前支持解析 **.epub**、**.mobi** 和 **.azw3**（**.kf8**）格式的文件，并提供了一套统一的 API。
+**lingo-reader** 是一个用于解析电子书文件的库。目前支持解析 **.epub**、**.mobi** 、 **.azw3**（**.kf8**）和 **.fb2** 格式的文件，并提供了一套统一的 API。
 
 此外，你还可以访问 https://hhk-png.github.io/lingo-reader/ 来直接阅读电子书。这个网站是基于该解析库开发的。
 
-各个解析库的详细解释可以查看对应子项目下的 `README.md` 文件：[epub-parser README.md](./packages/epub-parser/README-zh.md)，[mobi-parser README.md](./packages/mobi-parser/README-zh.md)，[kf8-parser README.md](./packages/mobi-parser/README-zh.md)。
+各个解析库的详细解释可以查看对应子项目下的 `README.md` 文件：[epub-parser README.md](./packages/epub-parser/README-zh.md)，[mobi-parser README.md](./packages/mobi-parser/README-zh.md)，[kf8-parser README.md](./packages/mobi-parser/README-zh.md)，[fb2-parser README.md](./packages/fb2-parser/README-zh.md)。
 
 # Install
 
 ```shell
 pnpm install @lingo-reader/epub-parser
 pnpm install @lingo-reader/mobi-parser # 包括moi和azw3文件的解析
+pnpm install @lingo-reader/fb2-parser
 pnpm install @lingo-reader/shared # 包含统一API的类型
 ```
 
@@ -22,6 +23,8 @@ import { initEpubFile } from '@lingo-reader/epub-parser'
 import { initKf8File, initMobiFile } from '@lingo-reader/mobi-parser'
 import type { Kf8, Kf8Spine, Mobi, MobiSpine } from '@lingo-reader/mobi-parser'
 import type { FileInfo } from '@lingo-reader/shared'
+import type { Fb2File, Fb2Spine } from '@lingo-reader/fb2-parser'
+import { initFb2File } from '@lingo-reader/fb2-parser'
 
 let book: EpubFile | Mobi | Kf8 | undefined
 let spine: EpubSpine | MobiSpine | Kf8Spine = []
@@ -40,9 +43,15 @@ async function initBook(file: File) {
     spine = book.getSpine()
     fileInfo = book.getFileInfo()
   }
-  else if (file.name.endsWith('kf8')) {
+  else if (file.name.endsWith('kf8') || file.name.endsWith('azw3')) {
     book = await initKf8File(file)
     spine = book.getSpine()
+    fileInfo = book.getFileInfo()
+  }
+  else if (file.name.endsWith('fb2')) {
+    book = await initFb2File(file)
+    spine = book.getSpine()
+    chapterNums.value = spine.length
     fileInfo = book.getFileInfo()
   }
 }
@@ -63,7 +72,7 @@ book!.destroy()
 
 # Init File
 
-针对每种电子书文件，各子包都暴露出了一个init方法，epub、mobi、azw3(kf8)对应的方法分别是`initEpubFile`、`initMobiFile`、`initKf8File`，它们返回的对象都implements了下面的EBookParser接口，在一定程度上统一，但又保持了各自文件类型的特点。请选择对应的文档查看更详细的描述。
+针对每种电子书文件，各子包都暴露出了一个init方法，epub、mobi、azw3(kf8)、fb2对应的方法分别是`initEpubFile`、`initMobiFile`、`initKf8File`、`initFb2File`，它们返回的对象都implements了下面的EBookParser接口，在一定程度上统一，但又保持了各自文件类型的特点。请选择对应的文档查看更详细的描述。
 
 # Unified API
 
