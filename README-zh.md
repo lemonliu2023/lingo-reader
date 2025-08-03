@@ -197,3 +197,18 @@ export interface ResolvedHref {
 # 安全问题
 
 在进行文件解析时，从章节中提取出来的 html 没有经过安全处理，有可能会被 xss 攻击。在解析库中并没有打算对这一点进行处理，而是在 reader-html 上层应用中使用 DOMPurify 弥补了这一缺陷。
+
+# TODO：
+
+1. 处理epub-parser保存文件的问题，
+2. 将svg-renderer分离出来，抽代码
+3. 看epub 3.4规范
+4. 阅读进度
+5. media-overlay语音朗读功能
+6. epub的mimetype需要重新整理
+7. Parsing may replace some characters in the file path by their percent encoded alternative. For example, A/B/C/file name.xhtml becomes A/B/C/file%20name.xhtml.
+8. 非 codec 资源：先压缩（Deflate）再加密，以节省体积。
+   codec 资源（音视频）：不要压缩，只加密，避免性能问题和播放问题。
+9. The package element attributes
+10. 整理epub metadata，rendition:layout，rendition:orientation，rendition:spread，rendition:flow，rendition:align-x-center
+11. 有几个警告打印需要清除，mobi
