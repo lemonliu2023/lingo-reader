@@ -163,3 +163,21 @@ export interface EncryptionKeys {
   rsaPrivateKey?: Uint8Array
   aesSymmetricKey?: Uint8Array
 }
+
+/**
+ * .smil file
+ */
+interface Par {
+  // element id
+  textDOMId: string
+  // unit: s
+  begin: number
+  end: number
+}
+
+interface SmilAudio {
+  audioSrc: string
+  pars: Par[]
+}
+
+type SmilAudios = SmilAudio[]
