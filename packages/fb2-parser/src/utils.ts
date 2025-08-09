@@ -77,7 +77,7 @@ export const mimeTypeToResourceExtension: Record<string, string> = {
   'text/css': 'css',
 }
 
-function base64ToUint8Array(base64String: string): Uint8Array {
+function base64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const binaryString = atob(base64String.trim())
   const len = binaryString.length
   const bytes = new Uint8Array(len)

@@ -10,7 +10,7 @@ export async function decryptRsa(
   if (__BROWSER__) {
     const cryptoKey = await crypto.subtle.importKey(
       'pkcs8',
-      privateKey,
+      privateKey as Uint8Array,
       {
         name: 'RSA-OAEP',
         hash: { name: hash.replace('sha', 'sha-').toUpperCase() },
@@ -99,7 +99,7 @@ export async function decryptAes(
     // Import the key
     const key = await crypto.subtle.importKey(
       'raw',
-      symmetricKey,
+      symmetricKey as Uint8Array,
       { name: algorithmParamsName, length: Number.parseInt(bits) },
       false,
       ['decrypt'],

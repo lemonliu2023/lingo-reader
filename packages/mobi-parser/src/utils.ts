@@ -129,7 +129,7 @@ export interface Resource {
 }
 
 export function saveResource(
-  data: Uint8Array | string,
+  data: Uint8Array<ArrayBuffer> | string,
   type: FileMimeType,
   filename: string,
   imageSaveDir: string,

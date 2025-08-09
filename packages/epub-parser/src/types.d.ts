@@ -168,7 +168,7 @@ export interface EncryptionKeys {
 /**
  * .smil file
  */
-interface Par {
+export interface Par {
   // element id
   textDOMId: string
   // unit: s
@@ -176,9 +176,9 @@ interface Par {
   clipEnd: number
 }
 
-interface SmilAudio {
+export interface SmilAudio {
   audioSrc: string
   pars: Par[]
 }
 
-type SmilAudios = SmilAudio[]
+export type SmilAudios = SmilAudio[]
