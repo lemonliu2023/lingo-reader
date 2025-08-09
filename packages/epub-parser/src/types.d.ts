@@ -133,6 +133,7 @@ export interface EpubCssPart {
 export interface EpubProcessedChapter {
   css: EpubCssPart[]
   html: string
+  audios?: SmilAudios
 }
 
 export interface EpubResolvedHref {
@@ -171,8 +172,8 @@ interface Par {
   // element id
   textDOMId: string
   // unit: s
-  begin: number
-  end: number
+  clipBegin: number
+  clipEnd: number
 }
 
 interface SmilAudio {

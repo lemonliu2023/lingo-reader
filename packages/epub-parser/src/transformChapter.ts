@@ -1,8 +1,8 @@
 import { path } from '@lingo-reader/shared'
 import { readFileSync, writeFileSync } from './fsPolyfill'
-import type { EpubCssPart, EpubProcessedChapter } from './types'
+import type { EpubCssPart, EpubProcessedChapter, SmilAudio, SmilAudios } from './types'
 import { HREF_PREFIX } from './constant'
-import { resourceExtensionToMimeType } from './utils'
+import { resourceExtensionToMimeType, smilTimeToSeconds } from './utils'
 
 const browserUrlCache = new Map<string, string>()
 
@@ -120,6 +120,45 @@ export function transformHTML(
     css,
     html: bodyReplaced,
   }
+}
+
+function traversePar(
+  pars: any,
+  smilDir: string,
+  resourceSaveDir: string,
+  parsedAudios: Record<string, SmilAudio>,
+) {
+  for (const par of pars) {
+    if (par['#name'] === 'par') {
+      const textDOMId = par.text[0].$.src.split('#')[1]
+      const audioAttrs = par.audio[0].$
+      const audioSrc = getResourceUrl(audioAttrs.src, smilDir, resourceSaveDir)
+      const clipBegin = smilTimeToSeconds(audioAttrs.clipBegin)
+      const clipEnd = smilTimeToSeconds(audioAttrs.clipEnd)
+
+      if (!parsedAudios[audioSrc]) {
+        parsedAudios[audioSrc] = {
+          audioSrc,
+          pars: [],
+        }
+      }
+      parsedAudios[audioSrc].pars.push({ textDOMId, clipBegin, clipEnd })
+    }
+    else {
+      traversePar(par.children, smilDir, resourceSaveDir, parsedAudios)
+    }
+  }
+}
+
+export function parseSmil(
+  smilAST: any,
+  smilDir: string,
+  resourceSaveDir: string,
+): SmilAudios {
+  const parsedAudios: Record<string, SmilAudio> = {}
+  const body = smilAST.smil.body[0].children
+  traversePar(body, smilDir, resourceSaveDir, parsedAudios)
+  return Object.values(parsedAudios)
 }
 
 export function revokeBlobUrls() {

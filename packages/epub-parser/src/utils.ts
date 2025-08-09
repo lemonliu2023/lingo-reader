@@ -145,3 +145,19 @@ export function extractEncryptionKeys(options: EpubFileOptions): EncryptionKeys 
   }
   return encryptionKeys
 }
+
+export function smilTimeToSeconds(timeStr: string): number {
+  // support "h:mm:ss.sss" or "mm:ss.sss"
+  const parts = timeStr.split(':').map(Number)
+  if (parts.length === 3) {
+    const [h, m, s] = parts
+    return h * 3600 + m * 60 + s
+  }
+  else if (parts.length === 2) {
+    const [m, s] = parts
+    return m * 60 + s
+  }
+  else {
+    return Number(timeStr)
+  }
+}

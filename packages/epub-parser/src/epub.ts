@@ -31,7 +31,7 @@ import {
   parsePageList,
   parseSpine,
 } from './parseFiles'
-import { revokeBlobUrls, transformHTML } from './transformHTML'
+import { parseSmil, revokeBlobUrls, transformHTML } from './transformChapter'
 import { HREF_PREFIX } from './constant'
 /*
   TODO: parse links in meta-inf/container.xml
@@ -295,13 +295,35 @@ export class EpubFile implements EBookParser {
     if (this.chapterCache.has(id)) {
       return this.chapterCache.get(id)!
     }
-    const xmlHref = this.manifest[id].href
+    const htmlManifest = this.manifest[id]
+    // html
+    const xmlHref = htmlManifest.href
     const htmlDir = path.dirname(xmlHref)
     const transformed = transformHTML(
       await this.zip.readFile(xmlHref),
       htmlDir,
       this.resourceSaveDir,
     )
+    // media-overlay
+    const mediaOverlayId = htmlManifest.mediaOverlay
+    if (mediaOverlayId) {
+      const smilManifest = this.manifest[mediaOverlayId]
+      const smilHref = smilManifest.href
+      const audios = parseSmil(
+        await parsexml(
+          await this.zip.readFile(smilHref),
+          {
+            preserveChildrenOrder: true,
+            explicitChildren: true,
+            childkey: 'children',
+          },
+        ),
+        path.dirname(smilHref),
+        this.resourceSaveDir,
+      )
+      transformed.audios = audios
+    }
+
     this.chapterCache.set(id, transformed)
     return transformed
   }
@@ -313,6 +335,7 @@ export class EpubFile implements EBookParser {
     // remove 'epub:'
     href = href.slice(5).trim()
     const [urlPath, hrefId] = href.split('#')
+    // id
     let id = ''
     if (this.hrefToIdMap[urlPath]) {
       id = this.hrefToIdMap[urlPath]
@@ -320,6 +343,7 @@ export class EpubFile implements EBookParser {
     else {
       return undefined
     }
+    // selector
     let selector = ''
     if (hrefId) {
       selector = `[id="${hrefId}"]`
