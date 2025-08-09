@@ -129,13 +129,13 @@ export interface Resource {
 }
 
 export function saveResource(
-  data: Uint8Array<ArrayBuffer> | string,
+  data: Uint8Array | string,
   type: FileMimeType,
   filename: string,
   imageSaveDir: string,
 ): string {
   if (__BROWSER__) {
-    return URL.createObjectURL(new Blob([data], { type }))
+    return URL.createObjectURL(new Blob([data as Uint8Array | string], { type }))
   }
   else {
     const fileName = `${filename}.${MimeToExt[type]}`
