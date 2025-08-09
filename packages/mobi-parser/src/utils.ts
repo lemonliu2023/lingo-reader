@@ -135,7 +135,7 @@ export function saveResource(
   imageSaveDir: string,
 ): string {
   if (__BROWSER__) {
-    return URL.createObjectURL(new Blob([data as Uint8Array | string], { type }))
+    return URL.createObjectURL(new Blob([data as Uint8Array<ArrayBuffer> | string], { type }))
   }
   else {
     const fileName = `${filename}.${MimeToExt[type]}`
