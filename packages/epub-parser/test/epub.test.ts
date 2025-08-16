@@ -81,7 +81,7 @@ describe('parse epubFile in node', async () => {
     const manifest = epub.getManifest()
 
     // 33 items in manifest
-    expect(Object.keys(manifest).length).toBe(34)
+    expect(Object.keys(manifest).length).toBe(37)
     expect(manifest.item1).toEqual({
       id: 'item1',
       href: '19033/www.gutenberg.org@files@19033@19033-h@images@cover_th.jpg',
@@ -101,7 +101,7 @@ describe('parse epubFile in node', async () => {
       href: '19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       mediaType: 'application/xhtml+xml',
       properties: '',
-      mediaOverlay: '',
+      mediaOverlay: 'item35',
     })
     expect(manifest.item33.id).toBe('item33')
     expect(manifest.item33.href).toBe('19033/12997454.mp4')
@@ -115,7 +115,7 @@ describe('parse epubFile in node', async () => {
       id: 'item32',
       href: 'epub:19033/www.gutenberg.org@files@19033@19033-h@19033-h-0.htm',
       mediaType: 'application/xhtml+xml',
-      mediaOverlay: '',
+      mediaOverlay: 'item35',
       properties: '',
       linear: 'yes',
     })
@@ -173,7 +173,7 @@ describe('parse epubFile in node', async () => {
   })
 
   it('loadChapter', async () => {
-    const { css, html } = await epub.loadChapter('item32')
+    const { css, html, mediaOverlays } = await epub.loadChapter('item32')
     // html
     const imageTags = html.match(/<(img|source)[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
@@ -195,6 +195,12 @@ describe('parse epubFile in node', async () => {
     const { css: css2, html: html2 } = await epub.loadChapter('item32')
     expect(css2.length).toBe(css.length)
     expect(html2.length).toEqual(html.length)
+
+    // media-overlay
+    expect(mediaOverlays!.length).toBe(2)
+    expect(mediaOverlays![1].audioSrc.endsWith('mp3')).toBe(true)
+    expect(mediaOverlays![0].pars.length).toBe(1)
+    expect(mediaOverlays![1].pars.length).toBe(9)
   })
 
   it('resolveHref', () => {
@@ -256,7 +262,7 @@ describe('parse epubFile in browser', async () => {
   })
 
   it('loadChapter', async () => {
-    const { css, html } = await epub2.loadChapter('item32')
+    const { css, html, mediaOverlays } = await epub2.loadChapter('item32')
     // html
     const imageTags = html.match(/<(img|source)[^>]*>/g)
     const srcs = imageTags?.map((imgTag) => {
@@ -272,6 +278,12 @@ describe('parse epubFile in browser', async () => {
     const cssFileContent = await fetch(css[0].href).then(res => res.text())
     const matchedUrl = cssFileContent.match(/url\(([^)]*)\)/)![1]
     expect(matchedUrl.startsWith('blob')).toBe(true)
+
+    // media-overlay
+    expect(mediaOverlays!.length).toBe(2)
+    expect(mediaOverlays![1].audioSrc.startsWith('blob')).toBe(true)
+    expect(mediaOverlays![0].pars.length).toBe(1)
+    expect(mediaOverlays![1].pars.length).toBe(9)
   })
 
   // simulate File
