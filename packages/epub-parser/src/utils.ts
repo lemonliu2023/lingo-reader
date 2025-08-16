@@ -146,6 +146,23 @@ export function extractEncryptionKeys(options: EpubFileOptions): EncryptionKeys 
   return encryptionKeys
 }
 
+function withMemoize<Args extends any[], Return>(
+  fn: (...args: Args) => Return,
+): (...args: Args) => Return {
+  const cache = new Map<string, Return>()
+
+  return (...args: Args) => {
+    const key = JSON.stringify(args)
+    if (cache.has(key)) {
+      return cache.get(key)!
+    }
+
+    const result = fn(...args)
+    cache.set(key, result)
+    return result
+  }
+}
+
 export function smilTimeToSeconds(timeStr: string): number {
   // support "h:mm:ss.sss" or "mm:ss.sss"
   const parts = timeStr.split(':').map(Number)
@@ -161,3 +178,5 @@ export function smilTimeToSeconds(timeStr: string): number {
     return Number(timeStr)
   }
 }
+
+export const cachedSmilTimeToSeconds = withMemoize(smilTimeToSeconds)

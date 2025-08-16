@@ -2,7 +2,7 @@ import { path } from '@lingo-reader/shared'
 import { readFileSync, writeFileSync } from './fsPolyfill'
 import type { EpubCssPart, EpubProcessedChapter, SmilAudio, SmilAudios } from './types'
 import { HREF_PREFIX } from './constant'
-import { resourceExtensionToMimeType, smilTimeToSeconds } from './utils'
+import { cachedSmilTimeToSeconds, resourceExtensionToMimeType } from './utils'
 
 const browserUrlCache = new Map<string, string>()
 
@@ -133,8 +133,8 @@ function traversePar(
       const textDOMId = par.text[0].$.src.split('#')[1]
       const audioAttrs = par.audio[0].$
       const audioSrc = getResourceUrl(audioAttrs.src, smilDir, resourceSaveDir)
-      const clipBegin = smilTimeToSeconds(audioAttrs.clipBegin)
-      const clipEnd = smilTimeToSeconds(audioAttrs.clipEnd)
+      const clipBegin = cachedSmilTimeToSeconds(audioAttrs.clipBegin)
+      const clipEnd = cachedSmilTimeToSeconds(audioAttrs.clipEnd)
 
       if (!parsedAudios[audioSrc]) {
         parsedAudios[audioSrc] = {
