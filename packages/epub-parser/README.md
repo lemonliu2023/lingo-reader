@@ -269,18 +269,46 @@ const { html, css } = epub.loadChapter(spine[0].id)
 - `Promise<EpubProcessedChapter | undefined>` - Processed chapter content
 
 ```typescript
+// css
 interface EpubCssPart {
   id: string
   href: string
 }
 
+// media-overlay
+interface Par {
+  // element id
+  textDOMId: string
+  // unit: s
+  clipBegin: number
+  clipEnd: number
+}
+interface SmilAudio {
+  audioSrc: string
+  pars: Par[]
+}
+type SmilAudios = SmilAudio[]
+
+// chapter
 interface EpubProcessedChapter {
   css: EpubCssPart[]
   html: string
+  mediaOverlays?: SmilAudios
 }
 ```
 
 In an EPUB ebook file, each chapter is typically an XHTML (or HTML) file. Thus, the processed chapter object consists of two parts: one is the HTML content string under the `<body>` tag, and the other is the CSS. The CSS is parsed from the `<link>` tags in the chapter file and provided here in the form of a blob URL (or as an absolute filesystem path in a Node.js environment), represented by the `href` field in `EpubCssPart`, along with a corresponding `id` for the URL. The CSS blob URL can be directly referenced in a `<link>` tag or fetched via the Fetch API (using the absolute path in Node.js) to obtain the CSS text for further processing.
+
+In EPUB, SMIL files enable read-aloud functionality by mapping segments of an audio track to specific text elements in the document. During playback, the current audio time can be used to locate the corresponding text element and highlight it in the DOM. When processed, a SMIL file is represented in an `EpubProcessedChapter` as the optional `mediaOverlays` property.
+
+- **mediaOverlays** — an array of `SmilAudio` objects
+- **SmilAudio**
+  - **audioSrc**: the path to the audio file
+  - **pars**: an array of `Par` mappings
+- **Par**
+  - **textDOMId**: the ID of the associated text element
+  - **clipBegin**: the start time of the audio segment (in seconds)
+  - **clipEnd**: the end time of the audio segment (in seconds)
 
 Internal chapter navigation in EPUBs is handled through `<a>` tags' `href` attributes. To distinguish internal links from external links and facilitate internal navigation logic, internal links are prefixed with `epub:`. These links can be resolved using the `resolveHref` function. The handling of such links is managed at the UI layer, while `epub-parser` only provides the corresponding chapter HTML and selector functionality.
 

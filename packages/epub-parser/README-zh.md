@@ -225,7 +225,7 @@ const fileInfo = epub.getFileInfo()
 // 加载第一章，html为处理后的html章节字符串，
 // css为章节的css文件，在node中以绝对路径给出，
 // 可以直接读取
-const { html, css } = epub.loadChapter(spine[0].id)
+const { html, css, mediaOverlays } = epub.loadChapter(spine[0].id)
 ```
 
 **参数：**
@@ -237,17 +237,37 @@ const { html, css } = epub.loadChapter(spine[0].id)
 - `Promise<EpubProcessedChapter>`：处理后的章节对象
 
 ```typescript
+// css
 interface EpubCssPart {
   id: string
   href: string
 }
+
+// media-overlay
+interface Par {
+  // element id
+  textDOMId: string
+  // unit: s
+  clipBegin: number
+  clipEnd: number
+}
+interface SmilAudio {
+  audioSrc: string
+  pars: Par[]
+}
+type SmilAudios = SmilAudio[]
+
+// chapter
 interface EpubProcessedChapter {
   css: EpubCssPart[]
   html: string
+  mediaOverlays?: SmilAudios
 }
 ```
 
 在 epub 电子书文件中，一般一个章节是一个 xhtml(or html)文件。因此处理后的章节对象包括两部分，一部分是 body 标签下的 html 正文字符串。另一部分是 css，该 css 从章节文件的 link 标签中解析出来，在此以 blob url 的形式给出（node 环境下是文件系统的绝对路径），即 `EpubCssPart` 中的 `href` 字段，并附带一个该 url 对应的 `id`。css 的 blob url 可以供 link 标签直接引用，也可以通过 fetch api （node 环境下使用绝对路径）来获取 css 文本，然后做进一步的处理。
+
+epub中也可以通过smil文件支持语音朗读功能。在smil文件内部，将语音的时间段与文档元素的id进行绑定，这样在语音播放时就可以监听当前的播放时间，从而寻找到对应文本元素的id，通过dom操作进行高亮。smil文件被处理成了EpubProcessedChapter中的mediaOverlays，其是一个数组，数组项中的audioSrc元素为音频的文件路径，pars为`时间段-文本元素id` 对，textDOMId为元素id，clipBegin和clipEnd分别为起止时间，单位为秒(s)。
 
 epub 内部章节的跳转通过 a 标签的 href，为了将内部跳转链接与外部链接相区分，并方便处理内部跳转逻辑，内部跳转链接在前面会添加一个 `epub:` 前缀。使用下面的 resolveHref 可以解析。对该类链接的处理放在 ui 层，`epub-parser` 只提供返回对应章节的 html 和选择器的功能。
 
