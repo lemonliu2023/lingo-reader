@@ -133,7 +133,7 @@ export interface EpubCssPart {
 export interface EpubProcessedChapter {
   css: EpubCssPart[]
   html: string
-  audios?: SmilAudios
+  mediaOverlays?: SmilAudios
 }
 
 export interface EpubResolvedHref {

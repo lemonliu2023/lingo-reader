@@ -164,7 +164,11 @@ function withMemoize<Args extends any[], Return>(
 }
 
 export function smilTimeToSeconds(timeStr: string): number {
-  // support "h:mm:ss.sss" or "mm:ss.sss"
+  // support "h:mm:ss.sss" , "mm:ss.sss" or  "12.5s"
+  if (timeStr.endsWith('s')) {
+    return Number.parseFloat(timeStr) // "12.5s" case
+  }
+
   const parts = timeStr.split(':').map(Number)
   if (parts.length === 3) {
     const [h, m, s] = parts

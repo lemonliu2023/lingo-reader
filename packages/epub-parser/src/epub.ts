@@ -321,7 +321,7 @@ export class EpubFile implements EBookParser {
         path.dirname(smilHref),
         this.resourceSaveDir,
       )
-      transformed.audios = audios
+      transformed.mediaOverlays = audios
     }
 
     this.chapterCache.set(id, transformed)
