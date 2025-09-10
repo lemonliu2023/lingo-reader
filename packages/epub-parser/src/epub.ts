@@ -1,6 +1,6 @@
 import type { EBookParser, InputFile } from '@lingo-reader/shared'
 import { parsexml, path } from '@lingo-reader/shared'
-import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
+import { existsSync, mkdirSync, readFileSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile, extractEncryptionKeys, prefixMatch, savedResourceMediaTypePrefixes } from './utils'
 import type {
   EncryptionKeys,
@@ -59,6 +59,7 @@ export async function initEpubFile(
 export class EpubFile implements EBookParser {
   private fileName: string = ''
   private mimeType: string = ''
+  private coverImage?: string
   public getFileInfo(): EpubFileInfo {
     return {
       fileName: this.fileName,
@@ -352,6 +353,24 @@ export class EpubFile implements EBookParser {
       id,
       selector,
     }
+  }
+
+  public getCoverImage(): string {
+    if (this.coverImage)
+      return this.coverImage
+    const cover = this.metadata?.metas?.cover
+    if (cover) {
+      const coverMeta = this.manifest?.[cover]
+      if (coverMeta) {
+        const fileName = coverMeta.href.replace(/\//g, '_')
+        const resource = readFileSync(path.resolve(this.resourceSaveDir, fileName))
+        const blob = new Blob([resource], { type: coverMeta.mediaType })
+        const resourceSrc = URL.createObjectURL(blob)
+        this.coverImage = resourceSrc
+        return resourceSrc
+      }
+    }
+    return ''
   }
 
   public destroy() {
