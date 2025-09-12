@@ -55,6 +55,33 @@ function replaceBodyResources(str: string, htmlDir: string, resourceSaveDir: str
     return imgTag
   })
 
+  // add viewBox to svg elements that contain image tags
+  str = str.replace(/<svg[^>]*>[\s\S]*?<\/svg>/g, (svgBlock) => {
+    // check if this svg contains image tags
+    if (svgBlock.includes('<image')) {
+      const svgOpenTag = svgBlock.match(/<svg[^>]*>/)?.[0]
+      if (svgOpenTag && !svgOpenTag.includes('viewBox')) {
+        // try to get dimensions from svg attributes
+        const widthMatch = svgOpenTag.match(/width="([^"]*)"/)
+        const heightMatch = svgOpenTag.match(/height="([^"]*)"/)
+
+        if (widthMatch && heightMatch) {
+          const width = widthMatch[1]
+          const height = heightMatch[1]
+          const viewBox = ` viewBox="0 0 ${width} ${height}"`
+
+          // handle both self-closing and regular svg tags
+          const newSvgTag = svgOpenTag.endsWith('/>')
+            ? svgOpenTag.replace('/>', `${viewBox}/>`)
+            : svgOpenTag.replace('>', `${viewBox}>`)
+
+          svgBlock = svgBlock.replace(svgOpenTag, newSvgTag)
+        }
+      }
+    }
+    return svgBlock
+  })
+
   // a tag href
   str = str.replace(/<a[^>]*>/g, (aTag: string) => {
     const href = aTag.match(/href="([^"]*)"/)?.[1]
