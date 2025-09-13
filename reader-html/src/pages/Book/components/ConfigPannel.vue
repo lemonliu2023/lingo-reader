@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from 'vue'
-import { Config } from '../../../components/Readers/sharedLogic'
+import { useI18n } from 'vue-i18n'
+import type { Config } from '../../../components/Readers/sharedLogic'
 import DropDown from '../../../components/DropDown'
 import ValueAdjuster from '../../../components/ValueAdjuster/ValueAdjuster.vue'
 import { useClickOutside } from '../../../utils'
-import { useI18n } from "vue-i18n"
+
+defineProps<{
+  config: Config[]
+}>()
 
 /**
  * i18n
  */
 const { t } = useI18n()
 
-
-defineProps<{
-  config: Config[]
-}>()
 const showConfigPannel = ref<boolean>(false)
-const tooglePannelShow = () => {
+function tooglePannelShow() {
   showConfigPannel.value = !showConfigPannel.value
 }
 
@@ -24,24 +24,26 @@ const configArea = useTemplateRef('configArea')
 useClickOutside(configArea, () => {
   showConfigPannel.value = false
 })
-
 </script>
 
 <template>
-  <div @click.stop="tooglePannelShow" class="config" ref="configArea">
+  <div ref="configArea" class="config" @click.stop="tooglePannelShow">
     <span class="tag"><img src="/config.svg" alt="config tag"></span>
-    <div @wheel.stop.passive v-show="showConfigPannel" class="config-pannel">
-      <div @click.stop v-if="!config.length" class="pannel-item">
+    <div v-show="showConfigPannel" class="config-pannel" @wheel.stop.passive>
+      <div v-if="!config.length" class="pannel-item" @click.stop>
         There is no configuration items provided by this reading mode.
       </div>
-      <div @click.stop v-for="item in config" class="pannel-item">
+      <div v-for="item in config" :key="item.name" class="pannel-item" @click.stop>
         <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
-        <DropDown v-if="item.type === 'selection'" :key="item.name + '-selection'" :label="t(item.name)"
-          :modes="item.selectOptions" v-model:current-mode-name="item.value" :label-width="150"></DropDown>
+        <DropDown
+          v-if="item.type === 'selection'" v-model:current-mode-name="item.value"
+          :label="t(item.name)" :modes="item.selectOptions" :label-width="150"
+        />
         <!-- @vue-expect-error item.value is a ref, it can be handled by vue -->
-        <ValueAdjuster v-else-if="item.type === 'adjuster'" :key="item.name + '-adjuster'" :label="t(item.name)"
-          :max="item.max" :min="item.min" :delta="item.delta" v-model="item.value" :label-width="150">
-        </ValueAdjuster>
+        <ValueAdjuster
+          v-else-if="item.type === 'adjuster'" v-model="item.value"
+          :label="t(item.name)" :max="item.max" :min="item.min" :delta="item.delta" :label-width="150"
+        />
       </div>
     </div>
   </div>

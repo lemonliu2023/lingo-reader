@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import type { ResolvedHref } from '@lingo-reader/shared'
+import { useI18n } from 'vue-i18n'
 import { useBookStore } from '../../../store'
 import { useDebounce, withPx } from '../../../utils'
 import Resizer from '../../Resizer/Resizer.vue'
@@ -14,23 +16,22 @@ import {
   generatePaddingRightConfig,
   generatePaddingTopConfig,
   generateParaSpacingConfig,
-  handleATagHref
+  handleATagHref,
 } from '../sharedLogic'
-import type { ResolvedHref } from '@lingo-reader/shared'
-import { useI18n } from 'vue-i18n'
+
+const props = defineProps<{
+  selectedTocItem: { id: string, selector: string }
+}>()
+
+const emits = defineEmits<{
+  (e: 'infoDown'): void
+  (event: 'receiveConfig', configList: Config[]): void
+}>()
 
 /**
  * i18n
  */
 const { t } = useI18n()
-
-const emits = defineEmits<{
-  (e: 'info-down'): void
-  (event: 'receiveConfig', configList: Config[]): void
-}>()
-const props = defineProps<{
-  selectedTocItem: { id: string, selector: string }
-}>()
 
 const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const fontSize = ref<number>(16)
@@ -64,7 +65,7 @@ const articleWrapRef = useTemplateRef('articleWrapRef')
  * book
  */
 const bookStore = useBookStore()
-let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
+const { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 
 const currentChapterHTML = ref<string>()
 
@@ -74,7 +75,7 @@ onMounted(async () => {
     // jump to the last read location
     const scrollHeight = articleWrapRef.value!.scrollHeight
     const targetPosition = bookStore.progressInChapter * scrollHeight
-    articleWrapRef.value!.scrollTo({ top: targetPosition });
+    articleWrapRef.value!.scrollTo({ top: targetPosition })
   })
 })
 
@@ -84,7 +85,7 @@ const handleArticleScroll = useDebounce(() => {
   bookStore.progressInChapter = progress
 }, 500)
 
-const skipToChapter = async (newV: ResolvedHref) => {
+async function skipToChapter(newV: ResolvedHref) {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
@@ -101,14 +102,14 @@ watch(() => props.selectedTocItem, skipToChapter)
 // handle a tag href, bind to article element
 const handleATagHrefScrollNote = handleATagHref(resolveHref, skipToChapter)
 
-const prevChapter = async () => {
+async function prevChapter() {
   if (bookStore.chapterIndex > 0) {
     bookStore.chapterIndex--
     currentChapterHTML.value = await getChapterHTML()
     articleWrapRef.value!.scrollTop = 0
   }
 }
-const nextChapter = async () => {
+async function nextChapter() {
   if (bookStore.chapterIndex < chapterNums - 1) {
     bookStore.chapterIndex++
     currentChapterHTML.value = await getChapterHTML()
@@ -120,19 +121,11 @@ const nextChapter = async () => {
  * textarea blur
  */
 let isBlur = false
-const noteBlur = () => {
+function noteBlur() {
   isBlur = true
 }
-const noteFocus = () => {
-  emits('info-down')
-}
-const containerClick = (e: MouseEvent) => {
-  if (isDragging.value || isBlur) {
-    e.stopPropagation()
-  }
-  if (isBlur) {
-    isBlur = false
-  }
+function noteFocus() {
+  emits('infoDown')
 }
 
 /**
@@ -140,7 +133,7 @@ const containerClick = (e: MouseEvent) => {
  */
 // swap button
 const isReverse = ref<boolean>(false)
-const swap = () => {
+function swap() {
   isReverse.value = !isReverse.value
 }
 // resize
@@ -150,48 +143,71 @@ const isDragging = ref<boolean>(false)
 const noteBasis = ref<number>(0)
 const articleBasis = ref<number>(0)
 
-const onMouseMove = (e: MouseEvent) => {
+function containerClick(e: MouseEvent) {
+  if (isDragging.value || isBlur) {
+    e.stopPropagation()
+  }
+  if (isBlur) {
+    isBlur = false
+  }
+}
+
+function onMouseMove(e: MouseEvent) {
   isDragging.value = true
   const delta = e.clientX - startX
   if (isReverse.value) {
     noteBasis.value -= delta * 2
     articleBasis.value += delta * 2
-  } else {
+  }
+  else {
     noteBasis.value += delta * 2
     articleBasis.value -= delta * 2
   }
   startX = e.clientX
 }
-const onMouseUp = () => {
+function onMouseUp() {
   setTimeout(() => {
     isDragging.value = false
   }, 0)
 }
-const onMouseDown = (e: MouseEvent) => {
+function onMouseDown(e: MouseEvent) {
   startX = e.clientX
 }
-
 </script>
 
 <template>
-  <button @click.stop="swap" class="swap-button">{{ t("swap") }}</button>
-  <div :style="{ fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
-    :class="{ 'flex-row-reverse': isReverse }" @click="(e) => containerClick(e)" class="article-container">
+  <button class="swap-button" @click.stop="swap">
+    {{ t("swap") }}
+  </button>
+  <div
+    :style="{ fontSize: withPx(fontSize), letterSpacing: withPx(letterSpacing) }"
+    :class="{ 'flex-row-reverse': isReverse }" class="article-container" @click="(e) => containerClick(e)"
+  >
     <div :style="{ flexBasis: withPx(noteBasis) }" class="note">
-      <textarea @blur="noteBlur" @focus="noteFocus" @click.stop name="note"></textarea>
+      <textarea name="note" @blur="noteBlur" @focus="noteFocus" @click.stop />
     </div>
-    <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
+    <Resizer @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp" />
     <!-- this -->
-    <div :style="{
-      fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft), paddingRight: withPx(textPaddingRight),
-      paddingTop: withPx(textPaddingTop), paddingBottom: withPx(textPaddingBottom),
-      flexBasis: withPx(articleBasis), '--p-spacing': withPx(pSpacing)
-    }" :class="{ 'user-select-none': isDragging }" class="article-wrap" ref="articleWrapRef"
-      @scroll="handleArticleScroll">
-      <button @click.stop="prevChapter" class="button prev-chapter">{{ t('prevChapter') }}</button>
-      <button @click.stop="nextChapter" class="button next-chapter">{{ t('nextChapter') }}</button>
-      <article @click="handleATagHrefScrollNote" class="article-text" v-html="currentChapterHTML">
-      </article>
+    <div
+      ref="articleWrapRef" :style="{
+        fontFamily,
+        lineHeight,
+        'paddingLeft': withPx(textPaddingLeft),
+        'paddingRight': withPx(textPaddingRight),
+        'paddingTop': withPx(textPaddingTop),
+        'paddingBottom': withPx(textPaddingBottom),
+        'flexBasis': withPx(articleBasis),
+        '--p-spacing': withPx(pSpacing),
+      }" :class="{ 'user-select-none': isDragging }" class="article-wrap"
+      @scroll="handleArticleScroll"
+    >
+      <button class="button prev-chapter" @click.stop="prevChapter">
+        {{ t('prevChapter') }}
+      </button>
+      <button class="button next-chapter" @click.stop="nextChapter">
+        {{ t('nextChapter') }}
+      </button>
+      <article class="article-text" @click="handleATagHrefScrollNote" v-html="currentChapterHTML" />
     </div>
   </div>
 </template>

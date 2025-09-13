@@ -222,6 +222,11 @@ describe('parse epubFile in node', async () => {
     expect(resolvedHref).toBeUndefined()
   })
 
+  it('getCoverImage', () => {
+    const coverImage = epub.getCoverImage()
+    expect(coverImage.endsWith('.jpg')).toBe(true)
+  })
+
   it('destroy', () => {
     expect(() => epub.destroy()).not.toThrow()
   })
@@ -302,7 +307,76 @@ describe('parse epubFile in browser', async () => {
     })
   })
 
+  it('getCoverImage', () => {
+    const coverImage = epub2.getCoverImage()
+    expect(coverImage.startsWith('blob')).toBe(true)
+  })
+
   it('destroy', () => {
     expect(() => epub2.destroy()).not.toThrow()
+  })
+})
+
+describe('alice-corner-case.epub in node', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = false
+
+  // alice.epub file path
+  const epub = await initEpubFile('./example/alice-corner-case.epub')
+
+  it('getCoverImage should return ""', () => {
+    const coverImage = epub.getCoverImage()
+    expect(coverImage).toBe('')
+  })
+
+  it('destroy', () => {
+    expect(() => epub.destroy()).not.toThrow()
+  })
+})
+
+describe('alice-corner-case.epub in browser', async () => {
+  // @ts-expect-error __BROWSER__ is for build process
+  globalThis.__BROWSER__ = true
+  let epub: EpubFile
+  beforeAll(async () => {
+    // @ts-expect-error __BROWSER__ is for build process
+    globalThis.__BROWSER__ = true
+
+    const currentDir = path.dirname(fileURLToPath(import.meta.url))
+    const epubPath = path.resolve(currentDir, '../../../example/alice-corner-case.epub')
+    const fileReaderResult = readFileSync(epubPath)
+
+    // simulate FileReader in browser
+    class FileReader {
+      result: any
+      onload = () => { }
+      onerror = () => { }
+      readAsArrayBuffer = () => { }
+      constructor() {
+        this.result = fileReaderResult
+        setTimeout(() => {
+          this.onload()
+        }, 0)
+      }
+    }
+    // @ts-expect-error simulate FileReader in browser
+    globalThis.FileReader = FileReader
+
+    // There is no need to pass real epub uint8array, because the FileReader is simulated
+    epub = await initEpubFile(new Uint8Array())
+  })
+
+  afterAll(() => {
+    // @ts-expect-error simulate FileReader in browser
+    delete globalThis.FileReader
+  })
+
+  it('getCoverImage should return ""', () => {
+    const coverImage = epub.getCoverImage()
+    expect(coverImage).toBe('')
+  })
+
+  it('destroy', () => {
+    expect(() => epub.destroy()).not.toThrow()
   })
 })

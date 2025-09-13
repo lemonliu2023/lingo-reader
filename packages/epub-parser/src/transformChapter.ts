@@ -6,7 +6,7 @@ import { cachedSmilTimeToSeconds, resourceExtensionToMimeType } from './utils'
 
 const browserUrlCache = new Map<string, string>()
 
-function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
+export function getResourceUrl(src: string, htmlDir: string, resourceSaveDir: string) {
   const resourceName = path.joinPosix(htmlDir, src).replace(/\//g, '_')
   let resourceSrc = path.resolve(resourceSaveDir, resourceName)
   if (__BROWSER__) {

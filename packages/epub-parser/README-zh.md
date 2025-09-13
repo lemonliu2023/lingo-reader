@@ -334,6 +334,20 @@ interface NavPoint {
 type EpubToc = NavPoint[]
 ```
 
+### getCoverImage(): string
+
+> 从 **v0.4.1** 开始支持。
+
+返回封面图片的路径
+
+**参数：**
+
+- none
+
+**返回值:**
+
+- `string`：封面图片的路径
+
 ### destroy(): void
 
 用于清除在文件解析过程中创建的 blob url 等，防止内存泄漏。node 环境下会删除对应的文件。

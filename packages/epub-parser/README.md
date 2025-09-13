@@ -384,6 +384,20 @@ interface NavPoint {
 type EpubToc = NavPoint[]
 ```
 
+### getCoverImage(): string
+
+> Supported since **v0.4.1**.
+
+Return the url of cover image.
+
+**Parameters：**
+
+- none
+
+**Returns:**
+
+- `string`：the url of cover image
+
 ### destroy(): void
 
 Cleans up generated resources (like blob URLs) created during file parsing

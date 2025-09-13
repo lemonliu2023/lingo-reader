@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Props } from './ValueAdjuster'
-import { toFixedOne, withPx } from '../../utils'
 import { ref, watch } from 'vue'
+import { toFixedOne, withPx } from '../../utils'
+import type { Props } from './ValueAdjuster'
 
 const props = withDefaults(defineProps<Partial<Props>>(), {
   delta: 1,
@@ -14,37 +14,35 @@ const emits = defineEmits<{
   (event: 'update:modelValue', value: number): void
 }>()
 
+const inputValue = ref<number>(props.modelValue)
+
 watch(() => props.modelValue, (newVal) => {
   inputValue.value = newVal
 })
 
-const inputValue = ref<number>(props.modelValue)
-
-const increase = () => {
+function increase() {
   if (inputValue.value <= props.max - props.delta) {
     inputValue.value = toFixedOne(inputValue.value + props.delta)
     emits('update:modelValue', inputValue.value)
   }
 }
-const decrease = () => {
+function decrease() {
   if (inputValue.value >= props.min + props.delta) {
     inputValue.value = toFixedOne(inputValue.value - props.delta)
     emits('update:modelValue', inputValue.value)
   }
 }
-const handleKeyDown = (e: KeyboardEvent) => {
+function handleKeyDown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
     (e.target as HTMLInputElement).blur()
-  } else {
-    return
   }
 }
-const handleChange = (e: Event) => {
+function handleChange(e: Event) {
   const valueStr = (e.target as HTMLInputElement).value
   if (valueStr.length === 0) {
-    // when value in <input> is 0, then press Backspace key and Enter key, 
-    //  the content in <input> is '', but not '0'. So we could first 
-    //  change inputValue to 1 and afterwards change inputValue to 0 to 
+    // when value in <input> is 0, then press Backspace key and Enter key,
+    //  the content in <input> is '', but not '0'. So we could first
+    //  change inputValue to 1 and afterwards change inputValue to 0 to
     //  trigger a view update.
     inputValue.value = 1
     inputValue.value = 0
@@ -58,11 +56,17 @@ const handleChange = (e: Event) => {
 
 <template>
   <div class="value-adjuster">
-    <span v-if="label" :style="{width: labelWidth && withPx(labelWidth)}" class="label">{{ label + ':' }}</span>
-    <button class="adjust-btn" @click.stop="decrease">-</button>
-    <input :value="inputValue" @wheel.prevent @change="handleChange" @keydown.stop="handleKeyDown" type="number"
-      class="value-display" />
-    <button class="adjust-btn" @click.stop="increase">+</button>
+    <span v-if="label" :style="{ width: labelWidth && withPx(labelWidth) }" class="label">{{ `${label}:` }}</span>
+    <button class="adjust-btn" @click.stop="decrease">
+      -
+    </button>
+    <input
+      :value="inputValue" type="number" class="value-display" @wheel.prevent @change="handleChange"
+      @keydown.stop="handleKeyDown"
+    >
+    <button class="adjust-btn" @click.stop="increase">
+      +
+    </button>
   </div>
 </template>
 
@@ -97,7 +101,7 @@ const handleChange = (e: Event) => {
 
 .value-display {
   flex: 1;
-  /* if not set width to 0, the content html will exceed its parent element area 
+  /* if not set width to 0, the content html will exceed its parent element area
   when the element width is large enough */
   width: 0;
   height: 35px;

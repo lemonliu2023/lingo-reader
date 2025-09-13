@@ -1,8 +1,10 @@
 <script setup lang='ts'>
-import { nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue"
-import { useBookStore } from "../../../store"
-import { useDebounce, useDomSize, withPx } from "../../../utils"
-import Resizer from "../../Resizer/Resizer.vue"
+import { nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+import type { ResolvedHref } from '@lingo-reader/shared'
+import { useI18n } from 'vue-i18n'
+import { useBookStore } from '../../../store'
+import { useDebounce, useDomSize, withPx } from '../../../utils'
+import Resizer from '../../Resizer/Resizer.vue'
 import {
   type Config,
   generateFontFamilyConfig,
@@ -14,23 +16,22 @@ import {
   generatePaddingRightConfig,
   generatePaddingTopConfig,
   generateParaSpacingConfig,
-  handleATagHref
-} from "../sharedLogic"
-import type { ResolvedHref } from "@lingo-reader/shared"
-import { useI18n } from 'vue-i18n'
+  handleATagHref,
+} from '../sharedLogic'
 
-/**
- * i18n
- */
-const { t } = useI18n()
+const props = defineProps<{
+  selectedTocItem: { id: string, selector: string }
+}>()
 
 const emits = defineEmits<{
   (e: 'infoDown'): void
   (event: 'receiveConfig', configList: Config[]): void
 }>()
-const props = defineProps<{
-  selectedTocItem: { id: string, selector: string }
-}>()
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
 
 const fontFamily = ref<string>(`'Lucida Console', Courier, monospace`)
 const fontSize = ref<number>(16)
@@ -59,11 +60,17 @@ onMounted(() => {
 onBeforeUnmount(() => {
   emits('receiveConfig', [])
 })
+
+/**
+ * button positioning
+ */
+const containerRef = useTemplateRef('containerRef')
+const { width: containerWidth } = useDomSize(containerRef)
 /**
  * book
  */
 const bookStore = useBookStore()
-let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
+const { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 const currentChapterHTML = ref<string>()
 onMounted(async () => {
   currentChapterHTML.value = await getChapterHTML()
@@ -71,7 +78,7 @@ onMounted(async () => {
     // jump to the last read location
     const scrollHeight = containerRef.value!.scrollHeight
     const targetPosition = bookStore.progressInChapter * scrollHeight
-    window.scrollTo({ top: targetPosition });
+    window.scrollTo({ top: targetPosition })
     // ??? cannot work, why?
     // containerRef.value!.scrollTop = targetPosition
   })
@@ -88,7 +95,7 @@ onUnmounted(() => {
   window.removeEventListener('scroll', saveReadPos)
 })
 
-const skipToChapter = async (newV: ResolvedHref) => {
+async function skipToChapter(newV: ResolvedHref) {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
   }
@@ -111,14 +118,14 @@ const handleATagHrefScroll = handleATagHref(resolveHref, skipToChapter)
 /**
  * chapter turning
  */
-const prevChapter = async () => {
+async function prevChapter() {
   if (bookStore.chapterIndex > 0) {
     bookStore.chapterIndex--
     currentChapterHTML.value = await getChapterHTML()
     window.scrollTo({ top: 0 })
   }
 }
-const nextChapter = async () => {
+async function nextChapter() {
   if (bookStore.chapterIndex < chapterNums - 1) {
     bookStore.chapterIndex++
     currentChapterHTML.value = await getChapterHTML()
@@ -126,11 +133,6 @@ const nextChapter = async () => {
   }
 }
 
-/**
- * button positioning
- */
-const containerRef = useTemplateRef('containerRef')
-const { width: containerWidth } = useDomSize(containerRef)
 /**
  * move drag bar
  */
@@ -144,11 +146,11 @@ const isDragging = ref<boolean>(false)
 
 let startX = 0
 let dragType = ''
-const barDrag = (type: string, e: MouseEvent) => {
+function barDrag(type: string, e: MouseEvent) {
   startX = e.clientX
   dragType = type
 }
-const onMouseMove = (e: MouseEvent) => {
+function onMouseMove(e: MouseEvent) {
   const delta = e.clientX - startX
   const maxPadding = containerWidth.value - 400
   isDragging.value = true
@@ -157,25 +159,26 @@ const onMouseMove = (e: MouseEvent) => {
   if (dragType === 'left') {
     paddingLeft.value = Math.min(
       Math.max(0, paddingLeft.value + delta),
-      maxPadding - paddingRight.value
-    );
-  } else {
+      maxPadding - paddingRight.value,
+    )
+  }
+  else {
     paddingRight.value = Math.min(
       Math.max(0, paddingRight.value - delta),
-      maxPadding - paddingLeft.value
-    );
+      maxPadding - paddingLeft.value,
+    )
   }
 
-  startX = e.clientX;
+  startX = e.clientX
 }
-const onMouseUp = () => {
+function onMouseUp() {
   setTimeout(() => {
     isDragging.value = false
   }, 0)
 }
-// mouseevent will trigger other's element click event, 
+// mouseevent will trigger other's element click event,
 //  so we need to stop it in this event loop.
-const containerClick = (e: MouseEvent) => {
+function containerClick(e: MouseEvent) {
   if (isDragging.value) {
     e.stopPropagation()
   }
@@ -183,26 +186,34 @@ const containerClick = (e: MouseEvent) => {
 </script>
 
 <template>
-  <div @click="containerClick" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
-    :class="{ 'user-select-none': isDragging }" class="article-container" ref='containerRef'>
-    <button @click.stop="nextChapter" :style="{ left: withPx(containerWidth - paddingRight) }" class="button">
+  <div
+    ref="containerRef" :style="{ paddingLeft: withPx(paddingLeft), paddingRight: withPx(paddingRight) }"
+    :class="{ 'user-select-none': isDragging }" class="article-container" @click="containerClick"
+  >
+    <button :style="{ left: withPx(containerWidth - paddingRight) }" class="button" @click.stop="nextChapter">
       {{ t('nextChapter') }}
     </button>
-    <button @click.stop="prevChapter" :style="{ right: withPx(containerWidth - paddingLeft) }" class="button">
+    <button :style="{ right: withPx(containerWidth - paddingLeft) }" class="button" @click.stop="prevChapter">
       {{ t('prevChapter') }}
     </button>
     <!-- book text -->
-    <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
+    <Resizer @mousedown="(e) => barDrag('left', e)" @mousemove="onMouseMove" @mouseup="onMouseUp" />
 
-    <article @click="handleATagHrefScroll" :style="{
-      fontFamily, lineHeight, paddingLeft: withPx(textPaddingLeft),
-      paddingRight: withPx(textPaddingRight), paddingTop: withPx(textPaddingTop),
-      paddingBottom: withPx(textPaddingBottom), fontSize: withPx(fontSize),
-      letterSpacing: withPx(letterSpacing), '--p-spacing': withPx(pSpacing)
-    }" v-html="currentChapterHTML" class="article-text">
-    </article>
+    <article
+      :style="{
+        fontFamily,
+        lineHeight,
+        'paddingLeft': withPx(textPaddingLeft),
+        'paddingRight': withPx(textPaddingRight),
+        'paddingTop': withPx(textPaddingTop),
+        'paddingBottom': withPx(textPaddingBottom),
+        'fontSize': withPx(fontSize),
+        'letterSpacing': withPx(letterSpacing),
+        '--p-spacing': withPx(pSpacing),
+      }" class="article-text" @click="handleATagHrefScroll" v-html="currentChapterHTML"
+    />
 
-    <Resizer @mousedown="(e) => barDrag('right', e)" @mousemove="onMouseMove" @mouseup="onMouseUp"></Resizer>
+    <Resizer @mousedown="(e) => barDrag('right', e)" @mousemove="onMouseMove" @mouseup="onMouseUp" />
   </div>
 </template>
 
