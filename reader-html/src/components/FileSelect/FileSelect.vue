@@ -2,11 +2,6 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-/**
- * i18n
- */
-const { t } = useI18n()
-
 const { width, height } = defineProps<{
   width?: number
   height?: number
@@ -17,15 +12,20 @@ const emits = defineEmits<{
 }>()
 
 /**
+ * i18n
+ */
+const { t } = useI18n()
+
+/**
  * get file
  */
 // process file, emit fileChange event
-const processFile = (file: File) => {
+function processFile(file: File) {
   emits('fileChange', file)
 }
 
 // select file
-const handleFileChange = (e: Event) => {
+function handleFileChange(e: Event) {
   const target = e.target as HTMLInputElement
   if (target && target.files) {
     const file = target.files[0]
@@ -35,16 +35,16 @@ const handleFileChange = (e: Event) => {
 
 // container drag and drop
 const isDragging = ref(false)
-const handleDragEnter = () => {
+function handleDragEnter() {
   isDragging.value = true
 }
-const handleDragOver = () => {
+function handleDragOver() {
   isDragging.value = true
 }
-const handleDragLeave = () => {
+function handleDragLeave() {
   isDragging.value = false
 }
-const handleDrop = (e: DragEvent) => {
+function handleDrop(e: DragEvent) {
   isDragging.value = false
 
   if (e.dataTransfer && e.dataTransfer.files) {
@@ -52,12 +52,13 @@ const handleDrop = (e: DragEvent) => {
     processFile(file)
   }
 }
-
 </script>
 
 <template>
-  <div @dragenter.prevent="handleDragEnter" @dragover.prevent="handleDragOver" @dragleave.prevent="handleDragLeave"
-    @drop.prevent="handleDrop" :style="{ width: width + 'rem', height: height + 'rem' }" class="file-upload-container">
+  <div
+    :style="{ width: `${width}rem`, height: `${height}rem` }" class="file-upload-container" @dragenter.prevent="handleDragEnter"
+    @dragover.prevent="handleDragOver" @dragleave.prevent="handleDragLeave" @drop.prevent="handleDrop"
+  >
     <!-- drag overlay -->
     <div v-show="isDragging" class="drag-overlay">
       <p>Release the file for parsing</p>
@@ -68,7 +69,7 @@ const handleDrop = (e: DragEvent) => {
       <!-- file select button -->
       <label v-show="!isDragging" for="fileInput" class="file-input-label">{{ t("selectFile") }}</label>
       <!-- hidden file input -->
-      <input @change="handleFileChange" type="file" id="fileInput" class="file-input" accept=".epub,.mobi,.kf8,.azw3,.fb2">
+      <input id="fileInput" type="file" class="file-input" accept=".epub,.mobi,.kf8,.azw3,.fb2" @change="handleFileChange">
     </div>
 
     <!-- file support -->

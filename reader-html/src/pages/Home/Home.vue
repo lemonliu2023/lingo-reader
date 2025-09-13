@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import FileSelect from '../../components/FileSelect/FileSelect.vue'
 import { useRouter } from 'vue-router'
-import { useBookStore } from '../../store'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../../store'
+import FileSelect from '../../components/FileSelect/FileSelect.vue'
+import { useBookStore, useLocaleStore } from '../../store'
 
 const router = useRouter()
 const bookStore = useBookStore()
@@ -19,17 +18,17 @@ const { locale } = useI18n()
  */
 const languageList = [
   'English',
-  '中文'
+  '中文',
 ] as const
 // ensure synchronization with the store
 if (localeStore.currLanguage === '') {
   localeStore.currLanguage = languageList[0]
 }
 const i18Map: Record<string, string> = {
-  'English': 'en',
-  '中文': 'zh'
+  English: 'en',
+  中文: 'zh',
 }
-const selectLanguage = (item: string) => {
+function selectLanguage(item: string) {
   localeStore.currLanguage = item
   if (i18Map[item]) {
     locale.value = i18Map[item]
@@ -39,11 +38,10 @@ const selectLanguage = (item: string) => {
 /**
  * select file
  */
-const processFile = async (file: File) => {
+async function processFile(file: File) {
   await bookStore.initBook(file)
   router.push('/book')
 }
-
 </script>
 
 <template>
@@ -54,10 +52,10 @@ const processFile = async (file: File) => {
       </div>
       <span class="lingo-reader">lingo reader</span>
     </div>
-    <div class="middle"></div>
+    <div class="middle" />
     <div class="right">
       <!-- github -->
-      <a href="https://github.com/hhk-png/lingo-reader" target="_blank" class="github" title="GitHub"></a>
+      <a href="https://github.com/hhk-png/lingo-reader" target="_blank" class="github" title="GitHub" />
       <!-- switch language -->
       <div class="language-selector">
         <span class="curr-language">
@@ -65,7 +63,7 @@ const processFile = async (file: File) => {
         </span>
         <!-- Current Language Display -->
         <div class="language-dropdown">
-          <span v-for="item in languageList" :key="item" @click="selectLanguage(item)" class="language-item">
+          <span v-for="item in languageList" :key="item" class="language-item" @click="selectLanguage(item)">
             {{ item }}
           </span>
         </div>
@@ -73,7 +71,7 @@ const processFile = async (file: File) => {
     </div>
   </header>
   <section class="section">
-    <FileSelect @file-change="processFile"></FileSelect>
+    <FileSelect @file-change="processFile" />
   </section>
 </template>
 
