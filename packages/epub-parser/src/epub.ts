@@ -355,15 +355,21 @@ export class EpubFile implements EBookParser {
   }
 
   public getCoverImage(): string {
+    let imageId = ''
     const coverGuideRef = this.guide.find(ref => ref.type === 'cover')
     if (coverGuideRef) {
-      const imageId = this.resolveHref(coverGuideRef.href)!.id
-      const imageManifest = this.manifest[imageId]
-      // imageManifest.href is an absolute path in zip, so the htmlDir is ''
-      const imageSrc = getResourceUrl(imageManifest.href, '', this.resourceSaveDir)
-      return imageSrc
+      imageId = this.resolveHref(coverGuideRef.href)!.id
     }
-    return ''
+    // compatible some cover image in metadata
+    else if (this.metadata?.metas?.cover) {
+      imageId = this.metadata.metas.cover
+    }
+    else {
+      return ''
+    }
+    const imageManifest = this.manifest[imageId]
+    const imageSrc = getResourceUrl(imageManifest.href, '', this.resourceSaveDir)
+    return imageSrc
   }
 
   public destroy() {
