@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { nextTick, onUnmounted, onUpdated, ref, useTemplateRef, onMounted, onBeforeUnmount, watch } from "vue"
-import { useBookStore } from "../../../store"
+import { nextTick, onBeforeUnmount, onMounted, onUnmounted, onUpdated, ref, useTemplateRef, watch } from 'vue'
+import type { ResolvedHref } from '@lingo-reader/shared'
+import { useI18n } from 'vue-i18n'
+import { useBookStore } from '../../../store'
 import {
   type Config,
   generateAdjusterConfig,
@@ -14,23 +16,22 @@ import {
   generatePaddingTopConfig,
   generateParaSpacingConfig,
   handleATagHref,
-} from "../sharedLogic"
-import { useDebounce, useThrottle, withPx, withPxImportant } from "../../../utils"
-import type { ResolvedHref } from "@lingo-reader/shared"
-import { useI18n } from 'vue-i18n'
+} from '../sharedLogic'
+import { useDebounce, useThrottle, withPx, withPxImportant } from '../../../utils'
 
-/**
- * i18n
- */
-const { t } = useI18n()
+const props = defineProps<{
+  selectedTocItem: { id: string, selector: string }
+}>()
 
 const emits = defineEmits<{
   (event: 'infoDown'): void
   (event: 'receiveConfig', configList: Config[]): void
 }>()
-const props = defineProps<{
-  selectedTocItem: { id: string, selector: string }
-}>()
+
+/**
+ * i18n
+ */
+const { t } = useI18n()
 
 /**
  * configs
@@ -69,8 +70,14 @@ onBeforeUnmount(() => {
  * book
  */
 const bookStore = useBookStore()
-let { chapterNums, getChapterHTML, resolveHref } = useBookStore()
+const { chapterNums, getChapterHTML, resolveHref } = useBookStore()
 const currentChapterHTML = ref<string>('')
+
+// template refs
+const articleRef = useTemplateRef<HTMLElement>('articleRef')
+const delta = ref<number>(0)
+const maxPageIndex = ref<number>(0)
+const index = ref<number>(0)
 
 // load book
 onMounted(async () => {
@@ -81,14 +88,13 @@ onMounted(async () => {
   })
 })
 
-const skipToChapter = async (newV: ResolvedHref) => {
+async function skipToChapter(newV: ResolvedHref) {
   if (newV.id.length > 0) {
     currentChapterHTML.value = await bookStore.getChapterThroughId(newV.id)
     index.value = 0
   }
   if (newV.selector.length > 0) {
-    let timer: ReturnType<typeof setTimeout>
-    timer = setTimeout(() => {
+    const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
       const eleLeft = articleRef.value?.querySelector(newV.selector)?.getBoundingClientRect().left
       if (eleLeft) {
         recaculate()
@@ -105,51 +111,40 @@ watch(() => props.selectedTocItem, skipToChapter)
 // handle a tag href, bind to article element
 const handleATagHrefColumn = handleATagHref(resolveHref, skipToChapter)
 
-onUnmounted(() => {
-  window.removeEventListener('resize', recaculateWithDebounce)
-  document.removeEventListener('wheel', wheelEvent)
-  document.removeEventListener('keydown', keyDownEvent)
-})
-
-// template refs
-const articleRef = useTemplateRef<HTMLElement>('articleRef')
-const delta = ref<number>(0)
-const maxPageIndex = ref<number>(0)
-const index = ref<number>(0)
 watch(index, (newValue) => {
   // save the last read location
   // increasing newValue by 0.5 is to avoid progress decay when switching readers
   bookStore.progressInChapter = (newValue + 0.5) / maxPageIndex.value
 })
 
-const recaculatePage = () => {
-  if (!articleRef.value) return
+function recaculatePage() {
+  if (!articleRef.value)
+    return
 
   const pageWidth = Number.parseFloat(
-    window.getComputedStyle(articleRef.value!).width
+    window.getComputedStyle(articleRef.value!).width,
   ) || 0
   delta.value = pageWidth + columnGap.value
 
   const articleScrollWidth = articleRef.value.scrollWidth
   maxPageIndex.value = Math.floor(articleScrollWidth / pageWidth) - 1
 }
-const recaculateScroll = () => {
+function recaculateScroll() {
   articleRef.value!.scrollTo({
     top: 0,
     left: index.value * delta.value,
   })
 }
-const recaculate = () => {
+function recaculate() {
   recaculatePage()
   recaculateScroll()
 }
 const recaculateWithDebounce = useDebounce(recaculate, 20)
 onUpdated(recaculate)
 onMounted(() => {
-  // the layout of content is not completed in one cycle, 
+  // the layout of content is not completed in one cycle,
   //  so set 100ms timeout to recaculate some ref
-  let timer: ReturnType<typeof setTimeout>
-  timer = setTimeout(() => {
+  const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
     recaculate()
     clearTimeout(timer)
   }, 100)
@@ -157,7 +152,7 @@ onMounted(() => {
 window.addEventListener('resize', recaculateWithDebounce)
 
 // page turning
-const nextPage = async () => {
+async function nextPage() {
   if (index.value >= maxPageIndex.value) {
     if (bookStore.chapterIndex + 1 < chapterNums) {
       bookStore.chapterIndex++
@@ -172,7 +167,7 @@ const nextPage = async () => {
     recaculateScroll()
   }
 }
-const prevPage = async () => {
+async function prevPage() {
   if (index.value <= 0) {
     if (bookStore.chapterIndex - 1 >= 0) {
       bookStore.chapterIndex--
@@ -183,7 +178,8 @@ const prevPage = async () => {
         recaculateScroll()
       })
     }
-  } else {
+  }
+  else {
     index.value--
     recaculateScroll()
   }
@@ -193,7 +189,8 @@ const wheelEvent = useThrottle((e: WheelEvent) => {
   emits('infoDown')
   if (e.deltaY > 0) {
     nextPage()
-  } else {
+  }
+  else {
     prevPage()
   }
 }, 400)
@@ -201,43 +198,60 @@ const keyDownEvent = useDebounce((e: KeyboardEvent) => {
   e.preventDefault()
   if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
     nextPage()
-  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+  }
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
     prevPage()
-  } else {
+  }
+  else {
     return
   }
   emits('infoDown')
 }, 150)
 document.addEventListener('wheel', wheelEvent, { passive: true })
 document.addEventListener('keydown', keyDownEvent)
+
+onUnmounted(() => {
+  window.removeEventListener('resize', recaculateWithDebounce)
+  document.removeEventListener('wheel', wheelEvent)
+  document.removeEventListener('keydown', keyDownEvent)
+})
 </script>
 
 <template>
-  <div class="container" :style="{
-    fontFamily,
-    paddingLeft: withPxImportant(paddingLeft),
-    paddingRight: withPxImportant(paddingRight),
-    paddingTop: withPxImportant(paddingTop),
-    paddingBottom: withPxImportant(paddingBottom),
-  }">
+  <div
+    class="container" :style="{
+      fontFamily,
+      paddingLeft: withPxImportant(paddingLeft),
+      paddingRight: withPxImportant(paddingRight),
+      paddingTop: withPxImportant(paddingTop),
+      paddingBottom: withPxImportant(paddingBottom),
+    }"
+  >
     <!-- nextPage and prevPage button -->
-    <button @click.stop="nextPage" class="next-page-button">{{ t('nextPage') }}</button>
-    <button @click.stop="prevPage" class="prev-page-button">{{ t('prevPage') }}</button>
+    <button class="next-page-button" @click.stop="nextPage">
+      {{ t('nextPage') }}
+    </button>
+    <button class="prev-page-button" @click.stop="prevPage">
+      {{ t('prevPage') }}
+    </button>
     <!-- !!!maybe error -->
     <span class="progress">{{ index + 1 }} / {{ maxPageIndex === -1 ? 1 : maxPageIndex + 1 }}</span>
 
     <!-- text -->
-    <article @click="handleATagHrefColumn" ref="articleRef" class="article" :style="{
-      columns, lineHeight,
-      fontSize: withPxImportant(fontSize),
-      columnGap: withPx(columnGap),
-      letterSpacing: withPx(letterSpacing),
-      '--p-spacing': withPx(pSpacing),
-    }">
-      <div v-html="currentChapterHTML" class="article-text"></div>
+    <article
+      ref="articleRef" class="article" :style="{
+        columns,
+        lineHeight,
+        'fontSize': withPxImportant(fontSize),
+        'columnGap': withPx(columnGap),
+        'letterSpacing': withPx(letterSpacing),
+        '--p-spacing': withPx(pSpacing),
+      }" @click="handleATagHrefColumn"
+    >
+      <div class="article-text" v-html="currentChapterHTML" />
 
       <!-- placeholder for making sure the scrolling logic working as expected -->
-      <div style="width: 100%; height: 100%;"></div>
+      <div style="width: 100%; height: 100%;" />
     </article>
   </div>
 </template>

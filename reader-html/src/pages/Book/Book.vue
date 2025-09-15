@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent, useTemplateRef } from "vue"
-import { useBookStore } from "../../store"
-import { useRouter } from "vue-router"
-import { FlatedTocItem, flatToc, ReaderType } from "./Book"
-import DropDown from "../../components/DropDown"
-import { Config } from "../../components/Readers/sharedLogic"
-import ConfigPannel from "./components/ConfigPannel.vue"
-import { useClickOutside, withPx } from "../../utils"
+import { defineAsyncComponent, ref, useTemplateRef } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useBookStore } from '../../store'
+import DropDown from '../../components/DropDown'
+import type { Config } from '../../components/Readers/sharedLogic'
+import { useClickOutside, withPx } from '../../utils'
+import { ReaderType, flatToc } from './Book'
+import type { FlatedTocItem } from './Book'
+import ConfigPannel from './components/ConfigPannel.vue'
 
 const ColumnReader = defineAsyncComponent(
-  () => import('../../components/Readers/ColumnReader/ColumnReader.vue')
+  () => import('../../components/Readers/ColumnReader/ColumnReader.vue'),
 )
 const ScrollReader = defineAsyncComponent(
-  () => import('../../components/Readers/ScrollReader/ScrollReader.vue')
+  () => import('../../components/Readers/ScrollReader/ScrollReader.vue'),
 )
 const ScrollWithNote = defineAsyncComponent(
-  () => import('../../components/Readers/ScrollWithNote/ScrollWithNote.vue')
+  () => import('../../components/Readers/ScrollWithNote/ScrollWithNote.vue'),
 )
 
 const router = useRouter()
@@ -28,7 +29,7 @@ const { t } = useI18n()
  * info bar show or hide
  */
 const isInfoDown = ref<boolean>(false)
-const back = () => {
+function back() {
   bookStore.reset()
   router.push('/')
 }
@@ -36,7 +37,7 @@ const back = () => {
 //  but we don't want it to be clicked, so we need to prevent it when cancel
 //  the selection.
 let shouldTriggerClick = true
-const infoBarToggle = (e: Event) => {
+function infoBarToggle(e: Event) {
   if (!shouldTriggerClick) {
     shouldTriggerClick = true
     return
@@ -45,17 +46,18 @@ const infoBarToggle = (e: Event) => {
   if (selection.length > 0) {
     e.preventDefault()
     e.stopImmediatePropagation()
-  } else {
+  }
+  else {
     isInfoDown.value = !isInfoDown.value
   }
 }
-const handleMouseDown = () => {
+function handleMouseDown() {
   const selection = window.getSelection()!
   if (selection.toString().length > 0) {
     shouldTriggerClick = false
   }
 }
-const infoBarDown = () => {
+function infoBarDown() {
   isInfoDown.value = false
 }
 
@@ -63,19 +65,19 @@ const infoBarDown = () => {
  * reader switch
  */
 const readerModes = [
-  { name: ReaderType.COLUMN, logo: "column.svg" },
-  { name: ReaderType.SCROLL, logo: "scroll.svg" },
-  { name: ReaderType.SCROLL_WITH_NOTE, logo: "scrollWithNote.svg" },
+  { name: ReaderType.COLUMN, logo: 'column.svg' },
+  { name: ReaderType.SCROLL, logo: 'scroll.svg' },
+  { name: ReaderType.SCROLL_WITH_NOTE, logo: 'scrollWithNote.svg' },
 ]
 const modeName = ref<string>(ReaderType.COLUMN)
 
 /**
  * receive config
  */
-const receiveConfig = (configs: Config[]): void => {
+const currentConfig = ref<Config[]>([])
+function receiveConfig(configs: Config[]): void {
   currentConfig.value = configs
 }
-const currentConfig = ref<Config[]>([])
 
 /**
  * book toc
@@ -83,7 +85,7 @@ const currentConfig = ref<Config[]>([])
 const toc = flatToc(bookStore.getToc()!)
 // toc show or hide
 const showToc = ref<boolean>(false)
-const showTocToggle = () => {
+function showTocToggle() {
   showToc.value = !showToc.value
 }
 const tocUiContent = useTemplateRef<HTMLElement>('tocUiContent')
@@ -92,22 +94,21 @@ useClickOutside(tocUiContent, () => {
 })
 // click toc item
 const selectedTocItem = ref<{ id: string, selector: string }>({ id: '', selector: '' })
-const tocItemClick = (item: FlatedTocItem) => {
+function tocItemClick(item: FlatedTocItem) {
   const resolvedHref = bookStore.resolveHref(item.href)
   if (resolvedHref) {
     selectedTocItem.value = bookStore.resolveHref(item.href)!
   }
   infoBarDown()
 }
-
 </script>
 
 <template>
-  <!-- 
+  <!--
    info bar
    -->
-  <div :class="{ 'top0': isInfoDown, 'topN80': !isInfoDown }" class="top-info-bar">
-    <!-- 
+  <div :class="{ top0: isInfoDown, topN80: !isInfoDown }" class="top-info-bar">
+    <!--
       info bar left
      -->
     <div class="top-info-bar-left">
@@ -116,29 +117,31 @@ const tocItemClick = (item: FlatedTocItem) => {
         <img src="/leftArrow.svg" alt="leftArrow">
         <span>{{ t('back') }}</span>
       </div>
-      <DropDown class="bar-left-dropdown" :modes="readerModes" v-model:current-mode-name="modeName"></DropDown>
+      <DropDown v-model:current-mode-name="modeName" class="bar-left-dropdown" :modes="readerModes" />
       <!-- configPanel -->
-      <ConfigPannel :config="currentConfig"></ConfigPannel>
+      <ConfigPannel :config="currentConfig" />
     </div>
-    <!-- 
+    <!--
       info bar middle
      -->
     <div :title="bookStore.getFileName()" class="top-info-bar-middle text-ellipses">
       {{ bookStore.getFileName() }}
     </div>
-    <!-- 
+    <!--
       info bar right
      -->
     <div class="top-info-bar-right">
       <!-- toc -->
-      <div ref="tocUiContent" @click="showTocToggle" class="toc-tag">
+      <div ref="tocUiContent" class="toc-tag" @click="showTocToggle">
         <img src="/toc.svg" alt="toc">
         <span>{{ t('tableOfContent') }}</span>
       </div>
-      <div :class="{ 'hide-toc': !showToc, }" @wheel.stop.passive class="toc">
+      <div :class="{ 'hide-toc': !showToc }" class="toc" @wheel.stop.passive>
         <ul>
-          <li @click="tocItemClick(item)" v-for="item in toc" :key="item.href"
-            :style="{ paddingLeft: withPx(20 + item.level * 20) }">
+          <li
+            v-for="item in toc" :key="item.href" :style="{ paddingLeft: withPx(20 + item.level * 20) }"
+            @click="tocItemClick(item)"
+          >
             <span>{{ item.label }}</span>
           </li>
         </ul>
@@ -149,15 +152,18 @@ const tocItemClick = (item: FlatedTocItem) => {
     Reader show
    -->
   <div @mousedown="handleMouseDown" @click="infoBarToggle">
-    <ColumnReader v-if="modeName === ReaderType.COLUMN" :selected-toc-item="selectedTocItem"
-      @receive-config="receiveConfig" @info-down="infoBarDown">
-    </ColumnReader>
-    <ScrollReader v-else-if="modeName === ReaderType.SCROLL" :selected-toc-item="selectedTocItem"
-      @receive-config="receiveConfig" @info-down="infoBarDown">
-    </ScrollReader>
-    <ScrollWithNote v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" :selected-toc-item="selectedTocItem"
-      @receive-config="receiveConfig" @info-down="infoBarDown">
-    </ScrollWithNote>
+    <ColumnReader
+      v-if="modeName === ReaderType.COLUMN" :selected-toc-item="selectedTocItem"
+      @receive-config="receiveConfig" @info-down="infoBarDown"
+    />
+    <ScrollReader
+      v-else-if="modeName === ReaderType.SCROLL" :selected-toc-item="selectedTocItem"
+      @receive-config="receiveConfig" @info-down="infoBarDown"
+    />
+    <ScrollWithNote
+      v-else-if="modeName === ReaderType.SCROLL_WITH_NOTE" :selected-toc-item="selectedTocItem"
+      @receive-config="receiveConfig" @info-down="infoBarDown"
+    />
   </div>
 </template>
 

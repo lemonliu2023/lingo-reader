@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue"
-import { useClickOutside, withPx } from "../../utils"
+import { ref, useTemplateRef } from 'vue'
+import { useClickOutside, withPx } from '../../utils'
 
 // Reading mode interface
 export interface Mode {
@@ -14,25 +14,26 @@ const props = defineProps<{
   label?: string
   labelWidth?: number
 }>()
-const currentMode = ref<Mode>(
-  props.modes.find(val => val.name === props.currentModeName)
-  ?? props.modes[0]
-)
-
 const emits = defineEmits<{
   (e: 'update:currentModeName', val: string): void
 }>()
 
+const currentMode = ref<Mode>(
+  props.modes.find(val => val.name === props.currentModeName)
+  ?? props.modes[0],
+)
+
+// Toggle the drop-down menu display
+const isDropdownOpen = ref(false)
+
 // Select the mode and close the menu
-const selectMode = (mode: Mode) => {
+function selectMode(mode: Mode) {
   emits('update:currentModeName', mode.name)
   currentMode.value = mode
   isDropdownOpen.value = false
 }
 
-// Toggle the drop-down menu display
-const isDropdownOpen = ref(false)
-const toggleDropdown = () => {
+function toggleDropdown() {
   isDropdownOpen.value = !isDropdownOpen.value
 }
 
@@ -44,18 +45,18 @@ useClickOutside(dropdownRef, () => {
 </script>
 
 <template>
-  <div class="reading-mode-selector" ref="dropdownRef">
-    <span v-if="label" :style="{ width: labelWidth && withPx(labelWidth) }" class="label">{{ label + ':' }}</span>
+  <div ref="dropdownRef" class="reading-mode-selector">
+    <span v-if="label" :style="{ width: labelWidth && withPx(labelWidth) }" class="label">{{ `${label}:` }}</span>
     <!-- The current mode display area -->
     <div class="dropdown" @click="toggleDropdown">
-      <img v-if="currentMode.logo" :src="currentMode.logo" :alt="currentMode.name + ' Mode'" class="mode-logo" />
+      <img v-if="currentMode.logo" :src="currentMode.logo" :alt="`${currentMode.name} Mode`" class="mode-logo">
       <span class="text-ellipses">{{ currentMode.name }}</span>
-      <i class="arrow" :class="{ 'open': isDropdownOpen }"></i>
+      <i class="arrow" :class="{ open: isDropdownOpen }" />
     </div>
     <!-- drop down menu -->
     <ul v-show="isDropdownOpen" class="dropdown-menu">
       <li v-for="mode in modes" :key="mode.name" class="dropdown-item" @click="selectMode(mode)">
-        <img v-if="mode.logo" :src="mode.logo" :alt="mode.name + ' Mode'" class="mode-logo" />
+        <img v-if="mode.logo" :src="mode.logo" :alt="`${mode.name} Mode`" class="mode-logo">
         <span>{{ mode.name }}</span>
       </li>
     </ul>

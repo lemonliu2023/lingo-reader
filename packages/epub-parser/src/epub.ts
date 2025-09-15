@@ -1,6 +1,6 @@
 import type { EBookParser, InputFile } from '@lingo-reader/shared'
 import { parsexml, path } from '@lingo-reader/shared'
-import { existsSync, mkdirSync, readFileSync, unlink, writeFileSync } from './fsPolyfill'
+import { existsSync, mkdirSync, unlink, writeFileSync } from './fsPolyfill'
 import { type ZipFile, createZipFile, extractEncryptionKeys, prefixMatch, savedResourceMediaTypePrefixes } from './utils'
 import type {
   EncryptionKeys,
@@ -31,7 +31,7 @@ import {
   parsePageList,
   parseSpine,
 } from './parseFiles'
-import { parseSmil, revokeBlobUrls, transformHTML } from './transformChapter'
+import { getResourceUrl, parseSmil, revokeBlobUrls, transformHTML } from './transformChapter'
 import { HREF_PREFIX } from './constant'
 /*
   TODO: parse links in meta-inf/container.xml
@@ -59,7 +59,6 @@ export async function initEpubFile(
 export class EpubFile implements EBookParser {
   private fileName: string = ''
   private mimeType: string = ''
-  private coverImage?: string
   public getFileInfo(): EpubFileInfo {
     return {
       fileName: this.fileName,
@@ -356,19 +355,13 @@ export class EpubFile implements EBookParser {
   }
 
   public getCoverImage(): string {
-    if (this.coverImage)
-      return this.coverImage
-    const cover = this.metadata?.metas?.cover
-    if (cover) {
-      const coverMeta = this.manifest?.[cover]
-      if (coverMeta) {
-        const fileName = coverMeta.href.replace(/\//g, '_')
-        const resource = readFileSync(path.resolve(this.resourceSaveDir, fileName))
-        const blob = new Blob([resource], { type: coverMeta.mediaType })
-        const resourceSrc = URL.createObjectURL(blob)
-        this.coverImage = resourceSrc
-        return resourceSrc
-      }
+    const coverGuideRef = this.guide.find(ref => ref.type === 'cover')
+    if (coverGuideRef) {
+      const imageId = this.resolveHref(coverGuideRef.href)!.id
+      const imageManifest = this.manifest[imageId]
+      // imageManifest.href is an absolute path in zip, so the htmlDir is ''
+      const imageSrc = getResourceUrl(imageManifest.href, '', this.resourceSaveDir)
+      return imageSrc
     }
     return ''
   }
